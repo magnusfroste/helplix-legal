@@ -12,6 +12,7 @@ import {
 } from '@/types/cooper';
 import { useVoice } from '@/hooks/useVoice';
 import { useCooperChat } from '@/hooks/useCooperChat';
+import { useSession } from '@/hooks/useSession';
 import { toast } from 'sonner';
 
 const INITIAL_QUESTION = "Hello! I'm Cooper, your legal documentation assistant. Before we begin, what language would you prefer to communicate in?";
@@ -37,11 +38,53 @@ export default function Index() {
   const { 
     isLoading: isThinking, 
     sendMessage,
-    resetConversation 
+    resetConversation,
+    detectedLanguage
   } = useCooperChat({
     settings,
     onError: (error) => toast.error(error),
   });
+
+  const {
+    currentSessionId,
+    setCurrentSessionId,
+    sessions,
+    createSession,
+    loadLogEntries,
+    addLogEntry,
+    updateSession,
+  } = useSession({
+    onError: (error) => toast.error(error),
+  });
+
+  // Create a new session on first interaction or load the latest one
+  useEffect(() => {
+    const initSession = async () => {
+      if (sessions.length > 0 && !currentSessionId) {
+        // Load the most recent session
+        const latestSession = sessions[0];
+        setCurrentSessionId(latestSession.id);
+        const entries = await loadLogEntries(latestSession.id);
+        if (entries.length > 0) {
+          setLogEntries(entries);
+          setIsFirstInteraction(false);
+          // Get the last question from the entries
+          const lastQuestion = [...entries].reverse().find(e => e.type === 'question');
+          if (lastQuestion) {
+            setCurrentQuestion(lastQuestion.content);
+          }
+        }
+      }
+    };
+    initSession();
+  }, [sessions, currentSessionId, setCurrentSessionId, loadLogEntries]);
+
+  // Update session language when detected
+  useEffect(() => {
+    if (currentSessionId && detectedLanguage) {
+      updateSession(currentSessionId, { language: detectedLanguage });
+    }
+  }, [currentSessionId, detectedLanguage, updateSession]);
 
   // Update status based on voice hook states and AI state
   useEffect(() => {
@@ -58,7 +101,7 @@ export default function Index() {
 
   // Speak the initial question on first load if autoplay is enabled
   useEffect(() => {
-    if (settings.autoplaySpeech && isFirstInteraction && currentQuestion) {
+    if (settings.autoplaySpeech && isFirstInteraction && currentQuestion && logEntries.length === 0) {
       speak(currentQuestion).catch(console.error);
     }
   }, []);
@@ -93,22 +136,34 @@ export default function Index() {
   }, [stopRecording]);
 
   const processUserResponse = useCallback(async (text: string) => {
-    // Add the question and answer to log
-    const questionEntry: LogEntry = {
-      id: crypto.randomUUID(),
+    // Ensure we have a session
+    let sessionId = currentSessionId;
+    if (!sessionId) {
+      try {
+        sessionId = await createSession();
+      } catch (error) {
+        console.error('Failed to create session:', error);
+        return;
+      }
+    }
+
+    // Save question to database
+    const savedQuestion = await addLogEntry(sessionId, {
       type: 'question',
       content: currentQuestion,
-      timestamp: new Date(),
-    };
-    
-    const userEntry: LogEntry = {
-      id: crypto.randomUUID(),
+    });
+
+    // Save answer to database
+    const savedAnswer = await addLogEntry(sessionId, {
       type: 'answer',
       content: text,
-      timestamp: new Date(),
-    };
+    });
+
+    // Update local state
+    if (savedQuestion && savedAnswer) {
+      setLogEntries(prev => [...prev, savedQuestion, savedAnswer]);
+    }
     
-    setLogEntries(prev => [...prev, questionEntry, userEntry]);
     setStatus('thinking');
     
     try {
@@ -131,11 +186,28 @@ export default function Index() {
       console.error('AI response error:', error);
       setStatus('idle');
     }
-  }, [currentQuestion, settings.autoplaySpeech, speak, sendMessage]);
+  }, [currentSessionId, currentQuestion, createSession, addLogEntry, settings.autoplaySpeech, speak, sendMessage]);
 
   const handleTextSubmit = useCallback(async (text: string) => {
     await processUserResponse(text);
   }, [processUserResponse]);
+
+  const handleNewSession = useCallback(async () => {
+    try {
+      await createSession();
+      setLogEntries([]);
+      setCurrentQuestion(INITIAL_QUESTION);
+      setIsFirstInteraction(true);
+      resetConversation();
+      toast.success('New session started');
+      
+      if (settings.autoplaySpeech) {
+        speak(INITIAL_QUESTION).catch(console.error);
+      }
+    } catch (error) {
+      console.error('Failed to start new session:', error);
+    }
+  }, [createSession, resetConversation, settings.autoplaySpeech, speak]);
 
   const renderScreen = () => {
     switch (activeTab) {
