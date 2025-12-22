@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { BottomNavigation, type NavigationTab } from '@/components/cooper/BottomNavigation';
 import { DictaphoneScreen } from '@/components/cooper/DictaphoneScreen';
 import { LogScreen } from '@/components/cooper/LogScreen';
@@ -10,6 +10,7 @@ import {
   type LogEntry,
   type ConversationStatus 
 } from '@/types/cooper';
+import { useVoice } from '@/hooks/useVoice';
 import { toast } from 'sonner';
 
 const INITIAL_QUESTION = "Hello! I'm Cooper, your legal documentation assistant. Before we begin, what language would you prefer to communicate in?";
@@ -22,49 +23,65 @@ export default function Index() {
   const [currentQuestion, setCurrentQuestion] = useState(INITIAL_QUESTION);
   const [isFirstInteraction, setIsFirstInteraction] = useState(true);
 
-  // Recording handlers (mock for now - will integrate with speech-to-text)
-  const handleStartRecording = useCallback(() => {
-    setStatus('listening');
-    toast.info('Recording started...');
+  const { 
+    isRecording, 
+    isTranscribing, 
+    isSpeaking, 
+    startRecording, 
+    stopRecording, 
+    speak, 
+    stopSpeaking 
+  } = useVoice();
+
+  // Update status based on voice hook states
+  useEffect(() => {
+    if (isRecording) {
+      setStatus('listening');
+    } else if (isTranscribing) {
+      setStatus('processing');
+    } else if (isSpeaking) {
+      setStatus('speaking');
+    }
+  }, [isRecording, isTranscribing, isSpeaking]);
+
+  // Speak the initial question on first load if autoplay is enabled
+  useEffect(() => {
+    if (settings.autoplaySpeech && isFirstInteraction && currentQuestion) {
+      speak(currentQuestion).catch(console.error);
+    }
   }, []);
 
-  const handleStopRecording = useCallback(() => {
-    setStatus('processing');
-    toast.info('Processing your response...');
-    
-    // Simulate processing delay
-    setTimeout(() => {
-      // Add mock entries for demonstration
-      const userEntry: LogEntry = {
-        id: crypto.randomUUID(),
-        type: 'answer',
-        content: '[Voice response recorded]',
-        timestamp: new Date(),
-      };
-      
-      setLogEntries(prev => [...prev, 
-        { 
-          id: crypto.randomUUID(), 
-          type: 'question', 
-          content: currentQuestion, 
-          timestamp: new Date() 
-        },
-        userEntry
-      ]);
-      
-      setStatus('thinking');
-      
-      // Simulate AI response
-      setTimeout(() => {
-        setCurrentQuestion("Thank you. Now, can you briefly describe the situation or dispute you need help documenting?");
-        setIsFirstInteraction(false);
-        setStatus('idle');
-      }, 1500);
-    }, 1000);
-  }, [currentQuestion]);
+  const handleStartRecording = useCallback(async () => {
+    try {
+      stopSpeaking(); // Stop any current speech
+      await startRecording();
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      toast.error('Could not access microphone');
+    }
+  }, [startRecording, stopSpeaking]);
 
-  const handleTextSubmit = useCallback((text: string) => {
-    // Add the text response to log
+  const handleStopRecording = useCallback(async () => {
+    try {
+      const transcribedText = await stopRecording();
+      
+      if (!transcribedText.trim()) {
+        toast.error('No speech detected. Please try again.');
+        setStatus('idle');
+        return;
+      }
+
+      // Process the transcribed text
+      await processUserResponse(transcribedText);
+    } catch (error) {
+      console.error('Recording error:', error);
+      toast.error('Failed to process recording');
+      setStatus('idle');
+    }
+  }, [stopRecording]);
+
+  const processUserResponse = useCallback(async (text: string) => {
+    // Add the question and answer to log
     const questionEntry: LogEntry = {
       id: crypto.randomUUID(),
       type: 'question',
@@ -82,13 +99,31 @@ export default function Index() {
     setLogEntries(prev => [...prev, questionEntry, userEntry]);
     setStatus('thinking');
     
-    // Simulate AI response
-    setTimeout(() => {
-      setCurrentQuestion("Thank you for that information. When did this situation first begin? Please give me an approximate date if you can remember.");
+    // TODO: Replace with AI integration
+    // For now, simulate AI response
+    setTimeout(async () => {
+      const nextQuestion = isFirstInteraction 
+        ? `Thank you! I'll communicate in that language. Now, can you briefly describe the situation or dispute you need help documenting?`
+        : "Thank you for that information. When did this situation first begin? Please give me an approximate date if you can remember.";
+      
+      setCurrentQuestion(nextQuestion);
       setIsFirstInteraction(false);
       setStatus('idle');
-    }, 1500);
-  }, [currentQuestion]);
+      
+      // Speak the next question if autoplay is enabled
+      if (settings.autoplaySpeech) {
+        try {
+          await speak(nextQuestion);
+        } catch (error) {
+          console.error('TTS error:', error);
+        }
+      }
+    }, 1000);
+  }, [currentQuestion, isFirstInteraction, settings.autoplaySpeech, speak]);
+
+  const handleTextSubmit = useCallback(async (text: string) => {
+    await processUserResponse(text);
+  }, [processUserResponse]);
 
   const renderScreen = () => {
     switch (activeTab) {
