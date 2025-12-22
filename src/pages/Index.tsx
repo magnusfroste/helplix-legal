@@ -228,9 +228,7 @@ export default function Index() {
         return (
           <ReportScreen 
             entries={logEntries}
-            onPlayReport={() => toast.info('Audio playback coming soon')}
-            onExportPdf={() => toast.info('PDF export coming soon')}
-            onShare={() => toast.info('Share feature coming soon')}
+            onPlayReport={(text) => speak(text).catch(console.error)}
           />
         );
       case 'settings':
