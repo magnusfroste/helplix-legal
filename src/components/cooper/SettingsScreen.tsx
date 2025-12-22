@@ -1,0 +1,159 @@
+import { useState } from 'react';
+import { Save, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
+import { DEFAULT_SETTINGS, type CooperSettings } from '@/types/cooper';
+
+interface SettingsScreenProps {
+  settings: CooperSettings;
+  onSettingsChange: (settings: CooperSettings) => void;
+}
+
+export function SettingsScreen({ settings, onSettingsChange }: SettingsScreenProps) {
+  const [localSettings, setLocalSettings] = useState<CooperSettings>(settings);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const handleChange = <K extends keyof CooperSettings>(
+    key: K,
+    value: CooperSettings[K]
+  ) => {
+    setLocalSettings(prev => ({ ...prev, [key]: value }));
+    setHasChanges(true);
+  };
+
+  const handleSave = () => {
+    onSettingsChange(localSettings);
+    setHasChanges(false);
+    toast.success('Settings saved');
+  };
+
+  const handleReset = () => {
+    setLocalSettings(DEFAULT_SETTINGS);
+    setHasChanges(true);
+    toast.info('Settings reset to defaults');
+  };
+
+  const getIntensityLabel = (value: number) => {
+    if (value < 30) return 'Few questions (open-ended)';
+    if (value < 70) return 'Balanced';
+    return 'Many questions (detailed)';
+  };
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-140px)]">
+      <header className="px-4 py-4 border-b border-border">
+        <h1 className="text-cooper-2xl font-bold text-foreground">
+          Settings
+        </h1>
+      </header>
+
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-8">
+          {/* Question Intensity */}
+          <section className="space-y-4">
+            <div>
+              <Label className="text-cooper-lg font-semibold">
+                Question Intensity
+              </Label>
+              <p className="text-cooper-base text-muted-foreground mt-1">
+                {getIntensityLabel(localSettings.questionIntensity)}
+              </p>
+            </div>
+            
+            <div className="px-2">
+              <Slider
+                value={[localSettings.questionIntensity]}
+                onValueChange={([value]) => handleChange('questionIntensity', value)}
+                max={100}
+                step={10}
+                className="w-full"
+              />
+              <div className="flex justify-between text-sm text-muted-foreground mt-2">
+                <span>Fewer</span>
+                <span>More</span>
+              </div>
+            </div>
+          </section>
+
+          {/* Text Size */}
+          <section className="space-y-4">
+            <Label className="text-cooper-lg font-semibold">
+              Text Size
+            </Label>
+            <div className="flex gap-2">
+              {(['small', 'medium', 'large'] as const).map((size) => (
+                <Button
+                  key={size}
+                  variant={localSettings.textSize === size ? 'default' : 'outline'}
+                  onClick={() => handleChange('textSize', size)}
+                  className="flex-1 capitalize"
+                >
+                  {size}
+                </Button>
+              ))}
+            </div>
+          </section>
+
+          {/* Autoplay Speech */}
+          <section className="flex items-center justify-between">
+            <div>
+              <Label className="text-cooper-lg font-semibold">
+                Autoplay Responses
+              </Label>
+              <p className="text-cooper-base text-muted-foreground">
+                Automatically read Cooper's questions aloud
+              </p>
+            </div>
+            <Switch
+              checked={localSettings.autoplaySpeech}
+              onCheckedChange={(checked) => handleChange('autoplaySpeech', checked)}
+            />
+          </section>
+
+          {/* System Prompt */}
+          <section className="space-y-4">
+            <div>
+              <Label className="text-cooper-lg font-semibold">
+                System Prompt
+              </Label>
+              <p className="text-cooper-base text-muted-foreground">
+                Advanced: Customize Cooper's behavior
+              </p>
+            </div>
+            <Textarea
+              value={localSettings.systemPrompt}
+              onChange={(e) => handleChange('systemPrompt', e.target.value)}
+              className="min-h-[200px] text-sm font-mono"
+              placeholder="Enter system prompt..."
+            />
+          </section>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pb-8">
+            <Button
+              variant="outline"
+              onClick={handleReset}
+              className="flex-1"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={!hasChanges}
+              className="flex-1"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save
+            </Button>
+          </div>
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
