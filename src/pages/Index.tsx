@@ -11,6 +11,7 @@ import {
   type ConversationStatus 
 } from '@/types/cooper';
 import { useVoice } from '@/hooks/useVoice';
+import { useCooperChat } from '@/hooks/useCooperChat';
 import { toast } from 'sonner';
 
 const INITIAL_QUESTION = "Hello! I'm Cooper, your legal documentation assistant. Before we begin, what language would you prefer to communicate in?";
@@ -33,16 +34,27 @@ export default function Index() {
     stopSpeaking 
   } = useVoice();
 
-  // Update status based on voice hook states
+  const { 
+    isLoading: isThinking, 
+    sendMessage,
+    resetConversation 
+  } = useCooperChat({
+    settings,
+    onError: (error) => toast.error(error),
+  });
+
+  // Update status based on voice hook states and AI state
   useEffect(() => {
     if (isRecording) {
       setStatus('listening');
     } else if (isTranscribing) {
       setStatus('processing');
+    } else if (isThinking) {
+      setStatus('thinking');
     } else if (isSpeaking) {
       setStatus('speaking');
     }
-  }, [isRecording, isTranscribing, isSpeaking]);
+  }, [isRecording, isTranscribing, isThinking, isSpeaking]);
 
   // Speak the initial question on first load if autoplay is enabled
   useEffect(() => {
@@ -99,12 +111,9 @@ export default function Index() {
     setLogEntries(prev => [...prev, questionEntry, userEntry]);
     setStatus('thinking');
     
-    // TODO: Replace with AI integration
-    // For now, simulate AI response
-    setTimeout(async () => {
-      const nextQuestion = isFirstInteraction 
-        ? `Thank you! I'll communicate in that language. Now, can you briefly describe the situation or dispute you need help documenting?`
-        : "Thank you for that information. When did this situation first begin? Please give me an approximate date if you can remember.";
+    try {
+      // Get AI response
+      const nextQuestion = await sendMessage(text);
       
       setCurrentQuestion(nextQuestion);
       setIsFirstInteraction(false);
@@ -118,8 +127,11 @@ export default function Index() {
           console.error('TTS error:', error);
         }
       }
-    }, 1000);
-  }, [currentQuestion, isFirstInteraction, settings.autoplaySpeech, speak]);
+    } catch (error) {
+      console.error('AI response error:', error);
+      setStatus('idle');
+    }
+  }, [currentQuestion, settings.autoplaySpeech, speak, sendMessage]);
 
   const handleTextSubmit = useCallback(async (text: string) => {
     await processUserResponse(text);
