@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, RotateCcw } from 'lucide-react';
+import { Save, RotateCcw, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
@@ -18,11 +18,13 @@ import {
 interface SettingsScreenProps {
   settings: CooperSettings;
   onSettingsChange: (settings: CooperSettings) => void;
+  onStartNewSession?: () => void;
 }
 
-export function SettingsScreen({ settings, onSettingsChange }: SettingsScreenProps) {
+export function SettingsScreen({ settings, onSettingsChange, onStartNewSession }: SettingsScreenProps) {
   const [localSettings, setLocalSettings] = useState<CooperSettings>(settings);
   const [hasChanges, setHasChanges] = useState(false);
+  const [countryChanged, setCountryChanged] = useState(false);
 
   const handleChange = <K extends keyof CooperSettings>(
     key: K,
@@ -53,12 +55,24 @@ export function SettingsScreen({ settings, onSettingsChange }: SettingsScreenPro
   const currentCountry = COUNTRIES.find(c => c.code === localSettings.country);
 
   const handleCountryChange = (countryCode: CountryCode) => {
+    const isNewCountry = countryCode !== settings.country;
     setLocalSettings(prev => ({
       ...prev,
       country: countryCode,
       systemPrompt: getSystemPromptForCountry(countryCode),
     }));
     setHasChanges(true);
+    if (isNewCountry) {
+      setCountryChanged(true);
+    }
+  };
+
+  const handleStartNewSession = () => {
+    if (onStartNewSession) {
+      onStartNewSession();
+      setCountryChanged(false);
+      toast.success('New session started with new jurisdiction');
+    }
   };
 
   return (
@@ -94,6 +108,17 @@ export function SettingsScreen({ settings, onSettingsChange }: SettingsScreenPro
                 </Button>
               ))}
             </div>
+
+            {countryChanged && onStartNewSession && (
+              <Button
+                variant="secondary"
+                onClick={handleStartNewSession}
+                className="w-full"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Start new session with {COUNTRIES.find(c => c.code === localSettings.country)?.name}
+              </Button>
+            )}
           </section>
 
           {/* Question Intensity */}
