@@ -194,6 +194,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     isFirstInteraction,
     logEntries,
     audioLevel: voice.audioLevel,
+    currentSessionId: session.currentSessionId,
 
     // Actions
     startRecording,

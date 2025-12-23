@@ -1,20 +1,25 @@
-import { useState, useCallback } from 'react';
-import { FileText, Clock, Download, Share2, Volume2, RefreshCw, Loader2 } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { FileText, Clock, Download, Share2, Volume2, RefreshCw, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { LogEntry } from '@/types/cooper';
 import { toast } from 'sonner';
+import { useReport } from '@/hooks/useReport';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 interface ReportScreenProps {
   entries: LogEntry[];
+  sessionId: string | null;
+  userId?: string;
   onPlayReport?: (text: string) => void;
 }
 
 export function ReportScreen({ 
   entries,
+  sessionId,
+  userId,
   onPlayReport,
 }: ReportScreenProps) {
   const [timelineReport, setTimelineReport] = useState<string | null>(null);
@@ -22,7 +27,27 @@ export function ReportScreen({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingType, setGeneratingType] = useState<string | null>(null);
 
+  const { 
+    report, 
+    isLoading, 
+    isSaving,
+    hasNewEntries, 
+    saveReport 
+  } = useReport({ 
+    sessionId, 
+    userId, 
+    currentEntriesCount: entries.length 
+  });
+
   const hasEntries = entries.length > 0;
+
+  // Load saved report content when report loads
+  useEffect(() => {
+    if (report) {
+      setTimelineReport(report.timeline_report);
+      setLegalReport(report.legal_report);
+    }
+  }, [report]);
 
   const generateReport = useCallback(async (reportType: 'timeline' | 'legal' | 'both') => {
     if (!hasEntries) return;
@@ -58,23 +83,33 @@ export function ReportScreen({
 
       const data = await response.json();
       
+      let newTimeline = timelineReport;
+      let newLegal = legalReport;
+
       if (reportType === 'both') {
         // Split the report into timeline and legal sections
         const parts = data.report.split(/##\s*Legal Overview|##\s*Visão Jurídica|##\s*Resumen Legal/i);
         if (parts.length >= 2) {
-          setTimelineReport(parts[0].trim());
-          setLegalReport('## Legal Overview\n' + parts[1].trim());
+          newTimeline = parts[0].trim();
+          newLegal = '## Legal Overview\n' + parts[1].trim();
         } else {
-          setTimelineReport(data.report);
-          setLegalReport(null);
+          newTimeline = data.report;
+          newLegal = null;
         }
+        setTimelineReport(newTimeline);
+        setLegalReport(newLegal);
       } else if (reportType === 'timeline') {
-        setTimelineReport(data.report);
+        newTimeline = data.report;
+        setTimelineReport(newTimeline);
       } else {
-        setLegalReport(data.report);
+        newLegal = data.report;
+        setLegalReport(newLegal);
       }
 
-      toast.success('Report generated successfully');
+      // Save to database
+      await saveReport(newTimeline, newLegal);
+      
+      toast.success('Rapport genererad och sparad');
     } catch (error) {
       console.error('Report generation error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to generate report');
@@ -82,7 +117,7 @@ export function ReportScreen({
       setIsGenerating(false);
       setGeneratingType(null);
     }
-  }, [entries, hasEntries]);
+  }, [entries, hasEntries, timelineReport, legalReport, saveReport]);
 
   const handleExportPdf = useCallback(() => {
     if (!timelineReport && !legalReport) {
@@ -163,6 +198,15 @@ export function ReportScreen({
     }
   }, [timelineReport, legalReport, onPlayReport]);
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-8 text-center">
+        <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+        <p className="text-cooper-base text-muted-foreground">Laddar rapport...</p>
+      </div>
+    );
+  }
+
   if (!hasEntries) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-8 text-center">
@@ -188,8 +232,41 @@ export function ReportScreen({
         <p className="text-cooper-base text-muted-foreground flex items-center gap-2">
           <Clock className="h-4 w-4" />
           Based on {entries.length} entries
+          {report && (
+            <span className="text-cooper-sm">
+              • Sparad {new Date(report.updated_at).toLocaleDateString('sv-SE')}
+            </span>
+          )}
         </p>
       </header>
+
+      {/* New entries banner */}
+      {hasNewEntries && hasReport && (
+        <div className="px-4 py-3 bg-amber-500/10 border-b border-amber-500/30 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <span className="text-cooper-sm">
+              {entries.length - (report?.entries_count || 0)} nya poster sedan rapporten skapades
+            </span>
+          </div>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => generateReport('both')}
+            disabled={isGenerating}
+            className="shrink-0"
+          >
+            {isGenerating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4 mr-1" />
+                Uppdatera
+              </>
+            )}
+          </Button>
+        </div>
+      )}
 
       {/* Generate Button */}
       {!hasReport && (
@@ -245,6 +322,14 @@ export function ReportScreen({
             <Share2 className="h-5 w-5 mr-2" />
             Share
           </Button>
+        </div>
+      )}
+
+      {/* Saving indicator */}
+      {isSaving && (
+        <div className="px-4 py-2 bg-muted/50 text-cooper-sm text-muted-foreground flex items-center gap-2">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Sparar rapport...
         </div>
       )}
 
