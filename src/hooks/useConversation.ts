@@ -62,9 +62,27 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
 
   const isBusy = useMemo(() => status !== 'idle', [status]);
 
-  // Note: We intentionally don't auto-load old sessions
-  // Each app start shows the country-specific greeting
-  // Users can access old sessions from the Log screen if needed
+  // Load most recent session on mount if user has sessions
+  useEffect(() => {
+    const loadLastSession = async () => {
+      if (userId && session.sessions.length > 0 && !session.currentSessionId) {
+        const lastSession = session.sessions[0]; // Already sorted by updated_at desc
+        session.setCurrentSessionId(lastSession.id);
+        
+        const entries = await session.loadLogEntries(lastSession.id);
+        if (entries.length > 0) {
+          setLogEntries(entries);
+          // Set the last question from AI as current question
+          const lastAIQuestion = [...entries].reverse().find(e => e.type === 'question');
+          if (lastAIQuestion) {
+            setCurrentQuestion(lastAIQuestion.content);
+            setIsFirstInteraction(false);
+          }
+        }
+      }
+    };
+    loadLastSession();
+  }, [userId, session.sessions.length]);
 
   // Sync language to session
   useEffect(() => {
