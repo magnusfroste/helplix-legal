@@ -60,25 +60,9 @@ export function useConversation({ settings }: UseConversationOptions) {
 
   const isBusy = useMemo(() => status !== 'idle', [status]);
 
-  // Initialize session on mount
-  useEffect(() => {
-    const initSession = async () => {
-      if (session.sessions.length > 0 && !session.currentSessionId) {
-        const latestSession = session.sessions[0];
-        session.setCurrentSessionId(latestSession.id);
-        const entries = await session.loadLogEntries(latestSession.id);
-        if (entries.length > 0) {
-          setLogEntries(entries);
-          setIsFirstInteraction(false);
-          const lastQuestion = [...entries].reverse().find(e => e.type === 'question');
-          if (lastQuestion) {
-            setCurrentQuestion(lastQuestion.content);
-          }
-        }
-      }
-    };
-    initSession();
-  }, [session.sessions, session.currentSessionId]);
+  // Note: We intentionally don't auto-load old sessions
+  // Each app start shows the country-specific greeting
+  // Users can access old sessions from the Log screen if needed
 
   // Sync language to session
   useEffect(() => {
