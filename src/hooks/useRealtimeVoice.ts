@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -8,6 +8,8 @@ export function useRealtimeVoice() {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
+  const [isPreloaded, setIsPreloaded] = useState(false);
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -15,13 +17,22 @@ export function useRealtimeVoice() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const preloadedStreamRef = useRef<MediaStream | null>(null);
+  const preloadedAudioContextRef = useRef<AudioContext | null>(null);
 
-  const startRecording = useCallback(async (): Promise<void> => {
+  // Preload microphone access on first user interaction
+  const preloadMicrophone = useCallback(async () => {
+    if (isPreloaded || preloadedStreamRef.current) return;
+    
     try {
-      console.log('Starting recording...');
-      chunksRef.current = [];
+      console.log('Preloading microphone...');
       
-      // Get microphone with specific constraints for better audio capture
+      // Pre-warm AudioContext
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      await audioContext.resume();
+      preloadedAudioContextRef.current = audioContext;
+      
+      // Pre-request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
@@ -31,19 +42,93 @@ export function useRealtimeVoice() {
           sampleRate: 16000,
         } 
       });
+      
+      preloadedStreamRef.current = stream;
+      setIsPreloaded(true);
+      console.log('Microphone preloaded successfully');
+    } catch (error) {
+      console.log('Microphone preload failed (will request on first recording):', error);
+    }
+  }, [isPreloaded]);
+
+  // Preload on first user interaction (touch/click anywhere)
+  useEffect(() => {
+    const handleFirstInteraction = () => {
+      preloadMicrophone();
+      // Remove listeners after first interaction
+      document.removeEventListener('touchstart', handleFirstInteraction);
+      document.removeEventListener('click', handleFirstInteraction);
+    };
+
+    document.addEventListener('touchstart', handleFirstInteraction, { passive: true });
+    document.addEventListener('click', handleFirstInteraction, { passive: true });
+
+    return () => {
+      document.removeEventListener('touchstart', handleFirstInteraction);
+      document.removeEventListener('click', handleFirstInteraction);
+    };
+  }, [preloadMicrophone]);
+
+  // Cleanup preloaded resources on unmount
+  useEffect(() => {
+    return () => {
+      if (preloadedStreamRef.current) {
+        preloadedStreamRef.current.getTracks().forEach(track => track.stop());
+        preloadedStreamRef.current = null;
+      }
+      if (preloadedAudioContextRef.current) {
+        preloadedAudioContextRef.current.close();
+        preloadedAudioContextRef.current = null;
+      }
+    };
+  }, []);
+
+  const startRecording = useCallback(async (): Promise<void> => {
+    try {
+      console.log('Starting recording...');
+      chunksRef.current = [];
+      
+      let stream: MediaStream;
+      let audioContext: AudioContext;
+      
+      // Use preloaded stream if available, otherwise request new one
+      if (preloadedStreamRef.current && preloadedStreamRef.current.active) {
+        console.log('Using preloaded microphone stream');
+        stream = preloadedStreamRef.current;
+        preloadedStreamRef.current = null; // Clear so we request fresh next time
+        
+        // Use preloaded AudioContext or create new one
+        if (preloadedAudioContextRef.current && preloadedAudioContextRef.current.state !== 'closed') {
+          audioContext = preloadedAudioContextRef.current;
+          preloadedAudioContextRef.current = null;
+        } else {
+          audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          await audioContext.resume();
+        }
+      } else {
+        console.log('Requesting new microphone stream');
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+            sampleRate: 16000,
+          } 
+        });
+        
+        audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        await audioContext.resume();
+      }
+      
       streamRef.current = stream;
+      audioContextRef.current = audioContext;
       
       // Verify audio track is active
       const audioTrack = stream.getAudioTracks()[0];
       console.log('Audio track:', audioTrack.label, 'enabled:', audioTrack.enabled, 'muted:', audioTrack.muted);
       
-      if (!audioTrack.enabled || audioTrack.muted) {
-        console.warn('Audio track is disabled or muted!');
-      }
-      
-      // Use AudioContext for real-time audio level monitoring
-      const audioContext = new AudioContext();
-      audioContextRef.current = audioContext;
+      // Setup audio level monitoring
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 256;
@@ -118,6 +203,33 @@ export function useRealtimeVoice() {
       mediaRecorder.start();
       setIsRecording(true);
       console.log('Recording started');
+      
+      // Pre-request a new stream for next recording (in background)
+      setTimeout(async () => {
+        try {
+          if (!preloadedStreamRef.current) {
+            const nextStream = await navigator.mediaDevices.getUserMedia({ 
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+                channelCount: 1,
+                sampleRate: 16000,
+              } 
+            });
+            preloadedStreamRef.current = nextStream;
+            
+            const nextContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            await nextContext.resume();
+            preloadedAudioContextRef.current = nextContext;
+            
+            console.log('Next microphone stream preloaded');
+          }
+        } catch (e) {
+          console.log('Failed to preload next stream:', e);
+        }
+      }, 100);
+      
     } catch (error) {
       console.error('Error starting recording:', error);
       throw error;
@@ -282,7 +394,9 @@ export function useRealtimeVoice() {
     isSpeaking,
     audioLevel,
     isConnected: true,
+    isPreloaded,
     partialTranscript: '',
+    preloadMicrophone,
     startRecording,
     stopRecording,
     speak,
