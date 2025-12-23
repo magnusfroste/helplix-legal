@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import type { CooperSettings } from '@/types/cooper';
+import type { ConversationPhase } from '@/types/phases';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -11,16 +12,18 @@ interface Message {
 
 interface UseCooperChatOptions {
   settings: CooperSettings;
+  currentPhase?: ConversationPhase;
   onResponse?: (response: string) => void;
   onError?: (error: string) => void;
 }
 
-export function useCooperChat({ settings, onResponse, onError }: UseCooperChatOptions) {
+export function useCooperChat({ settings, currentPhase, onResponse, onError }: UseCooperChatOptions) {
   const [isLoading, setIsLoading] = useState(false);
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const messagesRef = useRef<Message[]>([]);
 
-  const sendMessage = useCallback(async (userMessage: string): Promise<string> => {
+  const sendMessage = useCallback(async (userMessage: string, phase?: ConversationPhase): Promise<string> => {
+    const activePhase = phase || currentPhase || 'opening';
     setIsLoading(true);
 
     try {
@@ -59,6 +62,7 @@ export function useCooperChat({ settings, onResponse, onError }: UseCooperChatOp
             questionIntensity: Math.round(settings.questionIntensity / 10), // Convert 0-100 to 1-10
             userLanguage: detectedLanguage,
             country: settings.country,
+            currentPhase: activePhase,
           }),
         }
       );

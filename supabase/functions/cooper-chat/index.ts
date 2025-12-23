@@ -5,6 +5,85 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function getPhaseInstruction(phase: string): string {
+  switch (phase) {
+    case 'opening':
+      return `## CURRENT INTERVIEW PHASE: OPENING
+**Objective:** Let the user tell their story freely
+**Focus on:**
+- Ask open-ended questions like "Can you tell me what happened?"
+- Let the user speak freely without interruption
+- Listen for key themes and parties involved
+- Build trust and rapport
+- Get an overview of the situation`;
+
+    case 'timeline':
+      return `## CURRENT INTERVIEW PHASE: TIMELINE
+**Objective:** Build chronological understanding
+**Focus on:**
+- Ask "When did this start?" and "When did X happen?"
+- Request specific dates, times, or timeframes
+- Build a chronological sequence of events
+- Identify any deadlines or time-sensitive issues
+- Map the progression of the situation`;
+
+    case 'details':
+      return `## CURRENT INTERVIEW PHASE: DETAILS
+**Objective:** Deep dive into specifics
+**Focus on:**
+- Ask "Who was involved?" and "Where did this happen?"
+- Request specific names, titles, and roles
+- Clarify locations and settings
+- Understand the "how" of each event
+- Explore motivations and context`;
+
+    case 'legal':
+      return `## CURRENT INTERVIEW PHASE: LEGAL ASPECTS
+**Objective:** Identify legal issues and frameworks
+**Focus on:**
+- Ask about contracts, agreements, or written terms
+- Identify legal relationships (employer-employee, landlord-tenant, etc.)
+- Explore obligations and rights
+- Look for potential violations or breaches
+- Understand relevant laws and regulations`;
+
+    case 'evidence':
+      return `## CURRENT INTERVIEW PHASE: EVIDENCE
+**Objective:** Gather documentation and witnesses
+**Focus on:**
+- Ask "Do you have any documents related to this?"
+- Request emails, messages, contracts, receipts
+- Identify potential witnesses
+- Look for photos, videos, or recordings
+- Find communication records`;
+
+    case 'impact':
+      return `## CURRENT INTERVIEW PHASE: IMPACT & CONSEQUENCES
+**Objective:** Assess damages and effects
+**Focus on:**
+- Ask "How has this affected you financially?"
+- Explore emotional and psychological impact
+- Identify ongoing consequences
+- Quantify losses where possible
+- Understand future implications`;
+
+    case 'closing':
+      return `## CURRENT INTERVIEW PHASE: CLOSING
+**Objective:** Fill gaps and summarize
+**Focus on:**
+- Review any gaps in the story
+- Ask clarifying questions
+- Confirm key facts
+- Address any missing information
+- Prepare user for report generation`;
+
+    default:
+      return `## CURRENT INTERVIEW PHASE: OPENING
+**Objective:** Gather initial information
+**Focus on:** Understanding the user's situation`;
+  }
+}
+
 interface Message {
   role: "user" | "assistant" | "system";
   content: string;
@@ -16,6 +95,7 @@ interface ChatRequest {
   questionIntensity: number; // 1-10, higher = more detailed questions
   userLanguage?: string;
   country?: string; // Country code for legal context
+  currentPhase?: string; // Current interview phase
 }
 
 serve(async (req) => {
@@ -24,14 +104,14 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, systemPrompt, questionIntensity, userLanguage, country } = await req.json() as ChatRequest;
+    const { messages, systemPrompt, questionIntensity, userLanguage, country, currentPhase } = await req.json() as ChatRequest;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Cooper chat request - messages:", messages.length, "intensity:", questionIntensity, "country:", country);
+    console.log("Cooper chat request - messages:", messages.length, "intensity:", questionIntensity, "country:", country, "phase:", currentPhase);
 
     // Build the enhanced system prompt
     const intensityInstruction = questionIntensity >= 7 
@@ -44,6 +124,8 @@ serve(async (req) => {
       ? `IMPORTANT: Always respond in ${userLanguage}. The user has chosen this language for communication.`
       : "Detect the user's preferred language from their responses and continue in that language.";
 
+    const phaseInstruction = getPhaseInstruction(currentPhase || 'opening');
+
     const fullSystemPrompt = `${systemPrompt}
 
 ## Your Behavior Guidelines:
@@ -52,10 +134,9 @@ serve(async (req) => {
 - Always be empathetic and patient - remember the user may be elderly.
 - Keep your responses concise but warm.
 - After receiving information, acknowledge it briefly and then ask your next question.
-- Focus on building a complete timeline of events.
-- Identify key facts: dates, people involved, locations, documents.
-- If something is unclear, ask for clarification before moving on.
 - Never provide legal advice - only gather information for documentation.
+
+${phaseInstruction}
 
 ## Response Format:
 - Respond with your next question directly.

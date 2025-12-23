@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { CooperSettings, LogEntry, ConversationStatus } from '@/types/cooper';
 import { COUNTRIES } from '@/types/cooper';
+import type { ConversationPhase, PhaseProgress } from '@/types/phases';
+import { shouldTransitionPhase, getNextPhase } from '@/types/phases';
 import { useRealtimeVoice } from './useRealtimeVoice';
 import { useCooperChat } from './useCooperChat';
 import { useSession } from './useSession';
@@ -28,6 +30,15 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(initialQuestion);
   const [isFirstInteraction, setIsFirstInteraction] = useState(true);
+  
+  // Phase tracking state
+  const [phaseProgress, setPhaseProgress] = useState<PhaseProgress>({
+    currentPhase: 'opening',
+    questionsInPhase: 0,
+    coveredTopics: new Set<string>(),
+    missingInfo: [],
+    phaseHistory: ['opening']
+  });
 
   // Update current question when country/initialQuestion changes
   useEffect(() => {
