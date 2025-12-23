@@ -237,7 +237,7 @@ export default function Index() {
             entries={conversation.logEntries}
             sessionId={conversation.currentSessionId}
             userId={auth.user?.id}
-            country={settings.country || undefined}
+            country={settings.country}
             language={settings.country ? COUNTRIES.find(c => c.code === settings.country)?.language : undefined}
             onPlayReport={(text) => conversation.speak(text).catch(console.error)}
             onStopReport={conversation.stopSpeaking}

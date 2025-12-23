@@ -2,9 +2,10 @@ import { useState, useCallback, useEffect } from 'react';
 import { FileText, Clock, Download, Share2, Volume2, VolumeX, RefreshCw, Loader2, AlertTriangle, Scale } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { LogEntry } from '@/types/cooper';
+import type { LogEntry, CountryCode } from '@/types/cooper';
 import { toast } from 'sonner';
 import { useReport } from '@/hooks/useReport';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -13,7 +14,7 @@ interface ReportScreenProps {
   entries: LogEntry[];
   sessionId: string | null;
   userId?: string;
-  country?: string;
+  country?: CountryCode;
   language?: string;
   onPlayReport?: (text: string) => void;
   onStopReport?: () => void;
@@ -30,6 +31,7 @@ export function ReportScreen({
   onStopReport,
   isPlaying = false,
 }: ReportScreenProps) {
+  const t = useTranslation(country || null);
   const [timelineReport, setTimelineReport] = useState<string | null>(null);
   const [legalReport, setLegalReport] = useState<string | null>(null);
   const [interpretationReport, setInterpretationReport] = useState<string | null>(null);
@@ -195,7 +197,7 @@ export function ReportScreen({
       // Save to database
       await saveReport(newTimeline, newLegal, newInterpretation);
       
-      toast.success('Report generated and saved');
+      toast.success(t.report.toast.generated);
     } catch (error) {
       console.error('Report generation error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to generate report');
@@ -294,7 +296,7 @@ export function ReportScreen({
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-8 text-center">
         <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
-        <p className="text-cooper-base text-muted-foreground">Loading report...</p>
+        <p className="text-cooper-base text-muted-foreground">{t.report.loading}</p>
       </div>
     );
   }
@@ -304,7 +306,7 @@ export function ReportScreen({
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-8 text-center">
         <FileText className="h-16 w-16 text-muted-foreground/50 mb-4" />
         <h2 className="text-cooper-xl font-semibold text-foreground mb-2">
-          No report yet
+          {t.report.noReport}
         </h2>
         <p className="text-cooper-base text-muted-foreground">
           Complete a conversation with Cooper to generate your case report.
@@ -320,7 +322,7 @@ export function ReportScreen({
       <header className="px-3 py-2 border-b border-border">
         <div className="flex items-center justify-between">
           <h1 className="text-cooper-lg font-bold text-foreground">
-            Report
+            {t.report.title}
           </h1>
           {report && (
             <span className="text-cooper-sm text-muted-foreground">
@@ -330,7 +332,7 @@ export function ReportScreen({
         </div>
         <p className="text-cooper-sm text-muted-foreground flex items-center gap-1">
           <Clock className="h-3 w-3" />
-          {entries.length} entries
+          {entries.length} {t.report.entries}
         </p>
       </header>
 
@@ -340,7 +342,7 @@ export function ReportScreen({
           <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 min-w-0">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
             <span className="text-cooper-sm truncate">
-              +{entries.length - (report?.entries_count || 0)} new entries
+              +{entries.length - (report?.entries_count || 0)} {t.report.newEntries}
             </span>
           </div>
           <Button 
@@ -355,7 +357,7 @@ export function ReportScreen({
             ) : (
               <>
                 <RefreshCw className="h-3.5 w-3.5 mr-1" />
-                Update
+                {t.report.update}
               </>
             )}
           </Button>
@@ -373,12 +375,12 @@ export function ReportScreen({
           {isGenerating ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Generating...
+              {t.report.generating}
             </>
           ) : (
             <>
               <FileText className="h-4 w-4 mr-2" />
-              {hasReport ? 'Regenerate report' : 'Generate report'}
+              {hasReport ? t.report.regenerate : t.report.generate}
             </>
           )}
         </Button>
@@ -398,7 +400,7 @@ export function ReportScreen({
             ) : (
               <Volume2 className="h-4 w-4 sm:mr-2" />
             )}
-            <span className="hidden sm:inline">{isPlaying ? 'Stop' : 'Listen'}</span>
+            <span className="hidden sm:inline">{isPlaying ? t.report.stop : t.report.listen}</span>
           </Button>
           <Button 
             variant="outline" 
@@ -416,7 +418,7 @@ export function ReportScreen({
             onClick={handleShare}
           >
             <Share2 className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Share</span>
+            <span className="hidden sm:inline">{t.report.share}</span>
           </Button>
         </div>
       )}
@@ -425,7 +427,7 @@ export function ReportScreen({
       {isSaving && (
         <div className="px-3 py-1.5 bg-muted/50 text-cooper-sm text-muted-foreground flex items-center gap-2">
           <Loader2 className="h-3 w-3 animate-spin" />
-          Saving...
+          {t.report.saving}
         </div>
       )}
 
@@ -435,7 +437,7 @@ export function ReportScreen({
           <section className="w-full">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-cooper-base font-semibold text-foreground">
-                Timeline
+                {t.report.timeline.title}
               </h2>
               {timelineReport && (
                 <Button 
@@ -453,7 +455,7 @@ export function ReportScreen({
               {isGenerating && generatingType === 'timeline' ? (
                 <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Generating timeline...
+                  {t.report.timeline.generating}
                 </div>
               ) : timelineReport ? (
                 <div className="text-foreground w-full" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
@@ -461,7 +463,7 @@ export function ReportScreen({
                 </div>
               ) : (
                 <p className="text-cooper-sm text-muted-foreground italic">
-                  Click "Generate report" to create a chronological summary.
+                  {t.report.timeline.placeholder}
                 </p>
               )}
             </div>
@@ -471,7 +473,7 @@ export function ReportScreen({
           <section className="w-full">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-cooper-base font-semibold text-foreground">
-                Legal Overview
+                {t.report.legal.title}
               </h2>
               {legalReport && (
                 <Button 
@@ -489,7 +491,7 @@ export function ReportScreen({
               {isGenerating && generatingType === 'legal' ? (
                 <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Generating legal overview...
+                  {t.report.legal.generating}
                 </div>
               ) : legalReport ? (
                 <div className="text-foreground w-full" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
@@ -497,7 +499,7 @@ export function ReportScreen({
                 </div>
               ) : (
                 <p className="text-cooper-sm text-muted-foreground italic">
-                  Click "Generate report" to identify potential legal issues.
+                  {t.report.legal.placeholder}
                 </p>
               )}
             </div>
@@ -509,7 +511,7 @@ export function ReportScreen({
               <div className="flex items-center gap-2">
                 <Scale className="h-4 w-4 text-primary" />
                 <h2 className="text-cooper-base font-semibold text-foreground">
-                  Legal Interpretation
+                  {t.report.interpretation.title}
                 </h2>
               </div>
               {interpretationReport && (
@@ -530,9 +532,7 @@ export function ReportScreen({
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <p className="text-cooper-xs text-amber-700 dark:text-amber-300 leading-relaxed">
-                  <strong>DISCLAIMER:</strong> This is an AI-generated analysis for educational and informational purposes only. 
-                  The content does NOT constitute legal advice and may contain inaccuracies. 
-                  Always consult with a licensed attorney.
+                  {t.report.interpretation.disclaimer}
                 </p>
               </div>
             </div>
@@ -541,7 +541,7 @@ export function ReportScreen({
               {isGenerating && (generatingType === 'interpretation' || generatingType === 'all') ? (
                 <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Generating legal interpretation...
+                  {t.report.interpretation.generating}
                 </div>
               ) : interpretationReport ? (
                 <div className="text-foreground w-full" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
@@ -549,7 +549,7 @@ export function ReportScreen({
                 </div>
               ) : (
                 <p className="text-cooper-sm text-muted-foreground italic">
-                  Click "Generate report" to get an AI-generated legal interpretation of the case.
+                  {t.report.interpretation.placeholder}
                 </p>
               )}
             </div>

@@ -14,6 +14,7 @@ import {
   type CooperSettings, 
   type CountryCode 
 } from '@/types/cooper';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface SettingsScreenProps {
   settings: CooperSettings;
@@ -23,6 +24,7 @@ interface SettingsScreenProps {
 }
 
 export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, onLogout }: SettingsScreenProps) {
+  const t = useTranslation(settings.country);
   const [localSettings, setLocalSettings] = useState<CooperSettings>(settings);
   const [hasChanges, setHasChanges] = useState(false);
   const [countryChanged, setCountryChanged] = useState(false);
@@ -38,19 +40,19 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
   const handleSave = () => {
     onSettingsChange(localSettings);
     setHasChanges(false);
-    toast.success('Settings saved');
+    toast.success(t.settings.toast.saved);
   };
 
   const handleReset = () => {
     setLocalSettings(DEFAULT_SETTINGS);
     setHasChanges(true);
-    toast.info('Settings reset to defaults');
+    toast.info(t.settings.toast.reset);
   };
 
   const getIntensityLabel = (value: number) => {
-    if (value < 30) return 'Few questions (open-ended)';
-    if (value < 70) return 'Balanced';
-    return 'Many questions (detailed)';
+    if (value < 30) return t.settings.questionIntensity.low;
+    if (value < 70) return t.settings.questionIntensity.medium;
+    return t.settings.questionIntensity.high;
   };
 
   const currentCountry = COUNTRIES.find(c => c.code === localSettings.country);
@@ -72,7 +74,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
     if (onStartNewSession) {
       onStartNewSession();
       setCountryChanged(false);
-      toast.success('New session started with new jurisdiction');
+      toast.success(t.settings.toast.newSession);
     }
   };
 
@@ -80,7 +82,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
     <div className="flex flex-col h-[calc(100vh-140px)]">
       <header className="px-4 py-4 border-b border-border">
         <h1 className="text-cooper-2xl font-bold text-foreground">
-          Settings
+          {t.settings.title}
         </h1>
       </header>
 
@@ -90,10 +92,10 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           <section className="space-y-4">
             <div>
               <Label className="text-cooper-lg font-semibold">
-                Country / Legal System
+                {t.settings.country.title}
               </Label>
               <p className="text-cooper-base text-muted-foreground mt-1">
-                {currentCountry ? `${currentCountry.flag} ${currentCountry.name}` : 'Select a country'}
+                {currentCountry ? `${currentCountry.flag} ${currentCountry.name}` : t.settings.country.select}
               </p>
             </div>
             
@@ -117,7 +119,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
                 className="w-full"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Start new session with {COUNTRIES.find(c => c.code === localSettings.country)?.name}
+                {t.settings.country.startNew} {COUNTRIES.find(c => c.code === localSettings.country)?.name}
               </Button>
             )}
           </section>
@@ -126,7 +128,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           <section className="space-y-4">
             <div>
               <Label className="text-cooper-lg font-semibold">
-                Question Intensity
+                {t.settings.questionIntensity.title}
               </Label>
               <p className="text-cooper-base text-muted-foreground mt-1">
                 {getIntensityLabel(localSettings.questionIntensity)}
@@ -142,8 +144,8 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
                 className="w-full"
               />
               <div className="flex justify-between text-sm text-muted-foreground mt-2">
-                <span>Fewer</span>
-                <span>More</span>
+                <span>{t.settings.questionIntensity.fewer}</span>
+                <span>{t.settings.questionIntensity.more}</span>
               </div>
             </div>
           </section>
@@ -151,7 +153,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           {/* Text Size */}
           <section className="space-y-4">
             <Label className="text-cooper-lg font-semibold">
-              Text Size
+              {t.settings.textSize.title}
             </Label>
             <div className="flex gap-2">
               {(['small', 'medium', 'large'] as const).map((size) => (
@@ -161,7 +163,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
                   onClick={() => handleChange('textSize', size)}
                   className="flex-1 capitalize"
                 >
-                  {size}
+                  {size === 'small' ? t.settings.textSize.small : size === 'medium' ? t.settings.textSize.medium : t.settings.textSize.large}
                 </Button>
               ))}
             </div>
@@ -170,7 +172,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           {/* Button Size */}
           <section className="space-y-4">
             <Label className="text-cooper-lg font-semibold">
-              Speak Button Size
+              {t.settings.buttonSize.title}
             </Label>
             <div className="flex gap-2">
               {(['small', 'large'] as const).map((size) => (
@@ -180,7 +182,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
                   onClick={() => handleChange('buttonSize', size)}
                   className="flex-1 capitalize"
                 >
-                  {size}
+                  {size === 'small' ? t.settings.buttonSize.small : t.settings.buttonSize.large}
                 </Button>
               ))}
             </div>
@@ -190,10 +192,10 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           <section className="flex items-center justify-between">
             <div>
               <Label className="text-cooper-lg font-semibold">
-                Audio Mode
+                {t.settings.tts.title}
               </Label>
               <p className="text-cooper-base text-muted-foreground">
-                Enable text-to-speech for Cooper's responses
+                {t.settings.tts.description}
               </p>
             </div>
             <Switch
@@ -206,10 +208,10 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           <section className="flex items-center justify-between">
             <div>
               <Label className="text-cooper-lg font-semibold">
-                Speech-to-Text
+                {t.settings.stt.title}
               </Label>
               <p className="text-cooper-base text-muted-foreground">
-                Enable voice input for your responses
+                {t.settings.stt.description}
               </p>
             </div>
             <Switch
@@ -222,10 +224,10 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           <section className="flex items-center justify-between">
             <div>
               <Label className="text-cooper-lg font-semibold">
-                Autoplay Responses
+                {t.settings.autoplay.title}
               </Label>
               <p className="text-cooper-base text-muted-foreground">
-                Automatically read Cooper's questions aloud
+                {t.settings.autoplay.description}
               </p>
             </div>
             <Switch
@@ -239,10 +241,10 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           <section className="space-y-4">
             <div>
               <Label className="text-cooper-lg font-semibold">
-                System Prompt
+                {t.settings.systemPrompt.title}
               </Label>
               <p className="text-cooper-base text-muted-foreground">
-                Advanced: Customize Cooper's behavior
+                {t.settings.systemPrompt.description}
               </p>
             </div>
             <Textarea
@@ -259,12 +261,12 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
               variant="ghost"
               onClick={() => {
                 onSettingsChange({ ...localSettings, country: null });
-                toast.info('Returning to country selection...');
+                toast.info(t.settings.toast.returning);
               }}
               className="w-full text-muted-foreground hover:text-foreground"
             >
               <Globe className="h-4 w-4 mr-2" />
-              Change jurisdiction
+              {t.settings.changeJurisdiction}
             </Button>
           </section>
 
@@ -277,7 +279,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
                 className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                Log out
+                {t.settings.logout}
               </Button>
             </section>
           )}
@@ -290,7 +292,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
               className="flex-1"
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reset
+              {t.settings.reset}
             </Button>
             <Button
               onClick={handleSave}
@@ -298,7 +300,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
               className="flex-1"
             >
               <Save className="h-4 w-4 mr-2" />
-              Save
+              {t.settings.save}
             </Button>
           </div>
         </div>
