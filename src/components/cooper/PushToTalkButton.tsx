@@ -1,5 +1,6 @@
 import { Mic, Square, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState, useRef } from 'react';
 import type { ConversationStatus } from '@/types/cooper';
 
 interface PushToTalkButtonProps {
@@ -15,12 +16,41 @@ export function PushToTalkButton({
   onStopRecording,
   disabled = false,
 }: PushToTalkButtonProps) {
+  const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
+  const rippleIdRef = useRef(0);
+  
   const isRecording = status === 'listening';
   const isProcessing = status === 'processing' || status === 'thinking';
   const isSpeaking = status === 'speaking';
   
-  const handlePress = () => {
+  const createRipple = (e: React.MouseEvent | React.TouchEvent) => {
+    const button = e.currentTarget as HTMLButtonElement;
+    const rect = button.getBoundingClientRect();
+    
+    let clientX: number, clientY: number;
+    if ('touches' in e) {
+      clientX = e.touches[0]?.clientX ?? rect.left + rect.width / 2;
+      clientY = e.touches[0]?.clientY ?? rect.top + rect.height / 2;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    
+    const x = clientX - rect.left - rect.width / 2;
+    const y = clientY - rect.top - rect.height / 2;
+    
+    const id = rippleIdRef.current++;
+    setRipples(prev => [...prev, { id, x, y }]);
+    
+    setTimeout(() => {
+      setRipples(prev => prev.filter(r => r.id !== id));
+    }, 600);
+  };
+  
+  const handlePress = (e: React.MouseEvent | React.TouchEvent) => {
     if (disabled || isProcessing || isSpeaking) return;
+    
+    createRipple(e);
     
     if (isRecording) {
       onStopRecording();
@@ -72,13 +102,10 @@ export function PushToTalkButton({
       <button
         type="button"
         onClick={handlePress}
-        onTouchEnd={(e) => {
-          e.preventDefault();
-          handlePress();
-        }}
+        onTouchStart={handlePress}
         disabled={disabled || isProcessing}
         className={cn(
-          "w-32 h-32 rounded-full flex items-center justify-center",
+          "w-32 h-32 rounded-full flex items-center justify-center relative overflow-hidden",
           "text-primary-foreground shadow-lg transition-all duration-200",
           "focus:outline-none focus-visible:ring-4 focus-visible:ring-ring focus-visible:ring-offset-4",
           "disabled:opacity-50 disabled:cursor-not-allowed",
@@ -88,6 +115,20 @@ export function PushToTalkButton({
         style={{ WebkitTapHighlightColor: 'transparent' }}
         aria-label={isRecording ? "Stop recording" : "Start recording"}
       >
+        {/* Ripple effects */}
+        {ripples.map(ripple => (
+          <span
+            key={ripple.id}
+            className="absolute rounded-full bg-white/30 animate-ripple pointer-events-none"
+            style={{
+              left: ripple.x,
+              top: ripple.y,
+              width: 20,
+              height: 20,
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+        ))}
         {getIcon()}
       </button>
       
