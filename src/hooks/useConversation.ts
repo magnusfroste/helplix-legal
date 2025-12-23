@@ -114,14 +114,30 @@ export function useConversation({ settings }: UseConversationOptions) {
   }, []);
 
   const stopRecording = useCallback(async () => {
+    // Optimistic UI: Show placeholder immediately
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimisticEntry: LogEntry = {
+      id: optimisticId,
+      type: 'answer',
+      content: '...',
+      timestamp: new Date(),
+    };
+    setLogEntries(prev => [...prev, optimisticEntry]);
+
     try {
       const text = await voice.stopRecording();
+      
+      // Remove optimistic entry
+      setLogEntries(prev => prev.filter(e => e.id !== optimisticId));
+      
       if (!text.trim()) {
         toast.error('No speech detected');
         return;
       }
       await processResponse(text);
     } catch {
+      // Remove optimistic entry on error
+      setLogEntries(prev => prev.filter(e => e.id !== optimisticId));
       toast.error('Failed to process recording');
     }
   }, [processResponse]);
