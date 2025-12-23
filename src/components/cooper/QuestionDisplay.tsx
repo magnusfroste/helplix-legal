@@ -28,9 +28,9 @@ export function QuestionDisplay({
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 px-2 animate-fade-in">
+    <div className="flex flex-col items-center gap-3 px-1 animate-fade-in w-full">
       <p className={cn(
-        "font-medium text-foreground leading-relaxed text-center transition-all duration-300",
+        "font-medium text-foreground leading-snug text-center transition-all duration-300",
         getTextSizeClass()
       )}>
         {question}
@@ -40,14 +40,14 @@ export function QuestionDisplay({
         <button
           onClick={onTypeResponse}
           className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-full",
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-full",
             "bg-secondary text-secondary-foreground",
             "hover:bg-secondary/80 transition-colors",
-            "text-cooper-base"
+            "text-sm"
           )}
         >
-          <Keyboard className="h-5 w-5" />
-          <span>Type response instead</span>
+          <Keyboard className="h-4 w-4" />
+          <span>Type instead</span>
         </button>
       )}
     </div>
