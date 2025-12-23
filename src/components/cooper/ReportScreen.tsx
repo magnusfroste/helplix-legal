@@ -414,6 +414,14 @@ export function ReportScreen({
   );
 }
 
+// Helper to render inline bold markdown
+function renderInlineBold(text: string): React.ReactNode[] {
+  const parts = text.split(/\*\*(.*?)\*\*/g);
+  return parts.map((part, i) => 
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+  );
+}
+
 // Simple markdown renderer component
 function MarkdownRenderer({ content }: { content: string }) {
   const lines = content.split('\n');
@@ -424,9 +432,11 @@ function MarkdownRenderer({ content }: { content: string }) {
   const flushList = () => {
     if (currentList.length > 0) {
       elements.push(
-        <ul key={`list-${listKey++}`} className="list-disc pl-4 space-y-1 my-2">
+        <ul key={`list-${listKey++}`} className="list-disc pl-4 space-y-1.5 my-2">
           {currentList.map((item, i) => (
-            <li key={i} className="text-cooper-sm break-words">{item}</li>
+            <li key={i} className="text-cooper-sm break-words leading-relaxed">
+              {renderInlineBold(item)}
+            </li>
           ))}
         </ul>
       );
@@ -441,17 +451,17 @@ function MarkdownRenderer({ content }: { content: string }) {
       flushList();
       elements.push(
         <h2 key={index} className="text-cooper-base font-semibold mt-3 mb-1.5 break-words">
-          {trimmed.slice(3)}
+          {renderInlineBold(trimmed.slice(3))}
         </h2>
       );
     } else if (trimmed.startsWith('### ')) {
       flushList();
       elements.push(
         <h3 key={index} className="text-cooper-sm font-semibold mt-2 mb-1 break-words">
-          {trimmed.slice(4)}
+          {renderInlineBold(trimmed.slice(4))}
         </h3>
       );
-    } else if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+    } else if (trimmed.startsWith('**') && trimmed.endsWith('**') && !trimmed.slice(2, -2).includes('**')) {
       flushList();
       elements.push(
         <p key={index} className="font-semibold text-cooper-sm mt-2 break-words">
@@ -464,13 +474,9 @@ function MarkdownRenderer({ content }: { content: string }) {
       currentList.push(trimmed.replace(/^\d+\.\s/, ''));
     } else if (trimmed) {
       flushList();
-      // Handle inline bold
-      const parts = trimmed.split(/\*\*(.*?)\*\*/g);
       elements.push(
-        <p key={index} className="text-cooper-sm my-1 break-words">
-          {parts.map((part, i) => 
-            i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-          )}
+        <p key={index} className="text-cooper-sm my-1 break-words leading-relaxed">
+          {renderInlineBold(trimmed)}
         </p>
       );
     }
