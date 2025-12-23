@@ -3,6 +3,7 @@ import { RotateCcw } from 'lucide-react';
 import { PushToTalkButton } from './PushToTalkButton';
 import { QuestionDisplay } from './QuestionDisplay';
 import { TextInputDialog } from './TextInputDialog';
+import { AudioLevelIndicator } from './AudioLevelIndicator';
 import { cn } from '@/lib/utils';
 import type { ConversationStatus, CooperSettings } from '@/types/cooper';
 
@@ -15,6 +16,7 @@ interface DictaphoneScreenProps {
   onTextSubmit: (text: string) => void;
   onReplay?: () => void;
   buttonSize?: CooperSettings['buttonSize'];
+  audioLevel?: number;
 }
 
 export function DictaphoneScreen({
@@ -26,6 +28,7 @@ export function DictaphoneScreen({
   onTextSubmit,
   onReplay,
   buttonSize = 'large',
+  audioLevel = 0,
 }: DictaphoneScreenProps) {
   const [showTextInput, setShowTextInput] = useState(false);
 
@@ -54,8 +57,13 @@ export function DictaphoneScreen({
         />
       </div>
 
-      {/* Push-to-Talk Button */}
+      {/* Audio Level Indicator + Push-to-Talk Button */}
       <div className="pb-2 flex flex-col items-center gap-3">
+        <AudioLevelIndicator 
+          level={audioLevel} 
+          isRecording={status === 'listening'} 
+        />
+        
         <PushToTalkButton
           status={status}
           onStartRecording={onStartRecording}

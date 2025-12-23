@@ -7,10 +7,14 @@ export function useRealtimeVoice() {
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [audioLevel, setAudioLevel] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   const startRecording = useCallback(async (): Promise<void> => {
     try {
@@ -37,23 +41,28 @@ export function useRealtimeVoice() {
         console.warn('Audio track is disabled or muted!');
       }
       
-      // Use AudioContext to verify we're getting actual audio
+      // Use AudioContext for real-time audio level monitoring
       const audioContext = new AudioContext();
+      audioContextRef.current = audioContext;
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
       source.connect(analyser);
+      analyserRef.current = analyser;
       
-      // Check audio levels
+      // Real-time audio level monitoring with animation frame
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      const checkAudioLevel = () => {
-        if (streamRef.current) {
-          analyser.getByteFrequencyData(dataArray);
+      const updateAudioLevel = () => {
+        if (analyserRef.current && streamRef.current) {
+          analyserRef.current.getByteFrequencyData(dataArray);
           const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-          console.log('Audio level:', average.toFixed(1));
+          const normalizedLevel = Math.min(100, (average / 128) * 100);
+          setAudioLevel(normalizedLevel);
+          animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
         }
       };
-      const levelInterval = setInterval(checkAudioLevel, 500);
+      animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
       
       // Try different mime types for better compatibility
       const mimeTypes = [
@@ -86,8 +95,16 @@ export function useRealtimeVoice() {
       
       // Store cleanup function
       (mediaRecorder as any)._cleanup = () => {
-        clearInterval(levelInterval);
-        audioContext.close();
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+        setAudioLevel(0);
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+          audioContextRef.current = null;
+        }
+        analyserRef.current = null;
       };
       
       mediaRecorder.ondataavailable = (event) => {
@@ -263,6 +280,7 @@ export function useRealtimeVoice() {
     isRecording,
     isTranscribing,
     isSpeaking,
+    audioLevel,
     isConnected: true,
     partialTranscript: '',
     startRecording,

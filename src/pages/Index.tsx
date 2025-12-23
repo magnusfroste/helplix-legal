@@ -28,7 +28,8 @@ export default function Index() {
   const { 
     isRecording, 
     isTranscribing, 
-    isSpeaking, 
+    isSpeaking,
+    audioLevel,
     startRecording, 
     stopRecording, 
     speak, 
@@ -230,6 +231,7 @@ export default function Index() {
             onTextSubmit={handleTextSubmit}
             onReplay={handleReplayQuestion}
             buttonSize={settings.buttonSize}
+            audioLevel={audioLevel}
           />
         );
       case 'log':
