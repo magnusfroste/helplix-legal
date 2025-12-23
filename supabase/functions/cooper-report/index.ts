@@ -14,6 +14,7 @@ interface LogEntry {
 interface ReportRequest {
   entries: LogEntry[];
   reportType: "timeline" | "legal" | "interpretation" | "both" | "all";
+  country?: string;
   language?: string;
 }
 
@@ -23,7 +24,7 @@ serve(async (req) => {
   }
 
   try {
-    const { entries, reportType, language } = await req.json() as ReportRequest;
+    const { entries, reportType, country, language } = await req.json() as ReportRequest;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
@@ -42,15 +43,39 @@ serve(async (req) => {
       return `${prefix} ${entry.content}`;
     }).join("\n\n");
 
-    const languageInstruction = language 
-      ? `Write the report in ${language}.`
-      : "Write the report in the same language the user was communicating in.";
+    // Map country codes to languages and legal systems
+    const countryConfig: Record<string, { language: string; legalSystem: string }> = {
+      'BR': { language: 'Portuguese (Brazilian)', legalSystem: 'Brazilian law (Código Civil Brasileiro, CLT, CDC, LGPD, etc.)' },
+      'MX': { language: 'Spanish (Mexican)', legalSystem: 'Mexican law (Código Civil Federal, LFT, LFPC, etc.)' },
+      'DO': { language: 'Spanish (Dominican)', legalSystem: 'Dominican Republic law (Código Civil Dominicano, Código de Trabajo, etc.)' },
+      'SE': { language: 'Swedish', legalSystem: 'Swedish law (Brottsbalken, Konsumentköplagen, Arbetsmiljölagen, etc.)' },
+      'US': { language: 'English (American)', legalSystem: 'United States law (Federal and State law, ADA, FLSA, Title VII, etc.)' },
+      'NL': { language: 'Dutch', legalSystem: 'Dutch law (Burgerlijk Wetboek, Arbeidsrecht, AVG/GDPR, etc.)' },
+    };
+
+    const config = country ? countryConfig[country] : null;
+    const reportLanguage = config?.language || language || 'the same language the user was communicating in';
+    const legalSystem = config?.legalSystem || 'applicable law';
+    
+    const languageInstruction = `Write the ENTIRE report in ${reportLanguage}. ALL headers, ALL content, ALL sections must be in ${reportLanguage}.`;
 
     let systemPrompt = "";
     
+    // Define section headers based on language
+    const headers: Record<string, { timeline: string; legal: string; interpretation: string }> = {
+      'Portuguese (Brazilian)': { timeline: 'Linha do Tempo Cronológica', legal: 'Visão Geral Jurídica', interpretation: 'Interpretação Jurídica' },
+      'Spanish (Mexican)': { timeline: 'Línea de Tiempo Cronológica', legal: 'Resumen Legal', interpretation: 'Interpretación Legal' },
+      'Spanish (Dominican)': { timeline: 'Línea de Tiempo Cronológica', legal: 'Resumen Legal', interpretation: 'Interpretación Legal' },
+      'Swedish': { timeline: 'Kronologisk Tidslinje', legal: 'Juridisk Översikt', interpretation: 'Juridisk Tolkning' },
+      'English (American)': { timeline: 'Chronological Timeline', legal: 'Legal Overview', interpretation: 'Legal Interpretation' },
+      'Dutch': { timeline: 'Chronologische Tijdlijn', legal: 'Juridisch Overzicht', interpretation: 'Juridische Interpretatie' },
+    };
+    
+    const sectionHeaders = headers[reportLanguage] || headers['English (American)'];
+    
     if (reportType === "timeline" || reportType === "both" || reportType === "all") {
       systemPrompt += `
-## Kronologisk Tidslinje
+## ${sectionHeaders.timeline}
 
 Create a clear, chronological timeline of events based on the conversation. 
 
@@ -60,84 +85,105 @@ Format:
 - Include key facts: who, what, when, where
 - Highlight important details that may be legally relevant
 - Be concise but complete
-- Start with the exact header: ## Kronologisk Tidslinje
+- Start with the exact header: ## ${sectionHeaders.timeline}
+- Write EVERYTHING in ${reportLanguage}
 
 `;
     }
 
     if (reportType === "legal" || reportType === "both" || reportType === "all") {
       systemPrompt += `
-## Juridisk Översikt
+## ${sectionHeaders.legal}
 
 Create a professional legal case summary based on the conversation.
 
-Include:
-1. **Sammanfattning**: Brief overview of the situation (2-3 sentences)
-2. **Inblandade parter**: List all people/entities mentioned
-3. **Viktiga fakta**: Bullet points of the most important facts
-4. **Potentiella juridiska frågor**: Identify possible legal matters (contracts, damages, rights violations, etc.)
-5. **Relevant lagstiftning**: Mention potentially applicable laws or legal principles (if identifiable)
-6. **Rekommenderade nästa steg**: Suggest what the user should do next (consult a lawyer, gather documents, etc.)
+CRITICAL: Apply ${legalSystem} - NOT Swedish law or any other jurisdiction.
 
-Important: Start this section with the exact header: ## Juridisk Översikt
+Include:
+1. **Summary**: Brief overview of the situation (2-3 sentences)
+2. **Parties Involved**: List all people/entities mentioned
+3. **Key Facts**: Bullet points of the most important facts
+4. **Potential Legal Issues**: Identify possible legal matters (contracts, damages, rights violations, etc.)
+5. **Relevant Legislation**: Mention potentially applicable laws from ${legalSystem}
+6. **Recommended Next Steps**: Suggest what the user should do next (consult a lawyer, gather documents, etc.)
+
+Important: 
+- Start this section with the exact header: ## ${sectionHeaders.legal}
+- Write EVERYTHING in ${reportLanguage}
+- Use ONLY ${legalSystem} - do not reference Swedish law
 `;
     }
 
     if (reportType === "interpretation" || reportType === "all") {
+      const disclaimerText: Record<string, string> = {
+        'Portuguese (Brazilian)': '⚠️ **AVISO LEGAL**: Esta é uma análise jurídica gerada por IA destinada APENAS para fins educacionais e informativos. O conteúdo NÃO constitui aconselhamento jurídico e pode conter imprecisões ou informações desatualizadas. Sempre consulte um advogado licenciado antes de tomar decisões jurídicas.',
+        'Spanish (Mexican)': '⚠️ **DESCARGO DE RESPONSABILIDAD**: Este es un análisis legal generado por IA destinado SOLO para fines educativos e informativos. El contenido NO constituye asesoramiento legal y puede contener inexactitudes o información desactualizada. Siempre consulte con un abogado licenciado antes de tomar decisiones legales.',
+        'Spanish (Dominican)': '⚠️ **DESCARGO DE RESPONSABILIDAD**: Este es un análisis legal generado por IA destinado SOLO para fines educativos e informativos. El contenido NO constituye asesoramiento legal y puede contener inexactitudes o información desactualizada. Siempre consulte con un abogado licenciado antes de tomar decisiones legales.',
+        'Swedish': '⚠️ **DISCLAIMER**: Detta är en AI-genererad juridisk analys avsedd ENDAST för utbildnings- och orienteringssyfte. Innehållet utgör INTE juridisk rådgivning och kan innehålla felaktigheter eller föråldrad information. Rådgör alltid med en legitimerad jurist innan du fattar juridiska beslut.',
+        'English (American)': '⚠️ **DISCLAIMER**: This is an AI-generated legal analysis intended ONLY for educational and informational purposes. The content does NOT constitute legal advice and may contain inaccuracies or outdated information. Always consult with a licensed attorney before making legal decisions.',
+        'Dutch': '⚠️ **DISCLAIMER**: Dit is een door AI gegenereerde juridische analyse die ALLEEN bedoeld is voor educatieve en informatieve doeleinden. De inhoud vormt GEEN juridisch advies en kan onjuistheden of verouderde informatie bevatten. Raadpleeg altijd een erkende advocaat voordat u juridische beslissingen neemt.',
+      };
+      
+      const disclaimer = disclaimerText[reportLanguage] || disclaimerText['English (American)'];
+      
       systemPrompt += `
-## Juridisk Tolkning
+## ${sectionHeaders.interpretation}
 
-⚠️ **DISCLAIMER**: Detta är en AI-genererad juridisk analys avsedd ENDAST för utbildnings- och orienteringssyfte. Innehållet utgör INTE juridisk rådgivning och kan innehålla felaktigheter eller föråldrad information. Rådgör alltid med en legitimerad jurist innan du fattar juridiska beslut.
+${disclaimer}
 
 Create a detailed legal interpretation and analysis based on the case facts. This should demonstrate how a lawyer might approach the case.
 
+CRITICAL REQUIREMENTS:
+- Apply ONLY ${legalSystem}
+- Write EVERYTHING in ${reportLanguage}
+- Do NOT use Swedish law unless the country is Sweden
+- Do NOT mix languages - use ${reportLanguage} for ALL content
+
 Include the following sections:
 
-### Rättslig Bedömning
-Provide a thorough legal analysis of the situation. Identify the core legal issues and analyze them against applicable Swedish law.
+### Legal Assessment
+Provide a thorough legal analysis of the situation. Identify the core legal issues and analyze them against ${legalSystem}.
 
-### Tillämplig Lagstiftning
-List and explain the relevant Swedish laws and regulations that apply to this case:
-- Reference specific law codes (e.g., Brottsbalken, Avtalslagen, Skadeståndslagen)
+### Applicable Legislation
+List and explain the relevant laws and regulations from ${legalSystem} that apply to this case:
+- Reference specific law codes from ${legalSystem}
 - Quote relevant paragraphs where applicable
 - Explain how each law relates to the facts
 
-### Relevanta Rättsfall och Prejudikat
-Reference relevant Swedish case law that could apply:
-- NJA (Nytt Juridiskt Arkiv) cases
-- RH (Rättsfall från hovrätterna) cases
-- AD (Arbetsdomstolen) if labor-related
+### Relevant Case Law and Precedents
+Reference relevant case law from the jurisdiction:
+- Cite specific cases if known
 - Explain the precedents and how they might apply
+- If specific cases are not available, discuss general legal principles
 
-### Juridisk Argumentation
+### Legal Argumentation
 Present how a lawyer might argue this case:
 - Strongest arguments for the client
 - Potential counterarguments to prepare for
 - Key evidence that would be important
 
-### Möjliga Utgångar
+### Possible Outcomes
 Analyze possible outcomes:
 - Best case scenario
 - Worst case scenario
 - Most likely outcome based on similar cases
 
-### Processväg och Nästa Steg
+### Procedural Path and Next Steps
 Outline the procedural path:
 - Which court/authority has jurisdiction
-- Time limits (preskriptionstider) to be aware of
+- Time limits to be aware of
 - Recommended immediate actions
 - Estimated timeline
 
-### Källor och Referenser
+### Sources and References
 List all sources referenced in the analysis.
 
 Important guidelines:
-- Start with the exact header: ## Juridisk Tolkning
+- Start with the exact header: ## ${sectionHeaders.interpretation}
 - The DISCLAIMER must appear at the very beginning
+- Write EVERYTHING in ${reportLanguage}
+- Use ONLY ${legalSystem}
 - Be thorough but focus on the most relevant legal aspects
-- Use proper Swedish legal terminology
-- When referencing case law, be as specific as possible
-- If you cannot find specific cases, mention general legal principles instead
 `;
     }
 
@@ -147,13 +193,15 @@ ${systemPrompt}
 
 ## Important Guidelines:
 - ${languageInstruction}
+- CRITICAL: Apply ${legalSystem} - do NOT use Swedish law unless country is Sweden
+- CRITICAL: Write ALL content in ${reportLanguage} - do NOT mix languages
 - Be objective and factual - do not add assumptions
 - Use professional, clear language suitable for legal documentation
 - If information is incomplete, note what is missing
-- For the Juridisk Tolkning section: provide educational analysis but emphasize it is NOT legal advice
+- For the interpretation section: provide educational analysis but emphasize it is NOT legal advice
 - Format the output with clear Markdown headers and sections
 - CRITICAL: Include all requested section headers in the exact format specified
-- When generating "all" sections: include "## Kronologisk Tidslinje", "## Juridisk Översikt", AND "## Juridisk Tolkning" headers`;
+- When generating "all" sections: include "## ${sectionHeaders.timeline}", "## ${sectionHeaders.legal}", AND "## ${sectionHeaders.interpretation}" headers`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

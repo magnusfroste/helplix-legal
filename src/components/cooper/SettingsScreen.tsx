@@ -193,12 +193,28 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
                 Audio Mode
               </Label>
               <p className="text-cooper-base text-muted-foreground">
-                Enable voice input/output (disable for text-only mode)
+                Enable text-to-speech for Cooper's responses
               </p>
             </div>
             <Switch
-              checked={localSettings.audioEnabled}
-              onCheckedChange={(checked) => handleChange('audioEnabled', checked)}
+              checked={localSettings.ttsEnabled}
+              onCheckedChange={(checked) => handleChange('ttsEnabled', checked)}
+            />
+          </section>
+
+          {/* Speech-to-Text Toggle */}
+          <section className="flex items-center justify-between">
+            <div>
+              <Label className="text-cooper-lg font-semibold">
+                Speech-to-Text
+              </Label>
+              <p className="text-cooper-base text-muted-foreground">
+                Enable voice input for your responses
+              </p>
+            </div>
+            <Switch
+              checked={localSettings.sttEnabled}
+              onCheckedChange={(checked) => handleChange('sttEnabled', checked)}
             />
           </section>
 
@@ -215,7 +231,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             <Switch
               checked={localSettings.autoplaySpeech}
               onCheckedChange={(checked) => handleChange('autoplaySpeech', checked)}
-              disabled={!localSettings.audioEnabled}
+              disabled={!localSettings.ttsEnabled}
             />
           </section>
 

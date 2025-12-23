@@ -13,6 +13,8 @@ interface ReportScreenProps {
   entries: LogEntry[];
   sessionId: string | null;
   userId?: string;
+  country?: string;
+  language?: string;
   onPlayReport?: (text: string) => void;
   onStopReport?: () => void;
   isPlaying?: boolean;
@@ -22,6 +24,8 @@ export function ReportScreen({
   entries,
   sessionId,
   userId,
+  country,
+  language,
   onPlayReport,
   onStopReport,
   isPlaying = false,
@@ -78,6 +82,8 @@ export function ReportScreen({
               timestamp: e.timestamp.toISOString(),
             })),
             reportType,
+            country,
+            language,
           }),
         }
       );
@@ -94,10 +100,45 @@ export function ReportScreen({
       let newInterpretation = interpretationReport;
 
       if (reportType === 'all') {
-        // Split into three sections
-        const timelineMatch = data.report.match(/## Kronologisk Tidslinje[\s\S]*?(?=## Juridisk Översikt|$)/i);
-        const legalMatch = data.report.match(/## Juridisk Översikt[\s\S]*?(?=## Juridisk Tolkning|$)/i);
-        const interpretationMatch = data.report.match(/## Juridisk Tolkning[\s\S]*/i);
+        // Split into three sections - support multiple languages
+        const timelinePatterns = [
+          /## Linha do Tempo Cronológica[\s\S]*?(?=## Visão Geral Jurídica|## Resumen Legal|## Juridisk Översikt|## Legal Overview|## Juridisch Overzicht|$)/i,
+          /## Línea de Tiempo Cronológica[\s\S]*?(?=## Visão Geral Jurídica|## Resumen Legal|## Juridisk Översikt|## Legal Overview|## Juridisch Overzicht|$)/i,
+          /## Kronologisk Tidslinje[\s\S]*?(?=## Visão Geral Jurídica|## Resumen Legal|## Juridisk Översikt|## Legal Overview|## Juridisch Overzicht|$)/i,
+          /## Chronological Timeline[\s\S]*?(?=## Visão Geral Jurídica|## Resumen Legal|## Juridisk Översikt|## Legal Overview|## Juridisch Overzicht|$)/i,
+          /## Chronologische Tijdlijn[\s\S]*?(?=## Visão Geral Jurídica|## Resumen Legal|## Juridisk Översikt|## Legal Overview|## Juridisch Overzicht|$)/i,
+        ];
+        const legalPatterns = [
+          /## Visão Geral Jurídica[\s\S]*?(?=## Interpretação Jurídica|## Interpretación Legal|## Juridisk Tolkning|## Legal Interpretation|## Juridische Interpretatie|$)/i,
+          /## Resumen Legal[\s\S]*?(?=## Interpretação Jurídica|## Interpretación Legal|## Juridisk Tolkning|## Legal Interpretation|## Juridische Interpretatie|$)/i,
+          /## Juridisk Översikt[\s\S]*?(?=## Interpretação Jurídica|## Interpretación Legal|## Juridisk Tolkning|## Legal Interpretation|## Juridische Interpretatie|$)/i,
+          /## Legal Overview[\s\S]*?(?=## Interpretação Jurídica|## Interpretación Legal|## Juridisk Tolkning|## Legal Interpretation|## Juridische Interpretatie|$)/i,
+          /## Juridisch Overzicht[\s\S]*?(?=## Interpretação Jurídica|## Interpretación Legal|## Juridisk Tolkning|## Legal Interpretation|## Juridische Interpretatie|$)/i,
+        ];
+        const interpretationPatterns = [
+          /## Interpretação Jurídica[\s\S]*/i,
+          /## Interpretación Legal[\s\S]*/i,
+          /## Juridisk Tolkning[\s\S]*/i,
+          /## Legal Interpretation[\s\S]*/i,
+          /## Juridische Interpretatie[\s\S]*/i,
+        ];
+        
+        let timelineMatch = null;
+        let legalMatch = null;
+        let interpretationMatch = null;
+        
+        for (const pattern of timelinePatterns) {
+          timelineMatch = data.report.match(pattern);
+          if (timelineMatch) break;
+        }
+        for (const pattern of legalPatterns) {
+          legalMatch = data.report.match(pattern);
+          if (legalMatch) break;
+        }
+        for (const pattern of interpretationPatterns) {
+          interpretationMatch = data.report.match(pattern);
+          if (interpretationMatch) break;
+        }
         
         newTimeline = timelineMatch ? timelineMatch[0].trim() : null;
         newLegal = legalMatch ? legalMatch[0].trim() : null;
@@ -107,9 +148,20 @@ export function ReportScreen({
         setLegalReport(newLegal);
         setInterpretationReport(newInterpretation);
       } else if (reportType === 'both') {
-        // Split using Swedish header "Juridisk Översikt"
-        const splitPattern = /(##\s*Juridisk Översikt)/i;
-        const parts = data.report.split(splitPattern);
+        // Split using legal overview header in any language
+        const splitPatterns = [
+          /(##\s*Visão Geral Jurídica)/i,
+          /(##\s*Resumen Legal)/i,
+          /(##\s*Juridisk Översikt)/i,
+          /(##\s*Legal Overview)/i,
+          /(##\s*Juridisch Overzicht)/i,
+        ];
+        
+        let parts: string[] = [];
+        for (const pattern of splitPatterns) {
+          parts = data.report.split(pattern);
+          if (parts.length >= 2) break;
+        }
         
         if (parts.length >= 2) {
           newTimeline = parts[0].trim();
@@ -151,7 +203,7 @@ export function ReportScreen({
       setIsGenerating(false);
       setGeneratingType(null);
     }
-  }, [entries, hasEntries, timelineReport, legalReport, interpretationReport, saveReport]);
+  }, [entries, hasEntries, timelineReport, legalReport, interpretationReport, saveReport, country, language]);
 
   const handleExportPdf = useCallback(() => {
     if (!timelineReport && !legalReport && !interpretationReport) {

@@ -144,7 +144,9 @@ export interface CooperSettings {
   textSize: 'small' | 'medium' | 'large';
   buttonSize: 'small' | 'large';
   autoplaySpeech: boolean;
-  audioEnabled: boolean; // Toggle for audio on/off
+  ttsEnabled: boolean; // Toggle for TTS on/off
+  sttEnabled: boolean; // Toggle for STT on/off
+  audioEnabled?: boolean; // Deprecated: use ttsEnabled and sttEnabled
 }
 
 export const DEFAULT_SYSTEM_PROMPT = `You are Cooper, a legal assistant. Your role is to help document legal cases by asking structured questions.
@@ -166,8 +168,9 @@ export const DEFAULT_SETTINGS: CooperSettings = {
   questionIntensity: 70, // Default to more questions
   textSize: 'medium',
   buttonSize: 'small',
-  autoplaySpeech: true,
-  audioEnabled: true,
+  autoplaySpeech: false,
+  ttsEnabled: true,
+  sttEnabled: true,
 };
 
 // Helper function to get country-specific system prompt

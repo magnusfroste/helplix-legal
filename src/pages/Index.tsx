@@ -23,7 +23,14 @@ function loadSettings(): CooperSettings {
   try {
     const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (stored) {
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+      const parsed = JSON.parse(stored);
+      // Backward compatibility: migrate audioEnabled to ttsEnabled and sttEnabled
+      if ('audioEnabled' in parsed) {
+        parsed.ttsEnabled = parsed.audioEnabled;
+        parsed.sttEnabled = parsed.audioEnabled;
+        delete parsed.audioEnabled;
+      }
+      return { ...DEFAULT_SETTINGS, ...parsed };
     }
   } catch (e) {
     console.error('Failed to load settings:', e);
@@ -88,9 +95,6 @@ export default function Index() {
     userId: auth.user?.id,
   });
 
-  const handleToggleAudio = () => {
-    setSettings(prev => ({ ...prev, audioEnabled: !prev.audioEnabled }));
-  };
 
   // Country selection handler
   const handleCountrySelect = (countryCode: CountryCode) => {
@@ -221,8 +225,6 @@ export default function Index() {
             onReplay={conversation.replayQuestion}
             buttonSize={settings.buttonSize}
             audioLevel={conversation.audioLevel}
-            audioEnabled={settings.audioEnabled}
-            onToggleAudio={handleToggleAudio}
           />
         );
       case 'log':
@@ -233,6 +235,8 @@ export default function Index() {
             entries={conversation.logEntries}
             sessionId={conversation.currentSessionId}
             userId={auth.user?.id}
+            country={settings.country || undefined}
+            language={settings.country ? COUNTRIES.find(c => c.code === settings.country)?.language : undefined}
             onPlayReport={(text) => conversation.speak(text).catch(console.error)}
             onStopReport={conversation.stopSpeaking}
             isPlaying={conversation.isSpeaking}

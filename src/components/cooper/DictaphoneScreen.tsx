@@ -1,5 +1,5 @@
 import { memo, useState, useCallback } from 'react';
-import { RotateCcw, Keyboard, Volume2, VolumeX } from 'lucide-react';
+import { RotateCcw, Keyboard } from 'lucide-react';
 import { PushToTalkButton } from './PushToTalkButton';
 import { QuestionDisplay } from './QuestionDisplay';
 import { TextInputDialog } from './TextInputDialog';
@@ -17,8 +17,6 @@ interface DictaphoneScreenProps {
   onReplay?: () => void;
   buttonSize?: CooperSettings['buttonSize'];
   audioLevel?: number;
-  audioEnabled?: boolean;
-  onToggleAudio?: () => void;
 }
 
 export const DictaphoneScreen = memo(function DictaphoneScreen({
@@ -31,8 +29,6 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
   onReplay,
   buttonSize = 'large',
   audioLevel = 0,
-  audioEnabled = true,
-  onToggleAudio,
 }: DictaphoneScreenProps) {
   const [showTextInput, setShowTextInput] = useState(false);
 
@@ -67,48 +63,27 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
         <QuestionDisplay 
           question={currentQuestion}
           isFirstInteraction={isFirstInteraction}
-          isSpeaking={isSpeaking && audioEnabled}
+          isSpeaking={isSpeaking}
         />
       </div>
 
       {/* Controls area */}
       <div className="pb-2 flex flex-col items-center gap-3">
-        {audioEnabled && (
-          <AudioLevelIndicator 
-            level={audioLevel} 
-            isRecording={status === 'listening'} 
-          />
-        )}
+        <AudioLevelIndicator 
+          level={audioLevel} 
+          isRecording={status === 'listening'} 
+        />
         
-        {audioEnabled ? (
-          <PushToTalkButton
-            status={status}
-            onStartRecording={onStartRecording}
-            onStopRecording={onStopRecording}
-            size={buttonSize}
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowTextInput(true)}
-            disabled={isBusy}
-            className={cn(
-              "px-6 py-3 rounded-full",
-              "bg-primary text-primary-foreground",
-              "hover:bg-primary/90 active:scale-95",
-              "transition-all duration-200",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
-              "touch-manipulation select-none font-medium"
-            )}
-            style={{ WebkitTapHighlightColor: 'transparent' }}
-          >
-            Type your response
-          </button>
-        )}
+        <PushToTalkButton
+          status={status}
+          onStartRecording={onStartRecording}
+          onStopRecording={onStopRecording}
+          size={buttonSize}
+        />
         
         {/* Action buttons row - all on same line */}
         <div className="flex items-center gap-2">
-          {onReplay && !isFirstInteraction && audioEnabled && (
+          {onReplay && !isFirstInteraction && (
             <button
               type="button"
               onClick={onReplay}
@@ -122,35 +97,16 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
             </button>
           )}
           
-          {audioEnabled && (
-            <button
-              type="button"
-              onClick={() => setShowTextInput(true)}
-              disabled={isBusy}
-              className={actionButtonClass}
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <Keyboard className="h-4 w-4" />
-              <span className="font-medium">Type</span>
-            </button>
-          )}
-
-          {onToggleAudio && (
-            <button
-              type="button"
-              onClick={onToggleAudio}
-              className={actionButtonClass}
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-              aria-label={audioEnabled ? "Disable audio" : "Enable audio"}
-            >
-              {audioEnabled ? (
-                <VolumeX className="h-4 w-4" />
-              ) : (
-                <Volume2 className="h-4 w-4" />
-              )}
-              <span className="font-medium">{audioEnabled ? 'Audio off' : 'Audio on'}</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => setShowTextInput(true)}
+            disabled={isBusy}
+            className={actionButtonClass}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+          >
+            <Keyboard className="h-4 w-4" />
+            <span className="font-medium">Type</span>
+          </button>
         </div>
       </div>
 

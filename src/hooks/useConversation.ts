@@ -66,10 +66,12 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   useEffect(() => {
     const loadLastSession = async () => {
       if (userId && session.sessions.length > 0 && !session.currentSessionId) {
+        console.log('Loading last session, found', session.sessions.length, 'sessions');
         const lastSession = session.sessions[0]; // Already sorted by updated_at desc
         session.setCurrentSessionId(lastSession.id);
         
         const entries = await session.loadLogEntries(lastSession.id);
+        console.log('Loaded', entries.length, 'log entries from session', lastSession.id);
         if (entries.length > 0) {
           setLogEntries(entries);
           // Set the last question from AI as current question
@@ -82,7 +84,8 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       }
     };
     loadLastSession();
-  }, [userId, session.sessions.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, session.sessions.length, session.currentSessionId]);
 
   // Sync language to session
   useEffect(() => {
@@ -123,23 +126,27 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       setCurrentQuestion(nextQuestion);
       setIsFirstInteraction(false);
 
-      if (settings.autoplaySpeech && settings.audioEnabled) {
+      if (settings.autoplaySpeech && settings.ttsEnabled) {
         voice.speak(nextQuestion).catch(console.error);
       }
     } catch (error) {
       console.error('AI response error:', error);
     }
-  }, [userId, session.currentSessionId, session.createSession, session.addLogEntry, currentQuestion, settings.autoplaySpeech, settings.audioEnabled, chat, voice]);
+  }, [userId, session.currentSessionId, session.createSession, session.addLogEntry, currentQuestion, settings.autoplaySpeech, settings.ttsEnabled, chat, voice]);
 
   // Actions
   const startRecording = useCallback(async () => {
+    if (!settings.sttEnabled) {
+      toast.error('Speech-to-text is disabled');
+      return;
+    }
     try {
       voice.stopSpeaking();
       await voice.startRecording();
     } catch {
       toast.error('Could not access microphone');
     }
-  }, []);
+  }, [settings.sttEnabled]);
 
   const stopRecording = useCallback(async () => {
     // Optimistic UI: Show placeholder immediately
@@ -175,10 +182,14 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   }, [processResponse]);
 
   const replayQuestion = useCallback(() => {
+    if (!settings.ttsEnabled) {
+      toast.error('Text-to-speech is disabled');
+      return;
+    }
     if (currentQuestion && !voice.isSpeaking) {
       voice.speak(currentQuestion).catch(console.error);
     }
-  }, [currentQuestion, voice.isSpeaking]);
+  }, [currentQuestion, voice.isSpeaking, settings.ttsEnabled]);
 
   const startNewSession = useCallback(async () => {
     try {
@@ -189,7 +200,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       chat.resetConversation();
       toast.success('New session started');
 
-      if (settings.autoplaySpeech && settings.audioEnabled) {
+      if (settings.autoplaySpeech && settings.ttsEnabled) {
         voice.speak(initialQuestion).catch(console.error);
       }
     } catch {
@@ -197,12 +208,6 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     }
   }, [settings.autoplaySpeech, initialQuestion]);
 
-  // Speak initial question on first load (only when a country is selected)
-  useEffect(() => {
-    if (settings.country && settings.autoplaySpeech && settings.audioEnabled && isFirstInteraction && logEntries.length === 0) {
-      voice.speak(initialQuestion).catch(console.error);
-    }
-  }, [initialQuestion, settings.country]);
 
   return {
     // State (read-only)
