@@ -70,22 +70,29 @@ export function PushToTalkButton({
   return (
     <div className="flex flex-col items-center gap-4">
       <button
+        type="button"
         onClick={handlePress}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          handlePress();
+        }}
         disabled={disabled || isProcessing}
         className={cn(
           "w-32 h-32 rounded-full flex items-center justify-center",
           "text-primary-foreground shadow-lg transition-all duration-200",
           "focus:outline-none focus-visible:ring-4 focus-visible:ring-ring focus-visible:ring-offset-4",
           "disabled:opacity-50 disabled:cursor-not-allowed",
+          "touch-manipulation select-none",
           getButtonStyles()
         )}
+        style={{ WebkitTapHighlightColor: 'transparent' }}
         aria-label={isRecording ? "Stop recording" : "Start recording"}
       >
         {getIcon()}
       </button>
       
       <span className={cn(
-        "text-cooper-lg font-medium text-center",
+        "text-cooper-lg font-medium text-center select-none",
         isRecording && "text-cooper-recording",
         isProcessing && "text-cooper-processing",
         isSpeaking && "text-cooper-speaking"
