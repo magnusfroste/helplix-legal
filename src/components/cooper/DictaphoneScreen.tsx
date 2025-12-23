@@ -73,6 +73,7 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
           <RealtimeTranscription
             text={realtimeTranscriptionText}
             isVisible={true}
+            isRecording={status === 'listening'}
           />
         ) : (
           <QuestionDisplay 

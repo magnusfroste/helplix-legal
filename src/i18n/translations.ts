@@ -119,6 +119,10 @@ export interface Translations {
       title: string;
       description: string;
     };
+    realtimeTranscription: {
+      title: string;
+      description: string;
+    };
     autoplay: {
       title: string;
       description: string;
@@ -280,6 +284,10 @@ export const translations: Record<CountryCode, Translations> = {
         title: 'Fala para Texto',
         description: 'Ativar entrada de voz para suas respostas',
       },
+      realtimeTranscription: {
+        title: 'Transcrição em Tempo Real',
+        description: 'Mostrar sua fala como texto em tempo real durante a gravação',
+      },
       autoplay: {
         title: 'Reprodução Automática',
         description: 'Ler automaticamente as perguntas do Cooper em voz alta',
@@ -430,6 +438,10 @@ export const translations: Record<CountryCode, Translations> = {
       stt: {
         title: 'Voz a Texto',
         description: 'Activar entrada de voz para sus respuestas',
+      },
+      realtimeTranscription: {
+        title: 'Transcripción en Tiempo Real',
+        description: 'Mostrar su voz como texto en tiempo real durante la grabación',
       },
       autoplay: {
         title: 'Reproducción Automática',
@@ -582,6 +594,10 @@ export const translations: Record<CountryCode, Translations> = {
         title: 'Voz a Texto',
         description: 'Activar entrada de voz para sus respuestas',
       },
+      realtimeTranscription: {
+        title: 'Transcripción en Tiempo Real',
+        description: 'Mostrar su voz como texto en tiempo real durante la grabación',
+      },
       autoplay: {
         title: 'Reproducción Automática',
         description: 'Leer automáticamente las preguntas de Cooper en voz alta',
@@ -732,6 +748,10 @@ export const translations: Record<CountryCode, Translations> = {
       stt: {
         title: 'Tal-till-text',
         description: 'Aktivera röstinmatning för dina svar',
+      },
+      realtimeTranscription: {
+        title: 'Realtidstranskribering',
+        description: 'Visa ditt tal som text i realtid under inspelning',
       },
       autoplay: {
         title: 'Automatisk uppspelning',
@@ -884,6 +904,10 @@ export const translations: Record<CountryCode, Translations> = {
         title: 'Speech-to-Text',
         description: 'Enable voice input for your responses',
       },
+      realtimeTranscription: {
+        title: 'Real-time Transcription',
+        description: 'Display your speech as text in real-time while recording',
+      },
       autoplay: {
         title: 'Autoplay Responses',
         description: 'Automatically read Cooper\'s questions aloud',
@@ -1034,6 +1058,10 @@ export const translations: Record<CountryCode, Translations> = {
       stt: {
         title: 'Spraak-naar-tekst',
         description: 'Schakel spraakinvoer in voor uw antwoorden',
+      },
+      realtimeTranscription: {
+        title: 'Realtime Transcriptie',
+        description: 'Toon uw spraak als tekst in realtime tijdens opname',
       },
       autoplay: {
         title: 'Automatisch afspelen',
