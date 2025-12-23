@@ -10,6 +10,9 @@ export const OnboardingScreen = memo(function OnboardingScreen({
 }: OnboardingScreenProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+      <h1 className="text-3xl font-bold text-foreground mb-8 tracking-tight">
+        Coopers Law
+      </h1>
       <div className="grid grid-cols-3 gap-6 max-w-xs">
         {COUNTRIES.map((country) => (
           <button
