@@ -209,6 +209,12 @@ export default function Index() {
     }
   }, [createSession, resetConversation, settings.autoplaySpeech, speak]);
 
+  const handleReplayQuestion = useCallback(() => {
+    if (currentQuestion && !isSpeaking) {
+      speak(currentQuestion).catch(console.error);
+    }
+  }, [currentQuestion, isSpeaking, speak]);
+
   const renderScreen = () => {
     switch (activeTab) {
       case 'dictaphone':
@@ -220,6 +226,7 @@ export default function Index() {
             onStartRecording={handleStartRecording}
             onStopRecording={handleStopRecording}
             onTextSubmit={handleTextSubmit}
+            onReplay={handleReplayQuestion}
           />
         );
       case 'log':
