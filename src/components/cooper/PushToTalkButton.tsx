@@ -107,7 +107,6 @@ export function PushToTalkButton({
       <button
         type="button"
         onClick={handlePress}
-        onTouchStart={handlePress}
         disabled={disabled || isProcessing}
         className={cn(
           "rounded-full flex items-center justify-center relative overflow-hidden",
