@@ -50,7 +50,7 @@ serve(async (req) => {
     
     if (reportType === "timeline" || reportType === "both") {
       systemPrompt += `
-## Chronological Timeline Report
+## Kronologisk Tidslinje
 
 Create a clear, chronological timeline of events based on the conversation. 
 
@@ -60,24 +60,26 @@ Format:
 - Include key facts: who, what, when, where
 - Highlight important details that may be legally relevant
 - Be concise but complete
+- Start with the exact header: ## Kronologisk Tidslinje
 
 `;
     }
 
     if (reportType === "legal" || reportType === "both") {
       systemPrompt += `
-## Legal Overview Report
+## Juridisk Översikt
 
 Create a professional legal case summary based on the conversation.
 
 Include:
-1. **Case Summary**: Brief overview of the situation (2-3 sentences)
-2. **Parties Involved**: List all people/entities mentioned
-3. **Key Facts**: Bullet points of the most important facts
-4. **Potential Legal Issues**: Identify possible legal matters (contracts, damages, rights violations, etc.)
-5. **Relevant Brazilian Law**: Mention potentially applicable laws or legal principles (if identifiable)
-6. **Recommended Next Steps**: Suggest what the user should do next (consult a lawyer, gather documents, etc.)
+1. **Sammanfattning**: Brief overview of the situation (2-3 sentences)
+2. **Inblandade parter**: List all people/entities mentioned
+3. **Viktiga fakta**: Bullet points of the most important facts
+4. **Potentiella juridiska frågor**: Identify possible legal matters (contracts, damages, rights violations, etc.)
+5. **Relevant lagstiftning**: Mention potentially applicable laws or legal principles (if identifiable)
+6. **Rekommenderade nästa steg**: Suggest what the user should do next (consult a lawyer, gather documents, etc.)
 
+Important: Start this section with the exact header: ## Juridisk Översikt
 `;
     }
 
@@ -91,7 +93,8 @@ ${systemPrompt}
 - Use professional, clear language suitable for legal documentation
 - If information is incomplete, note what is missing
 - Do NOT provide legal advice - only document and organize facts
-- Format the output with clear Markdown headers and sections`;
+- Format the output with clear Markdown headers and sections
+- CRITICAL: When generating both sections, you MUST include BOTH "## Kronologisk Tidslinje" AND "## Juridisk Översikt" headers`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
