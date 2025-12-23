@@ -226,6 +226,7 @@ export default function Index() {
             onReplay={conversation.replayQuestion}
             buttonSize={settings.buttonSize}
             audioLevel={conversation.audioLevel}
+            country={settings.country}
           />
         );
       case 'log':

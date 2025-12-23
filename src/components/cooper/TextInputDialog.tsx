@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, X, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/hooks/useTranslation';
+import type { CountryCode } from '@/types/cooper';
 
 interface TextInputDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (text: string) => void;
   currentQuestion: string;
+  country: CountryCode | null;
 }
 
 export function TextInputDialog({
@@ -14,7 +17,9 @@ export function TextInputDialog({
   onOpenChange,
   onSubmit,
   currentQuestion,
+  country,
 }: TextInputDialogProps) {
+  const t = useTranslation(country);
   const [text, setText] = useState('');
   const [showQuestion, setShowQuestion] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -68,7 +73,7 @@ export function TextInputDialog({
         </button>
         
         <span className="text-sm font-medium text-muted-foreground">
-          Type response
+          {t.textInput.title}
         </span>
         
         <button
@@ -78,7 +83,7 @@ export function TextInputDialog({
             "p-2 -mr-2 rounded-full transition-all active:scale-95",
             showQuestion ? "bg-primary/10 text-primary" : "hover:bg-muted text-muted-foreground"
           )}
-          aria-label={showQuestion ? "Hide question" : "Show question"}
+          aria-label={showQuestion ? t.textInput.hideQuestion : t.textInput.showQuestion}
         >
           <HelpCircle className="h-5 w-5" />
         </button>
@@ -105,7 +110,7 @@ export function TextInputDialog({
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Write your answer..."
+          placeholder={t.textInput.placeholder}
           className={cn(
             "flex-1 w-full resize-none bg-transparent",
             "text-base leading-relaxed",
@@ -135,7 +140,7 @@ export function TextInputDialog({
           )}
         >
           <Send className="h-5 w-5" />
-          <span>Send</span>
+          <span>{t.textInput.send}</span>
         </button>
       </div>
     </div>

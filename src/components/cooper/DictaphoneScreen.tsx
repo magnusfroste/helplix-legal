@@ -1,11 +1,12 @@
-import { memo, useState, useCallback } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { RotateCcw, Keyboard } from 'lucide-react';
 import { PushToTalkButton } from './PushToTalkButton';
 import { QuestionDisplay } from './QuestionDisplay';
 import { TextInputDialog } from './TextInputDialog';
 import { AudioLevelIndicator } from './AudioLevelIndicator';
 import { cn } from '@/lib/utils';
-import type { ConversationStatus, CooperSettings } from '@/types/cooper';
+import type { ConversationStatus, CooperSettings, CountryCode } from '@/types/cooper';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface DictaphoneScreenProps {
   status: ConversationStatus;
@@ -17,6 +18,7 @@ interface DictaphoneScreenProps {
   onReplay?: () => void;
   buttonSize?: CooperSettings['buttonSize'];
   audioLevel?: number;
+  country: CountryCode | null;
 }
 
 export const DictaphoneScreen = memo(function DictaphoneScreen({
@@ -29,7 +31,9 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
   onReplay,
   buttonSize = 'large',
   audioLevel = 0,
+  country,
 }: DictaphoneScreenProps) {
+  const t = useTranslation(country);
   const [showTextInput, setShowTextInput] = useState(false);
 
   const handleTextSubmit = useCallback((text: string) => {
@@ -93,7 +97,7 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
               aria-label="Replay last question"
             >
               <RotateCcw className="h-4 w-4" />
-              <span className="font-medium">Replay</span>
+              <span className="font-medium">{t.dictaphone.replay}</span>
             </button>
           )}
           
@@ -105,7 +109,7 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
             style={{ WebkitTapHighlightColor: 'transparent' }}
           >
             <Keyboard className="h-4 w-4" />
-            <span className="font-medium">Type</span>
+            <span className="font-medium">{t.dictaphone.type}</span>
           </button>
         </div>
       </div>
@@ -116,6 +120,7 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
         onOpenChange={setShowTextInput}
         onSubmit={handleTextSubmit}
         currentQuestion={currentQuestion}
+        country={country}
       />
     </div>
   );
