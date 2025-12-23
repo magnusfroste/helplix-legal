@@ -12,11 +12,26 @@ export function QuestionDisplay({
   isFirstInteraction,
   onTypeResponse 
 }: QuestionDisplayProps) {
+  // Responsive text size based on question length
+  const getTextSizeClass = () => {
+    const length = question.length;
+    
+    if (isFirstInteraction) {
+      if (length > 200) return "text-cooper-lg";
+      if (length > 100) return "text-cooper-xl";
+      return "text-cooper-2xl";
+    }
+    
+    if (length > 300) return "text-cooper-base";
+    if (length > 150) return "text-cooper-lg";
+    return "text-cooper-xl";
+  };
+
   return (
     <div className="flex flex-col items-center gap-4 px-2 animate-fade-in">
       <p className={cn(
-        "text-cooper-xl font-medium text-foreground leading-relaxed text-center",
-        isFirstInteraction && "text-cooper-2xl"
+        "font-medium text-foreground leading-relaxed text-center transition-all duration-300",
+        getTextSizeClass()
       )}>
         {question}
       </p>
