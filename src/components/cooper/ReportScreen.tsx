@@ -362,7 +362,7 @@ export function ReportScreen({
                   Genererar tidslinje...
                 </div>
               ) : timelineReport ? (
-                <div className="prose prose-sm max-w-none text-foreground">
+                <div className="max-w-none text-foreground break-words overflow-hidden">
                   <MarkdownRenderer content={timelineReport} />
                 </div>
               ) : (
@@ -398,7 +398,7 @@ export function ReportScreen({
                   Genererar juridisk översikt...
                 </div>
               ) : legalReport ? (
-                <div className="prose prose-sm max-w-none text-foreground">
+                <div className="max-w-none text-foreground break-words overflow-hidden">
                   <MarkdownRenderer content={legalReport} />
                 </div>
               ) : (
@@ -424,9 +424,9 @@ function MarkdownRenderer({ content }: { content: string }) {
   const flushList = () => {
     if (currentList.length > 0) {
       elements.push(
-        <ul key={`list-${listKey++}`} className="list-disc pl-5 space-y-1 my-2">
+        <ul key={`list-${listKey++}`} className="list-disc pl-4 space-y-1 my-2">
           {currentList.map((item, i) => (
-            <li key={i} className="text-cooper-base">{item}</li>
+            <li key={i} className="text-cooper-sm break-words">{item}</li>
           ))}
         </ul>
       );
@@ -440,21 +440,21 @@ function MarkdownRenderer({ content }: { content: string }) {
     if (trimmed.startsWith('## ')) {
       flushList();
       elements.push(
-        <h2 key={index} className="text-cooper-lg font-semibold mt-4 mb-2">
+        <h2 key={index} className="text-cooper-base font-semibold mt-3 mb-1.5 break-words">
           {trimmed.slice(3)}
         </h2>
       );
     } else if (trimmed.startsWith('### ')) {
       flushList();
       elements.push(
-        <h3 key={index} className="text-cooper-base font-semibold mt-3 mb-1">
+        <h3 key={index} className="text-cooper-sm font-semibold mt-2 mb-1 break-words">
           {trimmed.slice(4)}
         </h3>
       );
     } else if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
       flushList();
       elements.push(
-        <p key={index} className="font-semibold text-cooper-base mt-2">
+        <p key={index} className="font-semibold text-cooper-sm mt-2 break-words">
           {trimmed.slice(2, -2)}
         </p>
       );
@@ -467,7 +467,7 @@ function MarkdownRenderer({ content }: { content: string }) {
       // Handle inline bold
       const parts = trimmed.split(/\*\*(.*?)\*\*/g);
       elements.push(
-        <p key={index} className="text-cooper-base my-1">
+        <p key={index} className="text-cooper-sm my-1 break-words">
           {parts.map((part, i) => 
             i % 2 === 1 ? <strong key={i}>{part}</strong> : part
           )}
