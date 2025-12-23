@@ -17,14 +17,43 @@ export function useRealtimeVoice() {
       console.log('Starting recording...');
       chunksRef.current = [];
       
+      // Get microphone with specific constraints for better audio capture
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
+          channelCount: 1,
+          sampleRate: 16000,
         } 
       });
       streamRef.current = stream;
+      
+      // Verify audio track is active
+      const audioTrack = stream.getAudioTracks()[0];
+      console.log('Audio track:', audioTrack.label, 'enabled:', audioTrack.enabled, 'muted:', audioTrack.muted);
+      
+      if (!audioTrack.enabled || audioTrack.muted) {
+        console.warn('Audio track is disabled or muted!');
+      }
+      
+      // Use AudioContext to verify we're getting actual audio
+      const audioContext = new AudioContext();
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      
+      // Check audio levels
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const checkAudioLevel = () => {
+        if (streamRef.current) {
+          analyser.getByteFrequencyData(dataArray);
+          const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+          console.log('Audio level:', average.toFixed(1));
+        }
+      };
+      const levelInterval = setInterval(checkAudioLevel, 500);
       
       // Try different mime types for better compatibility
       const mimeTypes = [
@@ -51,8 +80,15 @@ export function useRealtimeVoice() {
       
       const mediaRecorder = new MediaRecorder(stream, { 
         mimeType: selectedMimeType,
+        audioBitsPerSecond: 128000,
       });
       mediaRecorderRef.current = mediaRecorder;
+      
+      // Store cleanup function
+      (mediaRecorder as any)._cleanup = () => {
+        clearInterval(levelInterval);
+        audioContext.close();
+      };
       
       mediaRecorder.ondataavailable = (event) => {
         console.log('Data available:', event.data.size, 'bytes');
@@ -61,10 +97,10 @@ export function useRealtimeVoice() {
         }
       };
       
-      // Use timeslice to collect data every 250ms during recording
-      mediaRecorder.start(250);
+      // Start recording - collect all data on stop (no timeslice)
+      mediaRecorder.start();
       setIsRecording(true);
-      console.log('Recording started with timeslice');
+      console.log('Recording started');
     } catch (error) {
       console.error('Error starting recording:', error);
       throw error;
@@ -93,6 +129,11 @@ export function useRealtimeVoice() {
           if (streamRef.current) {
             streamRef.current.getTracks().forEach(track => track.stop());
             streamRef.current = null;
+          }
+          
+          // Cleanup audio context
+          if ((mediaRecorder as any)._cleanup) {
+            (mediaRecorder as any)._cleanup();
           }
           
           if (chunksRef.current.length === 0) {
