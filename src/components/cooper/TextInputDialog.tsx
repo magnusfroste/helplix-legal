@@ -1,13 +1,6 @@
-import { useState } from 'react';
-import { Send } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useEffect, useRef } from 'react';
+import { Send, X, HelpCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface TextInputDialogProps {
   open: boolean;
@@ -23,11 +16,32 @@ export function TextInputDialog({
   currentQuestion,
 }: TextInputDialogProps) {
   const [text, setText] = useState('');
+  const [showQuestion, setShowQuestion] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Focus textarea when opened
+  useEffect(() => {
+    if (open && textareaRef.current) {
+      // Small delay to ensure keyboard opens properly on mobile
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
+    }
+  }, [open]);
+
+  // Reset when closed
+  useEffect(() => {
+    if (!open) {
+      setText('');
+      setShowQuestion(false);
+    }
+  }, [open]);
 
   const handleSubmit = () => {
     if (text.trim()) {
       onSubmit(text.trim());
       setText('');
+      onOpenChange(false);
     }
   };
 
@@ -38,41 +52,92 @@ export function TextInputDialog({
     }
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md mx-4">
-        <DialogHeader>
-          <DialogTitle className="text-cooper-lg font-semibold">
-            Type your response
-          </DialogTitle>
-        </DialogHeader>
+    <div className="fixed inset-0 z-50 flex flex-col bg-background">
+      {/* Header with close and question toggle */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
+        <button
+          type="button"
+          onClick={() => onOpenChange(false)}
+          className="p-2 -ml-2 rounded-full hover:bg-muted active:scale-95 transition-transform"
+          aria-label="Close"
+        >
+          <X className="h-5 w-5 text-muted-foreground" />
+        </button>
         
-        <div className="space-y-4 mt-2">
-          <div className="p-4 bg-muted rounded-lg">
-            <p className="text-cooper-base text-muted-foreground italic">
-              "{currentQuestion}"
-            </p>
-          </div>
-          
-          <Textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your answer here..."
-            className="min-h-[120px] text-cooper-base resize-none"
-            autoFocus
-          />
-          
-          <Button
-            onClick={handleSubmit}
-            disabled={!text.trim()}
-            className="w-full h-14 text-cooper-lg"
-          >
-            <Send className="h-5 w-5 mr-2" />
-            Send Response
-          </Button>
+        <span className="text-sm font-medium text-muted-foreground">
+          Type response
+        </span>
+        
+        <button
+          type="button"
+          onClick={() => setShowQuestion(!showQuestion)}
+          className={cn(
+            "p-2 -mr-2 rounded-full transition-all active:scale-95",
+            showQuestion ? "bg-primary/10 text-primary" : "hover:bg-muted text-muted-foreground"
+          )}
+          aria-label={showQuestion ? "Hide question" : "Show question"}
+        >
+          <HelpCircle className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Question panel (collapsible) */}
+      <div
+        className={cn(
+          "overflow-hidden transition-all duration-200 border-b border-border bg-muted/50",
+          showQuestion ? "max-h-40" : "max-h-0 border-b-0"
+        )}
+      >
+        <div className="px-4 py-3">
+          <p className="text-sm text-muted-foreground italic leading-relaxed">
+            "{currentQuestion}"
+          </p>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      {/* Text input area - fills remaining space */}
+      <div className="flex-1 flex flex-col p-4 pb-2">
+        <textarea
+          ref={textareaRef}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Write your answer..."
+          className={cn(
+            "flex-1 w-full resize-none bg-transparent",
+            "text-base leading-relaxed",
+            "placeholder:text-muted-foreground/50",
+            "focus:outline-none",
+            "min-h-[100px]"
+          )}
+          style={{
+            fontSize: '16px', // Prevents iOS zoom on focus
+          }}
+        />
+      </div>
+
+      {/* Send button - fixed at bottom, above keyboard */}
+      <div className="px-4 py-3 pb-safe border-t border-border bg-card">
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!text.trim()}
+          className={cn(
+            "w-full flex items-center justify-center gap-2",
+            "h-12 rounded-full font-medium",
+            "transition-all duration-200 active:scale-[0.98]",
+            text.trim()
+              ? "bg-primary text-primary-foreground shadow-lg"
+              : "bg-muted text-muted-foreground"
+          )}
+        >
+          <Send className="h-5 w-5" />
+          <span>Send</span>
+        </button>
+      </div>
+    </div>
   );
 }
