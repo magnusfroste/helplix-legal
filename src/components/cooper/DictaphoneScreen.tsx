@@ -55,33 +55,11 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
 
   return (
     <div className="flex flex-col items-center justify-between min-h-[calc(100vh-80px)] py-4 px-2">
-      {/* Header with audio toggle */}
-      <header className="w-full flex items-center justify-between px-2 py-2">
-        <div className="w-10" />
+      {/* Header */}
+      <header className="w-full flex items-center justify-center px-2 py-2">
         <h1 className="text-cooper-2xl font-bold text-foreground tracking-tight">
           Cooper
         </h1>
-        {onToggleAudio && (
-          <button
-            type="button"
-            onClick={onToggleAudio}
-            className={cn(
-              "w-10 h-10 flex items-center justify-center rounded-full",
-              "bg-secondary text-secondary-foreground",
-              "hover:bg-secondary/80 active:scale-95",
-              "transition-all duration-200",
-              "touch-manipulation select-none"
-            )}
-            style={{ WebkitTapHighlightColor: 'transparent' }}
-            aria-label={audioEnabled ? "Disable audio" : "Enable audio"}
-          >
-            {audioEnabled ? (
-              <Volume2 className="h-5 w-5" />
-            ) : (
-              <VolumeX className="h-5 w-5" />
-            )}
-          </button>
-        )}
       </header>
 
       {/* Question Display - maximize space */}
@@ -128,7 +106,7 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
           </button>
         )}
         
-        {/* Action buttons row */}
+        {/* Action buttons row - all on same line */}
         <div className="flex items-center gap-2">
           {onReplay && !isFirstInteraction && audioEnabled && (
             <button
@@ -154,6 +132,23 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
             >
               <Keyboard className="h-4 w-4" />
               <span className="font-medium">Type</span>
+            </button>
+          )}
+
+          {onToggleAudio && (
+            <button
+              type="button"
+              onClick={onToggleAudio}
+              className={actionButtonClass}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+              aria-label={audioEnabled ? "Disable audio" : "Enable audio"}
+            >
+              {audioEnabled ? (
+                <VolumeX className="h-4 w-4" />
+              ) : (
+                <Volume2 className="h-4 w-4" />
+              )}
+              <span className="font-medium">{audioEnabled ? 'Audio off' : 'Audio on'}</span>
             </button>
           )}
         </div>
