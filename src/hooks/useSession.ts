@@ -188,7 +188,8 @@ export function useSession({ userId, onError }: UseSessionOptions = {}) {
       setSessions([]);
       setCurrentSessionId(null);
     }
-  }, [userId, loadSessions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   return {
     currentSessionId,
