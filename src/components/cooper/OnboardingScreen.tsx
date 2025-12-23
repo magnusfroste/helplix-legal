@@ -10,9 +10,12 @@ export const OnboardingScreen = memo(function OnboardingScreen({
 }: OnboardingScreenProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-6 sm:mb-8 tracking-tight animate-fade-in">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2 tracking-tight animate-fade-in">
         Coopers Law
       </h1>
+      <p className="text-sm text-muted-foreground mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '100ms' }}>
+        Select your jurisdiction
+      </p>
       <div className="grid grid-cols-3 gap-6 max-w-xs">
         {COUNTRIES.map((country, index) => (
           <button
