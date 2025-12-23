@@ -40,7 +40,7 @@ export function useConversation({ settings }: UseConversationOptions) {
     return 'idle';
   }, [voice.isRecording, voice.isTranscribing, chat.isLoading, voice.isSpeaking]);
 
-  const isBusy = status !== 'idle';
+  const isBusy = useMemo(() => status !== 'idle', [status]);
 
   // Initialize session on mount
   useEffect(() => {
