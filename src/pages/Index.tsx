@@ -10,7 +10,7 @@ import {
   type LogEntry,
   type ConversationStatus 
 } from '@/types/cooper';
-import { useVoice } from '@/hooks/useVoice';
+import { useRealtimeVoice } from '@/hooks/useRealtimeVoice';
 import { useCooperChat } from '@/hooks/useCooperChat';
 import { useSession } from '@/hooks/useSession';
 import { toast } from 'sonner';
@@ -33,7 +33,7 @@ export default function Index() {
     stopRecording, 
     speak, 
     stopSpeaking 
-  } = useVoice();
+  } = useRealtimeVoice();
 
   const { 
     isLoading: isThinking, 
