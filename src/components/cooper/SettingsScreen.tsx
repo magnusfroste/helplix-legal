@@ -118,6 +118,22 @@ export function SettingsScreen({ settings, onSettingsChange }: SettingsScreenPro
             </div>
           </section>
 
+          {/* Audio Enabled Toggle */}
+          <section className="flex items-center justify-between">
+            <div>
+              <Label className="text-cooper-lg font-semibold">
+                Audio Mode
+              </Label>
+              <p className="text-cooper-base text-muted-foreground">
+                Enable voice input/output (disable for text-only mode)
+              </p>
+            </div>
+            <Switch
+              checked={localSettings.audioEnabled}
+              onCheckedChange={(checked) => handleChange('audioEnabled', checked)}
+            />
+          </section>
+
           {/* Autoplay Speech */}
           <section className="flex items-center justify-between">
             <div>
@@ -131,6 +147,7 @@ export function SettingsScreen({ settings, onSettingsChange }: SettingsScreenPro
             <Switch
               checked={localSettings.autoplaySpeech}
               onCheckedChange={(checked) => handleChange('autoplaySpeech', checked)}
+              disabled={!localSettings.audioEnabled}
             />
           </section>
 

@@ -95,7 +95,7 @@ export function useConversation({ settings }: UseConversationOptions) {
       setCurrentQuestion(nextQuestion);
       setIsFirstInteraction(false);
 
-      if (settings.autoplaySpeech) {
+      if (settings.autoplaySpeech && settings.audioEnabled) {
         voice.speak(nextQuestion).catch(console.error);
       }
     } catch (error) {
@@ -161,7 +161,7 @@ export function useConversation({ settings }: UseConversationOptions) {
       chat.resetConversation();
       toast.success('New session started');
 
-      if (settings.autoplaySpeech) {
+      if (settings.autoplaySpeech && settings.audioEnabled) {
         voice.speak(INITIAL_QUESTION).catch(console.error);
       }
     } catch {
@@ -171,7 +171,7 @@ export function useConversation({ settings }: UseConversationOptions) {
 
   // Speak initial question on first load
   useEffect(() => {
-    if (settings.autoplaySpeech && isFirstInteraction && logEntries.length === 0) {
+    if (settings.autoplaySpeech && settings.audioEnabled && isFirstInteraction && logEntries.length === 0) {
       voice.speak(currentQuestion).catch(console.error);
     }
   }, []);

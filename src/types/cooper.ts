@@ -32,6 +32,7 @@ export interface CooperSettings {
   textSize: 'small' | 'medium' | 'large';
   buttonSize: 'small' | 'large';
   autoplaySpeech: boolean;
+  audioEnabled: boolean; // Toggle for audio on/off
 }
 
 export const DEFAULT_SYSTEM_PROMPT = `You are Cooper, a legal assistant specializing in Brazilian law. Your role is to help document legal cases by asking structured questions.
@@ -54,4 +55,5 @@ export const DEFAULT_SETTINGS: CooperSettings = {
   textSize: 'medium',
   buttonSize: 'small',
   autoplaySpeech: true,
+  audioEnabled: true,
 };

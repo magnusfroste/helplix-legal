@@ -1,16 +1,19 @@
 import { memo } from 'react';
 import { Keyboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TypewriterText } from './TypewriterText';
 
 interface QuestionDisplayProps {
   question: string;
   isFirstInteraction: boolean;
+  isSpeaking?: boolean;
   onTypeResponse?: () => void;
 }
 
 export const QuestionDisplay = memo(function QuestionDisplay({ 
   question, 
   isFirstInteraction,
+  isSpeaking = false,
   onTypeResponse 
 }: QuestionDisplayProps) {
   // Responsive text size based on question length
@@ -34,7 +37,10 @@ export const QuestionDisplay = memo(function QuestionDisplay({
         "font-medium text-foreground leading-snug text-center transition-all duration-300",
         getTextSizeClass()
       )}>
-        {question}
+        <TypewriterText 
+          text={question} 
+          isAnimating={isSpeaking}
+        />
       </p>
       
       {onTypeResponse && (
