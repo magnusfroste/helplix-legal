@@ -1,5 +1,4 @@
 import { memo } from 'react';
-import { Keyboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TypewriterText } from './TypewriterText';
 
@@ -7,14 +6,12 @@ interface QuestionDisplayProps {
   question: string;
   isFirstInteraction: boolean;
   isSpeaking?: boolean;
-  onTypeResponse?: () => void;
 }
 
 export const QuestionDisplay = memo(function QuestionDisplay({ 
   question, 
   isFirstInteraction,
   isSpeaking = false,
-  onTypeResponse 
 }: QuestionDisplayProps) {
   // Responsive text size based on question length
   const getTextSizeClass = () => {
@@ -42,21 +39,6 @@ export const QuestionDisplay = memo(function QuestionDisplay({
           isAnimating={isSpeaking}
         />
       </p>
-      
-      {onTypeResponse && (
-        <button
-          onClick={onTypeResponse}
-          className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-full",
-            "bg-secondary text-secondary-foreground",
-            "hover:bg-secondary/80 transition-colors",
-            "text-sm"
-          )}
-        >
-          <Keyboard className="h-4 w-4" />
-          <span>Type instead</span>
-        </button>
-      )}
     </div>
   );
 });
