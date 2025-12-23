@@ -20,16 +20,41 @@ export function PushToTalkButton({
 }: PushToTalkButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const isActiveRef = useRef(false);
+  const touchIdRef = useRef<number | null>(null);
   
   const isRecording = status === 'listening';
   const isProcessing = status === 'processing' || status === 'thinking';
   const isSpeaking = status === 'speaking';
   const isDisabled = disabled || isProcessing || isSpeaking;
 
+  // Pre-warm AudioContext on first user interaction (iOS requirement)
+  const warmupAudio = useCallback(() => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      ctx.resume().then(() => {
+        // Create and play a silent buffer to unlock audio
+        const buffer = ctx.createBuffer(1, 1, 22050);
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        source.start(0);
+        console.log('Audio context warmed up');
+      });
+    } catch (e) {
+      console.log('Audio warmup failed:', e);
+    }
+  }, []);
+
   const handleStart = useCallback(() => {
     if (isDisabled || isActiveRef.current) return;
     console.log('PTT: Starting recording');
     isActiveRef.current = true;
+    
+    // Haptic feedback if available
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+    
     onStartRecording();
   }, [isDisabled, onStartRecording]);
 
@@ -37,28 +62,62 @@ export function PushToTalkButton({
     if (!isActiveRef.current) return;
     console.log('PTT: Stopping recording');
     isActiveRef.current = false;
+    touchIdRef.current = null;
+    
+    // Haptic feedback if available
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+    
     onStopRecording();
   }, [onStopRecording]);
 
-  // Use native event listeners to avoid React synthetic event issues
+  // Use native event listeners with iOS-specific handling
   useEffect(() => {
     const button = buttonRef.current;
     if (!button) return;
 
     const onTouchStart = (e: TouchEvent) => {
       e.preventDefault();
+      e.stopPropagation();
+      
+      // Track the touch ID for this interaction
+      if (e.touches.length > 0) {
+        touchIdRef.current = e.touches[0].identifier;
+      }
+      
+      // Warm up audio on first touch
+      warmupAudio();
       handleStart();
     };
 
     const onTouchEnd = (e: TouchEvent) => {
       e.preventDefault();
-      handleEnd();
+      e.stopPropagation();
+      
+      // Check if our tracked touch ended
+      if (touchIdRef.current !== null) {
+        const touchEnded = !Array.from(e.touches).some(
+          t => t.identifier === touchIdRef.current
+        );
+        if (touchEnded) {
+          handleEnd();
+        }
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      // Prevent scrolling while holding button
+      if (isActiveRef.current) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     };
 
     const onMouseDown = (e: MouseEvent) => {
-      // Only handle left click
       if (e.button !== 0) return;
       e.preventDefault();
+      warmupAudio();
       handleStart();
     };
 
@@ -77,26 +136,52 @@ export function PushToTalkButton({
     // Prevent context menu on long press
     const onContextMenu = (e: Event) => {
       e.preventDefault();
+      e.stopPropagation();
+      return false;
     };
 
-    button.addEventListener('touchstart', onTouchStart, { passive: false });
-    button.addEventListener('touchend', onTouchEnd, { passive: false });
-    button.addEventListener('touchcancel', onTouchEnd, { passive: false });
+    // Prevent default touch behaviors
+    const onTouchStartPassive = (e: TouchEvent) => {
+      // This is needed to prevent iOS from triggering other gestures
+    };
+
+    button.addEventListener('touchstart', onTouchStart, { passive: false, capture: true });
+    button.addEventListener('touchend', onTouchEnd, { passive: false, capture: true });
+    button.addEventListener('touchcancel', onTouchEnd, { passive: false, capture: true });
+    button.addEventListener('touchmove', onTouchMove, { passive: false, capture: true });
     button.addEventListener('mousedown', onMouseDown);
     button.addEventListener('mouseup', onMouseUp);
     button.addEventListener('mouseleave', onMouseLeave);
-    button.addEventListener('contextmenu', onContextMenu);
+    button.addEventListener('contextmenu', onContextMenu, { capture: true });
+
+    // Also listen on document for touchend in case finger moves off button
+    const onDocumentTouchEnd = (e: TouchEvent) => {
+      if (isActiveRef.current && touchIdRef.current !== null) {
+        const touchEnded = !Array.from(e.touches).some(
+          t => t.identifier === touchIdRef.current
+        );
+        if (touchEnded) {
+          handleEnd();
+        }
+      }
+    };
+    
+    document.addEventListener('touchend', onDocumentTouchEnd, { passive: false });
+    document.addEventListener('touchcancel', onDocumentTouchEnd, { passive: false });
 
     return () => {
       button.removeEventListener('touchstart', onTouchStart);
       button.removeEventListener('touchend', onTouchEnd);
       button.removeEventListener('touchcancel', onTouchEnd);
+      button.removeEventListener('touchmove', onTouchMove);
       button.removeEventListener('mousedown', onMouseDown);
       button.removeEventListener('mouseup', onMouseUp);
       button.removeEventListener('mouseleave', onMouseLeave);
       button.removeEventListener('contextmenu', onContextMenu);
+      document.removeEventListener('touchend', onDocumentTouchEnd);
+      document.removeEventListener('touchcancel', onDocumentTouchEnd);
     };
-  }, [handleStart, handleEnd]);
+  }, [handleStart, handleEnd, warmupAudio]);
 
   const getButtonStyles = () => {
     if (isRecording) {
