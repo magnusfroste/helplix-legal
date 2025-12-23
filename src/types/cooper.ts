@@ -30,6 +30,7 @@ export interface CooperSettings {
   systemPrompt: string;
   questionIntensity: number; // 0-100, higher = more questions
   textSize: 'small' | 'medium' | 'large';
+  buttonSize: 'small' | 'large';
   autoplaySpeech: boolean;
 }
 
@@ -51,5 +52,6 @@ export const DEFAULT_SETTINGS: CooperSettings = {
   systemPrompt: DEFAULT_SYSTEM_PROMPT,
   questionIntensity: 70, // Default to more questions
   textSize: 'medium',
+  buttonSize: 'large',
   autoplaySpeech: true,
 };

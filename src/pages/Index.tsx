@@ -227,6 +227,7 @@ export default function Index() {
             onStopRecording={handleStopRecording}
             onTextSubmit={handleTextSubmit}
             onReplay={handleReplayQuestion}
+            buttonSize={settings.buttonSize}
           />
         );
       case 'log':
