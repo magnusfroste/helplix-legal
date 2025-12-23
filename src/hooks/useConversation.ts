@@ -5,6 +5,8 @@ import type { ConversationPhase, PhaseProgress } from '@/types/phases';
 import { shouldTransitionPhase, getNextPhase } from '@/types/phases';
 import type { InformationTracker } from '@/types/information-tracking';
 import { initializeTracker, updateTracker } from '@/types/information-tracking';
+import type { QualityMetrics, AnswerQualityAssessment } from '@/types/quality-control';
+import { assessAnswerQuality, generateFollowUpQuestions, shouldAskFollowUpNow, initializeQualityMetrics, updateQualityMetrics } from '@/types/quality-control';
 import { useRealtimeVoice } from './useRealtimeVoice';
 import { useCooperChat } from './useCooperChat';
 import { useSession } from './useSession';
@@ -44,6 +46,11 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   
   // Information tracking state
   const [infoTracker, setInfoTracker] = useState<InformationTracker>(() => initializeTracker());
+  
+  // Quality control state
+  const [qualityMetrics, setQualityMetrics] = useState<QualityMetrics>(() => initializeQualityMetrics());
+  const [consecutiveFollowUps, setConsecutiveFollowUps] = useState(0);
+  const [lastAssessment, setLastAssessment] = useState<AnswerQualityAssessment | null>(null);
 
   // Update current question when country/initialQuestion changes
   useEffect(() => {
@@ -140,6 +147,12 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       setLogEntries(prev => [...prev, savedQuestion, savedAnswer]);
     }
 
+    // Assess answer quality
+    const qualityAssessment = assessAnswerQuality(text, phaseProgress.currentPhase, currentQuestion);
+    setLastAssessment(qualityAssessment);
+    
+    console.log('Answer quality:', qualityAssessment.quality, 'Score:', qualityAssessment.score, 'Issues:', qualityAssessment.issues.length);
+    
     // Update information tracker with user's response
     setInfoTracker(prev => updateTracker(prev, phaseProgress.currentPhase, text));
     
@@ -172,7 +185,35 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     }
 
     try {
-      const nextQuestion = await chat.sendMessage(text, nextPhase);
+      // Check if we should ask a follow-up question immediately
+      const shouldFollowUp = shouldAskFollowUpNow(qualityAssessment, consecutiveFollowUps);
+      
+      let nextQuestion: string;
+      
+      if (shouldFollowUp) {
+        // Generate and ask follow-up question
+        const followUps = generateFollowUpQuestions(qualityAssessment, phaseProgress.currentPhase, text);
+        
+        if (followUps.length > 0) {
+          console.log('Asking follow-up question:', followUps[0].reason);
+          nextQuestion = followUps[0].question;
+          setConsecutiveFollowUps(prev => prev + 1);
+          
+          // Update quality metrics
+          setQualityMetrics(prev => updateQualityMetrics(prev, qualityAssessment, true));
+        } else {
+          // No follow-up available, continue normally
+          nextQuestion = await chat.sendMessage(text, nextPhase);
+          setConsecutiveFollowUps(0);
+          setQualityMetrics(prev => updateQualityMetrics(prev, qualityAssessment, false));
+        }
+      } else {
+        // Continue with normal AI response
+        nextQuestion = await chat.sendMessage(text, nextPhase);
+        setConsecutiveFollowUps(0);
+        setQualityMetrics(prev => updateQualityMetrics(prev, qualityAssessment, false));
+      }
+      
       setCurrentQuestion(nextQuestion);
       setIsFirstInteraction(false);
 
@@ -261,6 +302,11 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       // Reset information tracker
       setInfoTracker(initializeTracker());
       
+      // Reset quality metrics
+      setQualityMetrics(initializeQualityMetrics());
+      setConsecutiveFollowUps(0);
+      setLastAssessment(null);
+      
       toast.success('New session started');
 
       if (settings.autoplaySpeech && settings.ttsEnabled) {
@@ -283,6 +329,8 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     currentSessionId: session.currentSessionId,
     phaseProgress, // Phase tracking state
     infoTracker, // Information tracking state
+    qualityMetrics, // Quality metrics
+    lastAssessment, // Last quality assessment
 
     // Actions
     startRecording,
