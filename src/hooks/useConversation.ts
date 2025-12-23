@@ -30,10 +30,10 @@ export function useConversation({ settings }: UseConversationOptions) {
 
   // Update current question when country/initialQuestion changes
   useEffect(() => {
-    if (isFirstInteraction && logEntries.length === 0) {
+    if (isFirstInteraction && logEntries.length === 0 && settings.country) {
       setCurrentQuestion(initialQuestion);
     }
-  }, [initialQuestion]);
+  }, [initialQuestion, settings.country]);
 
   // Voice service
   const voice = useRealtimeVoice();
@@ -171,12 +171,12 @@ export function useConversation({ settings }: UseConversationOptions) {
     }
   }, [settings.autoplaySpeech, initialQuestion]);
 
-  // Speak initial question on first load
+  // Speak initial question on first load (only when a country is selected)
   useEffect(() => {
-    if (settings.autoplaySpeech && settings.audioEnabled && isFirstInteraction && logEntries.length === 0) {
+    if (settings.country && settings.autoplaySpeech && settings.audioEnabled && isFirstInteraction && logEntries.length === 0) {
       voice.speak(initialQuestion).catch(console.error);
     }
-  }, [initialQuestion]);
+  }, [initialQuestion, settings.country]);
 
   return {
     // State (read-only)
