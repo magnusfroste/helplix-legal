@@ -13,7 +13,7 @@ interface LogEntry {
 
 interface ReportRequest {
   entries: LogEntry[];
-  reportType: "timeline" | "legal" | "both";
+  reportType: "timeline" | "legal" | "interpretation" | "both" | "all";
   language?: string;
 }
 
@@ -48,7 +48,7 @@ serve(async (req) => {
 
     let systemPrompt = "";
     
-    if (reportType === "timeline" || reportType === "both") {
+    if (reportType === "timeline" || reportType === "both" || reportType === "all") {
       systemPrompt += `
 ## Kronologisk Tidslinje
 
@@ -65,7 +65,7 @@ Format:
 `;
     }
 
-    if (reportType === "legal" || reportType === "both") {
+    if (reportType === "legal" || reportType === "both" || reportType === "all") {
       systemPrompt += `
 ## Juridisk Översikt
 
@@ -83,7 +83,65 @@ Important: Start this section with the exact header: ## Juridisk Översikt
 `;
     }
 
-    const fullSystemPrompt = `You are a legal documentation specialist creating formal reports from interview transcripts.
+    if (reportType === "interpretation" || reportType === "all") {
+      systemPrompt += `
+## Juridisk Tolkning
+
+⚠️ **DISCLAIMER**: Detta är en AI-genererad juridisk analys avsedd ENDAST för utbildnings- och orienteringssyfte. Innehållet utgör INTE juridisk rådgivning och kan innehålla felaktigheter eller föråldrad information. Rådgör alltid med en legitimerad jurist innan du fattar juridiska beslut.
+
+Create a detailed legal interpretation and analysis based on the case facts. This should demonstrate how a lawyer might approach the case.
+
+Include the following sections:
+
+### Rättslig Bedömning
+Provide a thorough legal analysis of the situation. Identify the core legal issues and analyze them against applicable Swedish law.
+
+### Tillämplig Lagstiftning
+List and explain the relevant Swedish laws and regulations that apply to this case:
+- Reference specific law codes (e.g., Brottsbalken, Avtalslagen, Skadeståndslagen)
+- Quote relevant paragraphs where applicable
+- Explain how each law relates to the facts
+
+### Relevanta Rättsfall och Prejudikat
+Reference relevant Swedish case law that could apply:
+- NJA (Nytt Juridiskt Arkiv) cases
+- RH (Rättsfall från hovrätterna) cases
+- AD (Arbetsdomstolen) if labor-related
+- Explain the precedents and how they might apply
+
+### Juridisk Argumentation
+Present how a lawyer might argue this case:
+- Strongest arguments for the client
+- Potential counterarguments to prepare for
+- Key evidence that would be important
+
+### Möjliga Utgångar
+Analyze possible outcomes:
+- Best case scenario
+- Worst case scenario
+- Most likely outcome based on similar cases
+
+### Processväg och Nästa Steg
+Outline the procedural path:
+- Which court/authority has jurisdiction
+- Time limits (preskriptionstider) to be aware of
+- Recommended immediate actions
+- Estimated timeline
+
+### Källor och Referenser
+List all sources referenced in the analysis.
+
+Important guidelines:
+- Start with the exact header: ## Juridisk Tolkning
+- The DISCLAIMER must appear at the very beginning
+- Be thorough but focus on the most relevant legal aspects
+- Use proper Swedish legal terminology
+- When referencing case law, be as specific as possible
+- If you cannot find specific cases, mention general legal principles instead
+`;
+    }
+
+    const fullSystemPrompt = `You are a legal documentation specialist and legal analyst creating formal reports from interview transcripts.
 
 ${systemPrompt}
 
@@ -92,9 +150,10 @@ ${systemPrompt}
 - Be objective and factual - do not add assumptions
 - Use professional, clear language suitable for legal documentation
 - If information is incomplete, note what is missing
-- Do NOT provide legal advice - only document and organize facts
+- For the Juridisk Tolkning section: provide educational analysis but emphasize it is NOT legal advice
 - Format the output with clear Markdown headers and sections
-- CRITICAL: When generating both sections, you MUST include BOTH "## Kronologisk Tidslinje" AND "## Juridisk Översikt" headers`;
+- CRITICAL: Include all requested section headers in the exact format specified
+- When generating "all" sections: include "## Kronologisk Tidslinje", "## Juridisk Översikt", AND "## Juridisk Tolkning" headers`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

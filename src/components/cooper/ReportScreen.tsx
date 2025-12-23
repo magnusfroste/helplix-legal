@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { FileText, Clock, Download, Share2, Volume2, VolumeX, RefreshCw, Loader2, AlertTriangle } from 'lucide-react';
+import { FileText, Clock, Download, Share2, Volume2, VolumeX, RefreshCw, Loader2, AlertTriangle, Scale } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { LogEntry } from '@/types/cooper';
@@ -28,6 +28,7 @@ export function ReportScreen({
 }: ReportScreenProps) {
   const [timelineReport, setTimelineReport] = useState<string | null>(null);
   const [legalReport, setLegalReport] = useState<string | null>(null);
+  const [interpretationReport, setInterpretationReport] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingType, setGeneratingType] = useState<string | null>(null);
 
@@ -50,10 +51,11 @@ export function ReportScreen({
     if (report) {
       setTimelineReport(report.timeline_report);
       setLegalReport(report.legal_report);
+      setInterpretationReport(report.interpretation_report);
     }
   }, [report]);
 
-  const generateReport = useCallback(async (reportType: 'timeline' | 'legal' | 'both') => {
+  const generateReport = useCallback(async (reportType: 'timeline' | 'legal' | 'interpretation' | 'both' | 'all') => {
     if (!hasEntries) return;
 
     setIsGenerating(true);
@@ -89,8 +91,22 @@ export function ReportScreen({
       
       let newTimeline = timelineReport;
       let newLegal = legalReport;
+      let newInterpretation = interpretationReport;
 
-      if (reportType === 'both') {
+      if (reportType === 'all') {
+        // Split into three sections
+        const timelineMatch = data.report.match(/## Kronologisk Tidslinje[\s\S]*?(?=## Juridisk Översikt|$)/i);
+        const legalMatch = data.report.match(/## Juridisk Översikt[\s\S]*?(?=## Juridisk Tolkning|$)/i);
+        const interpretationMatch = data.report.match(/## Juridisk Tolkning[\s\S]*/i);
+        
+        newTimeline = timelineMatch ? timelineMatch[0].trim() : null;
+        newLegal = legalMatch ? legalMatch[0].trim() : null;
+        newInterpretation = interpretationMatch ? interpretationMatch[0].trim() : null;
+        
+        setTimelineReport(newTimeline);
+        setLegalReport(newLegal);
+        setInterpretationReport(newInterpretation);
+      } else if (reportType === 'both') {
         // Split using Swedish header "Juridisk Översikt"
         const splitPattern = /(##\s*Juridisk Översikt)/i;
         const parts = data.report.split(splitPattern);
@@ -116,13 +132,16 @@ export function ReportScreen({
       } else if (reportType === 'timeline') {
         newTimeline = data.report;
         setTimelineReport(newTimeline);
-      } else {
+      } else if (reportType === 'legal') {
         newLegal = data.report;
         setLegalReport(newLegal);
+      } else if (reportType === 'interpretation') {
+        newInterpretation = data.report;
+        setInterpretationReport(newInterpretation);
       }
 
       // Save to database
-      await saveReport(newTimeline, newLegal);
+      await saveReport(newTimeline, newLegal, newInterpretation);
       
       toast.success('Rapport genererad och sparad');
     } catch (error) {
@@ -132,10 +151,10 @@ export function ReportScreen({
       setIsGenerating(false);
       setGeneratingType(null);
     }
-  }, [entries, hasEntries, timelineReport, legalReport, saveReport]);
+  }, [entries, hasEntries, timelineReport, legalReport, interpretationReport, saveReport]);
 
   const handleExportPdf = useCallback(() => {
-    if (!timelineReport && !legalReport) {
+    if (!timelineReport && !legalReport && !interpretationReport) {
       toast.error('Generate a report first');
       return;
     }
@@ -154,6 +173,7 @@ export function ReportScreen({
             li { margin-bottom: 8px; }
             .section { margin-bottom: 30px; }
             .timestamp { color: #666; font-size: 0.9em; }
+            .disclaimer { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
           </style>
         </head>
         <body>
@@ -161,6 +181,7 @@ export function ReportScreen({
           <p class="timestamp">Generated: ${new Date().toLocaleString()}</p>
           ${timelineReport ? `<div class="section">${formatMarkdownToHtml(timelineReport)}</div>` : ''}
           ${legalReport ? `<div class="section">${formatMarkdownToHtml(legalReport)}</div>` : ''}
+          ${interpretationReport ? `<div class="section">${formatMarkdownToHtml(interpretationReport)}</div>` : ''}
         </body>
       </html>
     `;
@@ -171,15 +192,15 @@ export function ReportScreen({
       printWindow.document.close();
       printWindow.print();
     }
-  }, [timelineReport, legalReport]);
+  }, [timelineReport, legalReport, interpretationReport]);
 
   const handleShare = useCallback(async () => {
-    if (!timelineReport && !legalReport) {
+    if (!timelineReport && !legalReport && !interpretationReport) {
       toast.error('Generate a report first');
       return;
     }
 
-    const shareText = [timelineReport, legalReport].filter(Boolean).join('\n\n---\n\n');
+    const shareText = [timelineReport, legalReport, interpretationReport].filter(Boolean).join('\n\n---\n\n');
 
     if (navigator.share) {
       try {
@@ -202,20 +223,20 @@ export function ReportScreen({
         toast.error('Could not copy to clipboard');
       }
     }
-  }, [timelineReport, legalReport]);
+  }, [timelineReport, legalReport, interpretationReport]);
 
   const handleTogglePlayReport = useCallback(() => {
     if (isPlaying) {
       onStopReport?.();
     } else {
-      const reportText = [timelineReport, legalReport].filter(Boolean).join('\n\n');
+      const reportText = [timelineReport, legalReport, interpretationReport].filter(Boolean).join('\n\n');
       if (reportText && onPlayReport) {
         onPlayReport(reportText);
       } else if (!reportText) {
         toast.error('Generate a report first');
       }
     }
-  }, [timelineReport, legalReport, onPlayReport, onStopReport, isPlaying]);
+  }, [timelineReport, legalReport, interpretationReport, onPlayReport, onStopReport, isPlaying]);
 
   if (isLoading) {
     return (
@@ -240,7 +261,7 @@ export function ReportScreen({
     );
   }
 
-  const hasReport = timelineReport || legalReport;
+  const hasReport = timelineReport || legalReport || interpretationReport;
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -273,7 +294,7 @@ export function ReportScreen({
           <Button 
             size="sm" 
             variant="outline"
-            onClick={() => generateReport('both')}
+            onClick={() => generateReport('all')}
             disabled={isGenerating}
             className="shrink-0 h-7 px-2 text-xs"
           >
@@ -294,7 +315,7 @@ export function ReportScreen({
         <Button 
           size="default" 
           className="w-full"
-          onClick={() => generateReport('both')}
+          onClick={() => generateReport('all')}
           disabled={isGenerating}
         >
           {isGenerating ? (
@@ -425,6 +446,58 @@ export function ReportScreen({
               ) : (
                 <p className="text-cooper-sm text-muted-foreground italic">
                   Klicka "Generera rapport" för att identifiera potentiella juridiska frågor.
+                </p>
+              )}
+            </div>
+          </section>
+
+          {/* Legal Interpretation Section */}
+          <section className="w-full">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Scale className="h-4 w-4 text-primary" />
+                <h2 className="text-cooper-base font-semibold text-foreground">
+                  Juridisk Tolkning
+                </h2>
+              </div>
+              {interpretationReport && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="h-7 w-7 p-0 shrink-0"
+                  onClick={() => generateReport('interpretation')}
+                  disabled={isGenerating}
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${generatingType === 'interpretation' ? 'animate-spin' : ''}`} />
+                </Button>
+              )}
+            </div>
+            
+            {/* Disclaimer Banner */}
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-2">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <p className="text-cooper-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                  <strong>DISCLAIMER:</strong> Detta är en AI-genererad analys för utbildnings- och orienteringssyfte. 
+                  Innehållet utgör INTE juridisk rådgivning och kan innehålla felaktigheter. 
+                  Rådgör alltid med en legitimerad jurist.
+                </p>
+              </div>
+            </div>
+            
+            <div className="bg-card border border-border rounded-lg p-3 w-full overflow-hidden">
+              {isGenerating && (generatingType === 'interpretation' || generatingType === 'all') ? (
+                <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Genererar juridisk tolkning...
+                </div>
+              ) : interpretationReport ? (
+                <div className="text-foreground w-full" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                  <MarkdownRenderer content={interpretationReport} />
+                </div>
+              ) : (
+                <p className="text-cooper-sm text-muted-foreground italic">
+                  Klicka "Generera rapport" för att få en AI-genererad juridisk tolkning av ärendet.
                 </p>
               )}
             </div>

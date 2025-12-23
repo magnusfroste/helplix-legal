@@ -64,6 +64,7 @@ export type Database = {
           created_at: string
           entries_count: number
           id: string
+          interpretation_report: string | null
           legal_report: string | null
           session_id: string
           timeline_report: string | null
@@ -74,6 +75,7 @@ export type Database = {
           created_at?: string
           entries_count?: number
           id?: string
+          interpretation_report?: string | null
           legal_report?: string | null
           session_id: string
           timeline_report?: string | null
@@ -84,6 +86,7 @@ export type Database = {
           created_at?: string
           entries_count?: number
           id?: string
+          interpretation_report?: string | null
           legal_report?: string | null
           session_id?: string
           timeline_report?: string | null
