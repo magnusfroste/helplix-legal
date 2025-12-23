@@ -15,6 +15,7 @@ interface ChatRequest {
   systemPrompt: string;
   questionIntensity: number; // 1-10, higher = more detailed questions
   userLanguage?: string;
+  country?: string; // Country code for legal context
 }
 
 serve(async (req) => {
@@ -23,14 +24,14 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, systemPrompt, questionIntensity, userLanguage } = await req.json() as ChatRequest;
+    const { messages, systemPrompt, questionIntensity, userLanguage, country } = await req.json() as ChatRequest;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Cooper chat request - messages:", messages.length, "intensity:", questionIntensity);
+    console.log("Cooper chat request - messages:", messages.length, "intensity:", questionIntensity, "country:", country);
 
     // Build the enhanced system prompt
     const intensityInstruction = questionIntensity >= 7 

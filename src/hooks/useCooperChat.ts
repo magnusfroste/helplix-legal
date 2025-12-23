@@ -58,6 +58,7 @@ export function useCooperChat({ settings, onResponse, onError }: UseCooperChatOp
             systemPrompt: settings.systemPrompt,
             questionIntensity: Math.round(settings.questionIntensity / 10), // Convert 0-100 to 1-10
             userLanguage: detectedLanguage,
+            country: settings.country,
           }),
         }
       );

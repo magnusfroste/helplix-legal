@@ -1,20 +1,31 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { CooperSettings, LogEntry, ConversationStatus } from '@/types/cooper';
+import { COUNTRIES } from '@/types/cooper';
 import { useRealtimeVoice } from './useRealtimeVoice';
 import { useCooperChat } from './useCooperChat';
 import { useSession } from './useSession';
 import { toast } from 'sonner';
 
-const INITIAL_QUESTION = "Hello! I'm Cooper, your legal documentation assistant. Before we begin, what language would you prefer to communicate in?";
+function getInitialQuestion(settings: CooperSettings): string {
+  if (settings.country) {
+    const country = COUNTRIES.find(c => c.code === settings.country);
+    if (country) {
+      return country.greeting;
+    }
+  }
+  return "Hello! I'm Cooper, your legal documentation assistant. Can you tell me what happened?";
+}
 
 interface UseConversationOptions {
   settings: CooperSettings;
 }
 
 export function useConversation({ settings }: UseConversationOptions) {
+  const initialQuestion = useMemo(() => getInitialQuestion(settings), [settings.country]);
+  
   // Local state
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState(INITIAL_QUESTION);
+  const [currentQuestion, setCurrentQuestion] = useState(initialQuestion);
   const [isFirstInteraction, setIsFirstInteraction] = useState(true);
 
   // Voice service
@@ -156,18 +167,18 @@ export function useConversation({ settings }: UseConversationOptions) {
     try {
       await session.createSession();
       setLogEntries([]);
-      setCurrentQuestion(INITIAL_QUESTION);
+      setCurrentQuestion(initialQuestion);
       setIsFirstInteraction(true);
       chat.resetConversation();
       toast.success('New session started');
 
       if (settings.autoplaySpeech && settings.audioEnabled) {
-        voice.speak(INITIAL_QUESTION).catch(console.error);
+        voice.speak(initialQuestion).catch(console.error);
       }
     } catch {
       console.error('Failed to start new session');
     }
-  }, [settings.autoplaySpeech]);
+  }, [settings.autoplaySpeech, initialQuestion]);
 
   // Speak initial question on first load
   useEffect(() => {
