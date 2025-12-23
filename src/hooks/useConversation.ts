@@ -223,5 +223,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
 
     // Pass-through for Report
     speak: voice.speak,
+    stopSpeaking: voice.stopSpeaking,
+    isSpeaking: voice.isSpeaking,
   };
 }
