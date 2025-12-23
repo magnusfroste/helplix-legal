@@ -88,13 +88,25 @@ export function ReportScreen({
 
       if (reportType === 'both') {
         // Split the report into timeline and legal sections
-        const parts = data.report.split(/##\s*Legal Overview|##\s*Visão Jurídica|##\s*Resumen Legal/i);
-        if (parts.length >= 2) {
+        // Match various headers in different languages including Swedish
+        const splitPattern = /(##\s*(?:Legal Overview|Juridisk Översikt|Juridisk Översiktsrapport|Visão Jurídica|Resumen Legal|Juridisk\s+\S+))/i;
+        const parts = data.report.split(splitPattern);
+        
+        if (parts.length >= 3) {
+          // parts[0] = timeline, parts[1] = matched header, parts[2+] = legal content
           newTimeline = parts[0].trim();
-          newLegal = '## Legal Overview\n' + parts[1].trim();
+          newLegal = parts[1] + '\n' + parts.slice(2).join('').trim();
         } else {
-          newTimeline = data.report;
-          newLegal = null;
+          // Fallback: find second ## header in text
+          const allHeaders = [...data.report.matchAll(/\n(##\s+[^\n]+)/g)];
+          if (allHeaders.length >= 1) {
+            const secondHeaderIndex = allHeaders[0].index || 0;
+            newTimeline = data.report.substring(0, secondHeaderIndex).trim();
+            newLegal = data.report.substring(secondHeaderIndex).trim();
+          } else {
+            newTimeline = data.report;
+            newLegal = null;
+          }
         }
         setTimelineReport(newTimeline);
         setLegalReport(newLegal);
