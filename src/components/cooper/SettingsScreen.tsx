@@ -99,6 +99,25 @@ export function SettingsScreen({ settings, onSettingsChange }: SettingsScreenPro
             </div>
           </section>
 
+          {/* Button Size */}
+          <section className="space-y-4">
+            <Label className="text-cooper-lg font-semibold">
+              Speak Button Size
+            </Label>
+            <div className="flex gap-2">
+              {(['small', 'large'] as const).map((size) => (
+                <Button
+                  key={size}
+                  variant={localSettings.buttonSize === size ? 'default' : 'outline'}
+                  onClick={() => handleChange('buttonSize', size)}
+                  className="flex-1 capitalize"
+                >
+                  {size}
+                </Button>
+              ))}
+            </div>
+          </section>
+
           {/* Autoplay Speech */}
           <section className="flex items-center justify-between">
             <div>

@@ -4,7 +4,7 @@ import { PushToTalkButton } from './PushToTalkButton';
 import { QuestionDisplay } from './QuestionDisplay';
 import { TextInputDialog } from './TextInputDialog';
 import { cn } from '@/lib/utils';
-import type { ConversationStatus } from '@/types/cooper';
+import type { ConversationStatus, CooperSettings } from '@/types/cooper';
 
 interface DictaphoneScreenProps {
   status: ConversationStatus;
@@ -14,6 +14,7 @@ interface DictaphoneScreenProps {
   onStopRecording: () => void;
   onTextSubmit: (text: string) => void;
   onReplay?: () => void;
+  buttonSize?: CooperSettings['buttonSize'];
 }
 
 export function DictaphoneScreen({
@@ -24,6 +25,7 @@ export function DictaphoneScreen({
   onStopRecording,
   onTextSubmit,
   onReplay,
+  buttonSize = 'large',
 }: DictaphoneScreenProps) {
   const [showTextInput, setShowTextInput] = useState(false);
 
@@ -58,6 +60,7 @@ export function DictaphoneScreen({
           status={status}
           onStartRecording={onStartRecording}
           onStopRecording={onStopRecording}
+          size={buttonSize}
         />
         
         {/* Replay Button */}
