@@ -1,6 +1,6 @@
 import { Mic, Square, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import type { ConversationStatus } from '@/types/cooper';
 
 interface PushToTalkButtonProps {
@@ -18,59 +18,85 @@ export function PushToTalkButton({
   disabled = false,
   size = 'large',
 }: PushToTalkButtonProps) {
-  // Track if we're currently pressing (to prevent duplicate events)
-  const isPressing = useRef(false);
-  // Track if touch started the interaction (to ignore subsequent mouse events)
-  const isTouchDevice = useRef(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const isActiveRef = useRef(false);
   
   const isRecording = status === 'listening';
   const isProcessing = status === 'processing' || status === 'thinking';
   const isSpeaking = status === 'speaking';
   const isDisabled = disabled || isProcessing || isSpeaking;
-  
+
   const handleStart = useCallback(() => {
-    if (isDisabled || isPressing.current) return;
-    isPressing.current = true;
+    if (isDisabled || isActiveRef.current) return;
+    console.log('PTT: Starting recording');
+    isActiveRef.current = true;
     onStartRecording();
   }, [isDisabled, onStartRecording]);
 
   const handleEnd = useCallback(() => {
-    if (!isPressing.current) return;
-    isPressing.current = false;
+    if (!isActiveRef.current) return;
+    console.log('PTT: Stopping recording');
+    isActiveRef.current = false;
     onStopRecording();
   }, [onStopRecording]);
 
-  // Touch handlers
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    e.preventDefault(); // Prevent mouse event from firing
-    isTouchDevice.current = true;
-    handleStart();
-  }, [handleStart]);
+  // Use native event listeners to avoid React synthetic event issues
+  useEffect(() => {
+    const button = buttonRef.current;
+    if (!button) return;
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    handleEnd();
-  }, [handleEnd]);
+    const onTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      handleStart();
+    };
 
-  // Mouse handlers (only fire if not a touch device)
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (isTouchDevice.current) return; // Ignore if touch already handled
-    e.preventDefault();
-    handleStart();
-  }, [handleStart]);
-
-  const handleMouseUp = useCallback((e: React.MouseEvent) => {
-    if (isTouchDevice.current) return;
-    e.preventDefault();
-    handleEnd();
-  }, [handleEnd]);
-
-  const handleMouseLeave = useCallback(() => {
-    if (isTouchDevice.current) return;
-    if (isPressing.current) {
+    const onTouchEnd = (e: TouchEvent) => {
+      e.preventDefault();
       handleEnd();
-    }
-  }, [handleEnd]);
+    };
+
+    const onMouseDown = (e: MouseEvent) => {
+      // Only handle left click
+      if (e.button !== 0) return;
+      e.preventDefault();
+      handleStart();
+    };
+
+    const onMouseUp = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      handleEnd();
+    };
+
+    const onMouseLeave = () => {
+      if (isActiveRef.current) {
+        handleEnd();
+      }
+    };
+
+    // Prevent context menu on long press
+    const onContextMenu = (e: Event) => {
+      e.preventDefault();
+    };
+
+    button.addEventListener('touchstart', onTouchStart, { passive: false });
+    button.addEventListener('touchend', onTouchEnd, { passive: false });
+    button.addEventListener('touchcancel', onTouchEnd, { passive: false });
+    button.addEventListener('mousedown', onMouseDown);
+    button.addEventListener('mouseup', onMouseUp);
+    button.addEventListener('mouseleave', onMouseLeave);
+    button.addEventListener('contextmenu', onContextMenu);
+
+    return () => {
+      button.removeEventListener('touchstart', onTouchStart);
+      button.removeEventListener('touchend', onTouchEnd);
+      button.removeEventListener('touchcancel', onTouchEnd);
+      button.removeEventListener('mousedown', onMouseDown);
+      button.removeEventListener('mouseup', onMouseUp);
+      button.removeEventListener('mouseleave', onMouseLeave);
+      button.removeEventListener('contextmenu', onContextMenu);
+    };
+  }, [handleStart, handleEnd]);
 
   const getButtonStyles = () => {
     if (isRecording) {
@@ -82,7 +108,7 @@ export function PushToTalkButton({
     if (isSpeaking) {
       return "bg-cooper-speaking";
     }
-    return "bg-primary hover:bg-primary/90 active:scale-95";
+    return "bg-primary hover:bg-primary/90";
   };
 
   const getIcon = () => {
@@ -135,24 +161,24 @@ export function PushToTalkButton({
         )}
         
         <button
+          ref={buttonRef}
           type="button"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
           disabled={isDisabled}
           className={cn(
             "rounded-full flex items-center justify-center relative",
             "text-primary-foreground shadow-lg transition-all duration-200",
             "focus:outline-none focus-visible:ring-4 focus-visible:ring-ring focus-visible:ring-offset-4",
             "disabled:opacity-50 disabled:cursor-not-allowed",
-            "touch-none select-none z-10 cursor-pointer",
+            "select-none z-10 cursor-pointer",
             buttonSizeClass,
             getButtonStyles()
           )}
-          style={{ WebkitTapHighlightColor: 'transparent' }}
+          style={{ 
+            WebkitTapHighlightColor: 'transparent',
+            WebkitTouchCallout: 'none',
+            WebkitUserSelect: 'none',
+            userSelect: 'none',
+          }}
           aria-label={isRecording ? "Release to stop recording" : "Hold to start recording"}
         >
           {getIcon()}
