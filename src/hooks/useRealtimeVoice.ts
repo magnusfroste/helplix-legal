@@ -11,19 +11,31 @@ export function useRealtimeVoice() {
   const [transcriptResult, setTranscriptResult] = useState<string>('');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const resolveTranscriptRef = useRef<((text: string) => void) | null>(null);
+  const accumulatedTextRef = useRef<string>('');
 
   const scribe = useScribe({
     modelId: 'scribe_v2_realtime',
     commitStrategy: CommitStrategy.MANUAL,
+    onConnect: () => {
+      console.log('Scribe: Connected');
+    },
+    onDisconnect: () => {
+      console.log('Scribe: Disconnected');
+    },
+    onError: (error) => {
+      console.error('Scribe error:', error);
+    },
     onPartialTranscript: (data) => {
-      console.log('Partial transcript:', data.text);
+      console.log('Scribe: Partial transcript:', data.text);
+      accumulatedTextRef.current = data.text;
       setTranscriptResult(data.text);
     },
     onCommittedTranscript: (data) => {
-      console.log('Committed transcript:', data.text);
-      setTranscriptResult(data.text);
+      console.log('Scribe: Committed transcript:', data.text);
+      const finalText = data.text || accumulatedTextRef.current;
+      setTranscriptResult(finalText);
       if (resolveTranscriptRef.current) {
-        resolveTranscriptRef.current(data.text);
+        resolveTranscriptRef.current(finalText);
         resolveTranscriptRef.current = null;
       }
     },
@@ -33,6 +45,7 @@ export function useRealtimeVoice() {
     try {
       console.log('Starting realtime recording...');
       setTranscriptResult('');
+      accumulatedTextRef.current = '';
       
       // Get token from edge function
       const response = await fetch(
@@ -65,7 +78,7 @@ export function useRealtimeVoice() {
       });
 
       setIsRecording(true);
-      console.log('Recording started');
+      console.log('Recording started, scribe status:', scribe.status);
     } catch (error) {
       console.error('Error starting recording:', error);
       throw error;
@@ -73,46 +86,37 @@ export function useRealtimeVoice() {
   }, [scribe]);
 
   const stopRecording = useCallback(async (): Promise<string> => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        console.log('Stopping realtime recording...');
-        setIsTranscribing(true);
-        
-        // Store the resolve function to be called when transcript is committed
-        resolveTranscriptRef.current = (text: string) => {
-          setIsRecording(false);
-          setIsTranscribing(false);
-          resolve(text);
-        };
-
-        // Commit the transcript
-        scribe.commit();
-        
-        // Wait a moment for the commit to process
-        setTimeout(async () => {
-          // If no committed transcript received, use partial or empty
-          if (resolveTranscriptRef.current) {
-            const result = transcriptResult || '';
-            console.log('Using partial/empty transcript:', result);
-            resolveTranscriptRef.current = null;
-            setIsRecording(false);
-            setIsTranscribing(false);
-            
-            // Disconnect after getting result
-            scribe.disconnect();
-            resolve(result);
-          }
-        }, 1500);
-        
-      } catch (error) {
-        console.error('Error stopping recording:', error);
+    console.log('Stopping realtime recording, current text:', accumulatedTextRef.current);
+    setIsTranscribing(true);
+    
+    return new Promise((resolve) => {
+      // Store the resolve function
+      resolveTranscriptRef.current = (text: string) => {
+        console.log('Resolving with transcript:', text);
         setIsRecording(false);
         setIsTranscribing(false);
         scribe.disconnect();
-        reject(error);
-      }
+        resolve(text);
+      };
+
+      // Commit the transcript
+      console.log('Committing transcript...');
+      scribe.commit();
+      
+      // Fallback: If no committed transcript received within 2 seconds, use accumulated text
+      setTimeout(() => {
+        if (resolveTranscriptRef.current) {
+          const fallbackText = accumulatedTextRef.current || '';
+          console.log('Timeout fallback, using accumulated text:', fallbackText);
+          resolveTranscriptRef.current = null;
+          setIsRecording(false);
+          setIsTranscribing(false);
+          scribe.disconnect();
+          resolve(fallbackText);
+        }
+      }, 2000);
     });
-  }, [scribe, transcriptResult]);
+  }, [scribe]);
 
   const speak = useCallback(async (text: string): Promise<void> => {
     if (!text) return;
@@ -185,7 +189,7 @@ export function useRealtimeVoice() {
     isTranscribing,
     isSpeaking,
     isConnected: scribe.isConnected,
-    partialTranscript: scribe.partialTranscript,
+    partialTranscript: transcriptResult,
     startRecording,
     stopRecording,
     speak,
