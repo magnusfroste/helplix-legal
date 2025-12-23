@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, RotateCcw, RefreshCw } from 'lucide-react';
+import { Save, RotateCcw, RefreshCw, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
@@ -234,6 +234,21 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession }
               className="min-h-[200px] text-sm font-mono"
               placeholder="Enter system prompt..."
             />
+          </section>
+
+          {/* Reset to Start Screen */}
+          <section className="pt-4 border-t border-border">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                onSettingsChange({ ...localSettings, country: null });
+                toast.info('Returning to country selection...');
+              }}
+              className="w-full text-muted-foreground hover:text-foreground"
+            >
+              <Globe className="h-4 w-4 mr-2" />
+              Change jurisdiction
+            </Button>
           </section>
 
           {/* Action Buttons */}
