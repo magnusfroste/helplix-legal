@@ -23,17 +23,17 @@ interface UseConversationOptions {
 export function useConversation({ settings }: UseConversationOptions) {
   const initialQuestion = useMemo(() => getInitialQuestion(settings), [settings.country]);
   
-  // Local state
+  // Local state - initialize with the correct greeting for the selected country
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState(() => getInitialQuestion(settings));
+  const [currentQuestion, setCurrentQuestion] = useState(initialQuestion);
   const [isFirstInteraction, setIsFirstInteraction] = useState(true);
 
-  // Update current question when country changes and it's a fresh session
+  // Update current question when country/initialQuestion changes
   useEffect(() => {
     if (isFirstInteraction && logEntries.length === 0) {
       setCurrentQuestion(initialQuestion);
     }
-  }, [initialQuestion, isFirstInteraction, logEntries.length]);
+  }, [initialQuestion]);
 
   // Voice service
   const voice = useRealtimeVoice();
@@ -174,9 +174,9 @@ export function useConversation({ settings }: UseConversationOptions) {
   // Speak initial question on first load
   useEffect(() => {
     if (settings.autoplaySpeech && settings.audioEnabled && isFirstInteraction && logEntries.length === 0) {
-      voice.speak(currentQuestion).catch(console.error);
+      voice.speak(initialQuestion).catch(console.error);
     }
-  }, []);
+  }, [initialQuestion]);
 
   return {
     // State (read-only)
