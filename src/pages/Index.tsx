@@ -195,6 +195,7 @@ export default function Index() {
     
     return (
       <PinScreen
+        key={authFlow}
         mode={mode}
         country={country?.name || ''}
         countryFlag={country?.flag || ''}
