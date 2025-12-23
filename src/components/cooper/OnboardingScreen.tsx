@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { Scale } from 'lucide-react';
 import { COUNTRIES, type CountryCode } from '@/types/cooper';
 
 interface OnboardingScreenProps {
@@ -10,7 +11,8 @@ export const OnboardingScreen = memo(function OnboardingScreen({
 }: OnboardingScreenProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2 tracking-tight animate-fade-in">
+      <Scale className="w-10 h-10 sm:w-12 sm:h-12 text-primary mb-4 animate-fade-in" />
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2 tracking-tight animate-fade-in" style={{ animationDelay: '50ms' }}>
         Coopers Law
       </h1>
       <p className="text-sm text-muted-foreground mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '100ms' }}>
