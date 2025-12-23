@@ -115,7 +115,8 @@ export default function Index() {
         return (
           <SettingsScreen 
             settings={settings} 
-            onSettingsChange={setSettings} 
+            onSettingsChange={setSettings}
+            onStartNewSession={conversation.startNewSession}
           />
         );
     }
