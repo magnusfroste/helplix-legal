@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import { BottomNavigation, type NavigationTab } from '@/components/cooper/BottomNavigation';
 import { DictaphoneScreen } from '@/components/cooper/DictaphoneScreen';
 import { LogScreen } from '@/components/cooper/LogScreen';
@@ -37,8 +38,15 @@ function saveSettings(settings: CooperSettings): void {
 }
 
 export default function Index() {
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<NavigationTab>('dictaphone');
-  const [settings, setSettings] = useState<CooperSettings>(loadSettings);
+  const [settings, setSettings] = useState<CooperSettings>(DEFAULT_SETTINGS);
+
+  // Load settings on mount
+  useEffect(() => {
+    setSettings(loadSettings());
+    setIsLoading(false);
+  }, []);
 
   // Persist settings changes
   useEffect(() => {
@@ -61,6 +69,15 @@ export default function Index() {
       }));
     }
   };
+
+  // Show loading spinner while initializing
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   // Show onboarding if no country selected
   if (!settings.country) {
