@@ -8,23 +8,31 @@ interface Session {
   language: string | null;
   created_at: string;
   updated_at: string;
+  user_id: string | null;
 }
 
 interface UseSessionOptions {
+  userId?: string;
   onError?: (error: string) => void;
 }
 
-export function useSession({ onError }: UseSessionOptions = {}) {
+export function useSession({ userId, onError }: UseSessionOptions = {}) {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load all sessions
+  // Load all sessions for the current user
   const loadSessions = useCallback(async () => {
+    if (!userId) {
+      setSessions([]);
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('sessions')
         .select('*')
+        .eq('user_id', userId)
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
@@ -33,14 +41,21 @@ export function useSession({ onError }: UseSessionOptions = {}) {
       console.error('Failed to load sessions:', error);
       onError?.('Failed to load sessions');
     }
-  }, [onError]);
+  }, [userId, onError]);
 
   // Create a new session
   const createSession = useCallback(async (title?: string): Promise<string> => {
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+    
     try {
       const { data, error } = await supabase
         .from('sessions')
-        .insert({ title: title || 'New Session' })
+        .insert({ 
+          title: title || 'New Session',
+          user_id: userId,
+        })
         .select()
         .single();
 
@@ -54,7 +69,7 @@ export function useSession({ onError }: UseSessionOptions = {}) {
       onError?.('Failed to create session');
       throw error;
     }
-  }, [loadSessions, onError]);
+  }, [userId, loadSessions, onError]);
 
   // Load log entries for a session
   const loadLogEntries = useCallback(async (sessionId: string): Promise<LogEntry[]> => {
@@ -89,6 +104,8 @@ export function useSession({ onError }: UseSessionOptions = {}) {
     sessionId: string,
     entry: Omit<LogEntry, 'id' | 'timestamp'>
   ): Promise<LogEntry | null> => {
+    if (!userId) return null;
+    
     try {
       const { data, error } = await supabase
         .from('log_entries')
@@ -97,6 +114,7 @@ export function useSession({ onError }: UseSessionOptions = {}) {
           type: entry.type,
           content: entry.content,
           audio_url: entry.audioUrl,
+          user_id: userId,
         })
         .select()
         .single();
@@ -121,7 +139,7 @@ export function useSession({ onError }: UseSessionOptions = {}) {
       onError?.('Failed to save entry');
       return null;
     }
-  }, [onError]);
+  }, [userId, onError]);
 
   // Update session title/language
   const updateSession = useCallback(async (
@@ -162,10 +180,15 @@ export function useSession({ onError }: UseSessionOptions = {}) {
     }
   }, [currentSessionId, loadSessions, onError]);
 
-  // Load sessions on mount
+  // Load sessions when userId changes
   useEffect(() => {
-    loadSessions();
-  }, [loadSessions]);
+    if (userId) {
+      loadSessions();
+    } else {
+      setSessions([]);
+      setCurrentSessionId(null);
+    }
+  }, [userId, loadSessions]);
 
   return {
     currentSessionId,

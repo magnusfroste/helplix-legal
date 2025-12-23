@@ -18,9 +18,10 @@ function getInitialQuestion(settings: CooperSettings): string {
 
 interface UseConversationOptions {
   settings: CooperSettings;
+  userId?: string;
 }
 
-export function useConversation({ settings }: UseConversationOptions) {
+export function useConversation({ settings, userId }: UseConversationOptions) {
   const initialQuestion = useMemo(() => getInitialQuestion(settings), [settings.country]);
   
   // Local state - initialize with the correct greeting for the selected country
@@ -46,6 +47,7 @@ export function useConversation({ settings }: UseConversationOptions) {
 
   // Session persistence
   const session = useSession({
+    userId,
     onError: (error) => toast.error(error),
   });
 

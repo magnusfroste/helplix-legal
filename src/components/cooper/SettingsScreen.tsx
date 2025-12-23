@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, RotateCcw, RefreshCw, Globe } from 'lucide-react';
+import { Save, RotateCcw, RefreshCw, Globe, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
@@ -19,9 +19,10 @@ interface SettingsScreenProps {
   settings: CooperSettings;
   onSettingsChange: (settings: CooperSettings) => void;
   onStartNewSession?: () => void;
+  onLogout?: () => void;
 }
 
-export function SettingsScreen({ settings, onSettingsChange, onStartNewSession }: SettingsScreenProps) {
+export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, onLogout }: SettingsScreenProps) {
   const [localSettings, setLocalSettings] = useState<CooperSettings>(settings);
   const [hasChanges, setHasChanges] = useState(false);
   const [countryChanged, setCountryChanged] = useState(false);
@@ -250,6 +251,20 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession }
               Change jurisdiction
             </Button>
           </section>
+
+          {/* Logout */}
+          {onLogout && (
+            <section className="pt-4 border-t border-border">
+              <Button
+                variant="ghost"
+                onClick={onLogout}
+                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logga ut
+              </Button>
+            </section>
+          )}
 
           {/* Action Buttons */}
           <div className="flex gap-3 pb-8">

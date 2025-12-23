@@ -22,6 +22,7 @@ export type Database = {
           id: string
           session_id: string
           type: string
+          user_id: string | null
         }
         Insert: {
           audio_url?: string | null
@@ -30,6 +31,7 @@ export type Database = {
           id?: string
           session_id: string
           type: string
+          user_id?: string | null
         }
         Update: {
           audio_url?: string | null
@@ -38,6 +40,7 @@ export type Database = {
           id?: string
           session_id?: string
           type?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -45,6 +48,13 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "log_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -56,6 +66,7 @@ export type Database = {
           language: string | null
           title: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -63,6 +74,7 @@ export type Database = {
           language?: string | null
           title?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -70,6 +82,39 @@ export type Database = {
           language?: string | null
           title?: string | null
           updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          last_login_at: string | null
+          pin_hash: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          id?: string
+          last_login_at?: string | null
+          pin_hash: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          last_login_at?: string | null
+          pin_hash?: string
         }
         Relationships: []
       }
