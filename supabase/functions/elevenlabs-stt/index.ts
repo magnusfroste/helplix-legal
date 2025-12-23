@@ -23,12 +23,44 @@ serve(async (req) => {
       throw new Error("Audio file is required");
     }
 
-    console.log("Transcribing audio file, size:", audioFile.size);
+    console.log("Transcribing audio file:", {
+      size: audioFile.size,
+      type: audioFile.type,
+      name: audioFile.name
+    });
+
+    // Read the audio file as array buffer
+    const audioBuffer = await audioFile.arrayBuffer();
+    const audioBytes = new Uint8Array(audioBuffer);
+    
+    console.log("Audio bytes length:", audioBytes.length);
+    
+    // Validate that we have actual audio data
+    if (audioBytes.length < 100) {
+      throw new Error("Audio file too small - no speech detected");
+    }
+
+    // Determine the correct MIME type and filename
+    let mimeType = audioFile.type || "audio/webm";
+    let fileName = audioFile.name || "audio.webm";
+    
+    // ElevenLabs prefers specific formats
+    if (mimeType.includes("webm")) {
+      mimeType = "audio/webm";
+      fileName = "audio.webm";
+    } else if (mimeType.includes("mp4") || mimeType.includes("m4a")) {
+      mimeType = "audio/mp4";
+      fileName = "audio.mp4";
+    }
+
+    console.log("Sending to ElevenLabs with:", { mimeType, fileName });
+
+    // Create a new blob with the correct MIME type
+    const audioBlob = new Blob([audioBytes], { type: mimeType });
 
     const apiFormData = new FormData();
-    apiFormData.append("file", audioFile);
+    apiFormData.append("file", audioBlob, fileName);
     apiFormData.append("model_id", "scribe_v1");
-    // Don't specify language - let it auto-detect for multilingual support
 
     const response = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
       method: "POST",
@@ -41,11 +73,11 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("ElevenLabs STT error:", response.status, errorText);
-      throw new Error(`STT API error: ${response.status}`);
+      throw new Error(`STT API error: ${response.status} - ${errorText}`);
     }
 
     const transcription = await response.json();
-    console.log("Transcription result:", transcription.text?.substring(0, 50));
+    console.log("Transcription success:", transcription.text?.substring(0, 100));
 
     return new Response(
       JSON.stringify({ text: transcription.text || "" }),

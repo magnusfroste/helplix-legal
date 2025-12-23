@@ -53,23 +53,25 @@ export function useVoice() {
         return;
       }
 
-      // Request any pending data before stopping
-      if (mediaRecorder.state === 'recording') {
-        mediaRecorder.requestData();
-      }
-
       mediaRecorder.onstop = async () => {
         setIsRecording(false);
         setIsTranscribing(true);
         
         try {
-          const audioBlob = new Blob(audioChunksRef.current, { 
-            type: mediaRecorder.mimeType 
+          // Determine the correct file extension based on MIME type
+          const mimeType = mediaRecorder.mimeType;
+          const isWebm = mimeType.includes('webm');
+          const extension = isWebm ? 'webm' : 'mp4';
+          
+          const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+          
+          console.log('Audio blob created:', {
+            size: audioBlob.size,
+            type: mimeType,
+            chunks: audioChunksRef.current.length
           });
           
-          console.log('Audio blob created, size:', audioBlob.size);
-          
-          // Check if we have enough audio data (at least 1KB for any speech)
+          // Check if we have enough audio data
           if (audioBlob.size < 1000) {
             console.log('Audio too short, likely no speech detected');
             setIsTranscribing(false);
@@ -78,9 +80,11 @@ export function useVoice() {
             return;
           }
           
-          // Send to STT edge function
+          // Send to STT edge function with correct filename
           const formData = new FormData();
-          formData.append('audio', audioBlob, 'recording.webm');
+          formData.append('audio', audioBlob, `recording.${extension}`);
+          
+          console.log('Sending audio to STT, size:', audioBlob.size, 'type:', mimeType);
           
           const response = await fetch(
             `${SUPABASE_URL}/functions/v1/elevenlabs-stt`,
@@ -114,7 +118,17 @@ export function useVoice() {
         }
       };
 
-      mediaRecorder.stop();
+      // Wait a moment to ensure all data is captured, then stop
+      if (mediaRecorder.state === 'recording') {
+        mediaRecorder.requestData();
+        setTimeout(() => {
+          if (mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+          }
+        }, 100);
+      } else {
+        mediaRecorder.stop();
+      }
     });
   }, []);
 
