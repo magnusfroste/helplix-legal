@@ -1,4 +1,4 @@
-import { MessageCircle, User, Clock } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { LogEntry } from '@/types/cooper';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,30 +11,27 @@ export function LogScreen({ entries }: LogScreenProps) {
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-8 text-center">
-        <MessageCircle className="h-16 w-16 text-muted-foreground/50 mb-4" />
-        <h2 className="text-cooper-xl font-semibold text-foreground mb-2">
+        <MessageCircle className="h-12 w-12 text-muted-foreground/30 mb-3" />
+        <p className="text-muted-foreground">
           No conversation yet
-        </h2>
-        <p className="text-cooper-base text-muted-foreground">
-          Start talking with Cooper to see your conversation log here.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)]">
-      <header className="px-4 py-4 border-b border-border">
-        <h1 className="text-cooper-2xl font-bold text-foreground">
-          Conversation Log
+    <div className="flex flex-col h-[calc(100vh-80px)]">
+      <header className="px-4 py-3 border-b border-border flex items-baseline justify-between">
+        <h1 className="text-lg font-semibold text-foreground">
+          Log
         </h1>
-        <p className="text-cooper-base text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           {entries.length} entries
-        </p>
+        </span>
       </header>
 
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
+        <div className="divide-y divide-border">
           {entries.map((entry) => (
             <LogEntryCard key={entry.id} entry={entry} />
           ))}
@@ -49,46 +46,33 @@ function LogEntryCard({ entry }: { entry: LogEntry }) {
   
   return (
     <div className={cn(
-      "p-4 rounded-lg animate-fade-in",
-      isQuestion ? "bg-primary/5 border-l-4 border-primary" : "bg-card border border-border"
+      "px-4 py-3",
+      isQuestion && "bg-muted/30"
     )}>
-      <div className="flex items-start gap-3">
-        <div className={cn(
-          "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
-          isQuestion ? "bg-primary/10" : "bg-muted"
+      <div className="flex items-baseline justify-between gap-2 mb-1">
+        <span className={cn(
+          "text-xs font-medium",
+          isQuestion ? "text-primary" : "text-muted-foreground"
         )}>
-          {isQuestion ? (
-            <MessageCircle className="h-4 w-4 text-primary" />
-          ) : (
-            <User className="h-4 w-4 text-muted-foreground" />
-          )}
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className={cn(
-              "text-sm font-medium",
-              isQuestion ? "text-primary" : "text-muted-foreground"
-            )}>
-              {isQuestion ? 'Cooper' : 'You'}
-            </span>
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {formatTime(entry.timestamp)}
-            </span>
-          </div>
-          
-          <p className="text-cooper-base text-foreground whitespace-pre-wrap">
-            {entry.content}
-          </p>
-        </div>
+          {isQuestion ? 'Cooper' : 'You'}
+        </span>
+        <span className="text-[10px] text-muted-foreground/70">
+          {formatTime(entry.timestamp)}
+        </span>
       </div>
+      
+      <p className={cn(
+        "text-sm leading-relaxed whitespace-pre-wrap",
+        isQuestion ? "text-foreground" : "text-foreground/90"
+      )}>
+        {entry.content}
+      </p>
     </div>
   );
 }
 
 function formatTime(date: Date): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat('sv-SE', {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
