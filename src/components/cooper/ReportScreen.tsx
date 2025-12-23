@@ -195,7 +195,7 @@ export function ReportScreen({
       // Save to database
       await saveReport(newTimeline, newLegal, newInterpretation);
       
-      toast.success('Rapport genererad och sparad');
+      toast.success('Report generated and saved');
     } catch (error) {
       console.error('Report generation error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to generate report');
@@ -294,7 +294,7 @@ export function ReportScreen({
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-8 text-center">
         <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
-        <p className="text-cooper-base text-muted-foreground">Laddar rapport...</p>
+        <p className="text-cooper-base text-muted-foreground">Loading report...</p>
       </div>
     );
   }
@@ -320,7 +320,7 @@ export function ReportScreen({
       <header className="px-3 py-2 border-b border-border">
         <div className="flex items-center justify-between">
           <h1 className="text-cooper-lg font-bold text-foreground">
-            Rapport
+            Report
           </h1>
           {report && (
             <span className="text-cooper-sm text-muted-foreground">
@@ -330,7 +330,7 @@ export function ReportScreen({
         </div>
         <p className="text-cooper-sm text-muted-foreground flex items-center gap-1">
           <Clock className="h-3 w-3" />
-          {entries.length} poster
+          {entries.length} entries
         </p>
       </header>
 
@@ -340,7 +340,7 @@ export function ReportScreen({
           <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 min-w-0">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
             <span className="text-cooper-sm truncate">
-              +{entries.length - (report?.entries_count || 0)} nya poster
+              +{entries.length - (report?.entries_count || 0)} new entries
             </span>
           </div>
           <Button 
@@ -355,7 +355,7 @@ export function ReportScreen({
             ) : (
               <>
                 <RefreshCw className="h-3.5 w-3.5 mr-1" />
-                Uppdatera
+                Update
               </>
             )}
           </Button>
@@ -373,12 +373,12 @@ export function ReportScreen({
           {isGenerating ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Genererar...
+              Generating...
             </>
           ) : (
             <>
               <FileText className="h-4 w-4 mr-2" />
-              {hasReport ? 'Regenerera rapport' : 'Generera rapport'}
+              {hasReport ? 'Regenerate report' : 'Generate report'}
             </>
           )}
         </Button>
@@ -398,7 +398,7 @@ export function ReportScreen({
             ) : (
               <Volume2 className="h-4 w-4 sm:mr-2" />
             )}
-            <span className="hidden sm:inline">{isPlaying ? 'Stoppa' : 'Lyssna'}</span>
+            <span className="hidden sm:inline">{isPlaying ? 'Stop' : 'Listen'}</span>
           </Button>
           <Button 
             variant="outline" 
@@ -416,7 +416,7 @@ export function ReportScreen({
             onClick={handleShare}
           >
             <Share2 className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Dela</span>
+            <span className="hidden sm:inline">Share</span>
           </Button>
         </div>
       )}
@@ -425,7 +425,7 @@ export function ReportScreen({
       {isSaving && (
         <div className="px-3 py-1.5 bg-muted/50 text-cooper-sm text-muted-foreground flex items-center gap-2">
           <Loader2 className="h-3 w-3 animate-spin" />
-          Sparar...
+          Saving...
         </div>
       )}
 
@@ -435,7 +435,7 @@ export function ReportScreen({
           <section className="w-full">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-cooper-base font-semibold text-foreground">
-                Kronologisk tidslinje
+                Timeline
               </h2>
               {timelineReport && (
                 <Button 
@@ -453,7 +453,7 @@ export function ReportScreen({
               {isGenerating && generatingType === 'timeline' ? (
                 <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Genererar tidslinje...
+                  Generating timeline...
                 </div>
               ) : timelineReport ? (
                 <div className="text-foreground w-full" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
@@ -461,7 +461,7 @@ export function ReportScreen({
                 </div>
               ) : (
                 <p className="text-cooper-sm text-muted-foreground italic">
-                  Klicka "Generera rapport" för att skapa en kronologisk sammanfattning.
+                  Click "Generate report" to create a chronological summary.
                 </p>
               )}
             </div>
@@ -471,7 +471,7 @@ export function ReportScreen({
           <section className="w-full">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-cooper-base font-semibold text-foreground">
-                Juridisk översikt
+                Legal Overview
               </h2>
               {legalReport && (
                 <Button 
@@ -489,7 +489,7 @@ export function ReportScreen({
               {isGenerating && generatingType === 'legal' ? (
                 <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Genererar juridisk översikt...
+                  Generating legal overview...
                 </div>
               ) : legalReport ? (
                 <div className="text-foreground w-full" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
@@ -497,7 +497,7 @@ export function ReportScreen({
                 </div>
               ) : (
                 <p className="text-cooper-sm text-muted-foreground italic">
-                  Klicka "Generera rapport" för att identifiera potentiella juridiska frågor.
+                  Click "Generate report" to identify potential legal issues.
                 </p>
               )}
             </div>
@@ -509,7 +509,7 @@ export function ReportScreen({
               <div className="flex items-center gap-2">
                 <Scale className="h-4 w-4 text-primary" />
                 <h2 className="text-cooper-base font-semibold text-foreground">
-                  Juridisk Tolkning
+                  Legal Interpretation
                 </h2>
               </div>
               {interpretationReport && (
@@ -530,9 +530,9 @@ export function ReportScreen({
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <p className="text-cooper-xs text-amber-700 dark:text-amber-300 leading-relaxed">
-                  <strong>DISCLAIMER:</strong> Detta är en AI-genererad analys för utbildnings- och orienteringssyfte. 
-                  Innehållet utgör INTE juridisk rådgivning och kan innehålla felaktigheter. 
-                  Rådgör alltid med en legitimerad jurist.
+                  <strong>DISCLAIMER:</strong> This is an AI-generated analysis for educational and informational purposes only. 
+                  The content does NOT constitute legal advice and may contain inaccuracies. 
+                  Always consult with a licensed attorney.
                 </p>
               </div>
             </div>
@@ -541,7 +541,7 @@ export function ReportScreen({
               {isGenerating && (generatingType === 'interpretation' || generatingType === 'all') ? (
                 <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Genererar juridisk tolkning...
+                  Generating legal interpretation...
                 </div>
               ) : interpretationReport ? (
                 <div className="text-foreground w-full" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
@@ -549,7 +549,7 @@ export function ReportScreen({
                 </div>
               ) : (
                 <p className="text-cooper-sm text-muted-foreground italic">
-                  Klicka "Generera rapport" för att få en AI-genererad juridisk tolkning av ärendet.
+                  Click "Generate report" to get an AI-generated legal interpretation of the case.
                 </p>
               )}
             </div>

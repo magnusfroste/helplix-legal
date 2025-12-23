@@ -277,7 +277,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
                 className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                Logga ut
+                Log out
               </Button>
             </section>
           )}

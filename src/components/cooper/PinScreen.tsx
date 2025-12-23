@@ -55,24 +55,24 @@ export function PinScreen({
   const getTitle = () => {
     switch (mode) {
       case 'create':
-        return 'Skapa PIN-kod';
+        return 'Create PIN code';
       case 'confirm':
-        return 'Bekräfta PIN-kod';
+        return 'Confirm PIN code';
       case 'login':
       default:
-        return 'Ange PIN-kod';
+        return 'Enter PIN code';
     }
   };
 
   const getSubtitle = () => {
     switch (mode) {
       case 'create':
-        return 'Välj en 6-siffrig kod för att logga in';
+        return 'Choose a 6-digit code to log in';
       case 'confirm':
-        return 'Ange samma kod igen för att bekräfta';
+        return 'Enter the same code again to confirm';
       case 'login':
       default:
-        return 'Logga in med din PIN-kod';
+        return 'Log in with your PIN code';
     }
   };
 
@@ -138,7 +138,7 @@ export function PinScreen({
             disabled={isLoading}
             className="h-16 text-muted-foreground hover:text-foreground"
           >
-            {onBack ? 'Tillbaka' : 'Rensa'}
+            {onBack ? 'Back' : 'Clear'}
           </Button>
           
           <Button

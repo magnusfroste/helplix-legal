@@ -106,7 +106,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
         console.log('Session created:', sessionId);
       } catch (error) {
         console.error('Failed to create session:', error);
-        toast.error('Kunde inte skapa session. Försök logga in igen.');
+        toast.error('Could not create session. Please try logging in again.');
         return;
       }
     }

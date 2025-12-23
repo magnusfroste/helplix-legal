@@ -133,7 +133,7 @@ export default function Index() {
       } else if (authFlow === 'confirm-pin') {
         // Confirm PIN matches
         if (pin !== firstPin) {
-          setPinError('PIN-koderna matchar inte. Försök igen.');
+          setPinError('PIN codes do not match. Please try again.');
           setAuthFlow('create-pin');
           setFirstPin('');
           return;
@@ -150,7 +150,7 @@ export default function Index() {
           }));
           setAuthFlow('authenticated');
         } else {
-          setPinError(result.error || 'Kunde inte skapa konto');
+          setPinError(result.error || 'Could not create account');
           setAuthFlow('create-pin');
           setFirstPin('');
         }
@@ -262,7 +262,8 @@ export default function Index() {
       
       <BottomNavigation 
         activeTab={activeTab} 
-        onTabChange={setActiveTab} 
+        onTabChange={setActiveTab}
+        country={settings.country}
       />
     </div>
   );

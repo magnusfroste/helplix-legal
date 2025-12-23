@@ -106,7 +106,7 @@ export function useReport({ sessionId, userId, currentEntriesCount }: UseReportO
       }
     } catch (error) {
       console.error('Failed to save report:', error);
-      toast.error('Kunde inte spara rapporten');
+      toast.error('Could not save report');
       return null;
     } finally {
       setIsSaving(false);

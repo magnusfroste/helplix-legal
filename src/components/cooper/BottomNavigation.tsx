@@ -1,21 +1,34 @@
 import { Mic, FileText, ClipboardList, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/hooks/useTranslation';
+import type { CountryCode } from '@/types/cooper';
 
 export type NavigationTab = 'dictaphone' | 'log' | 'report' | 'settings';
 
 interface BottomNavigationProps {
   activeTab: NavigationTab;
   onTabChange: (tab: NavigationTab) => void;
+  country: CountryCode | null;
 }
 
-const tabs: { id: NavigationTab; label: string; icon: React.ElementType }[] = [
-  { id: 'dictaphone', label: 'Talk', icon: Mic },
-  { id: 'log', label: 'Log', icon: ClipboardList },
-  { id: 'report', label: 'Report', icon: FileText },
-  { id: 'settings', label: 'Settings', icon: Settings },
+const tabs: { id: NavigationTab; icon: React.ElementType }[] = [
+  { id: 'dictaphone', icon: Mic },
+  { id: 'log', icon: ClipboardList },
+  { id: 'report', icon: FileText },
+  { id: 'settings', icon: Settings },
 ];
 
-export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
+export function BottomNavigation({ activeTab, onTabChange, country }: BottomNavigationProps) {
+  const t = useTranslation(country);
+  
+  const getLabel = (tabId: NavigationTab): string => {
+    switch (tabId) {
+      case 'dictaphone': return t.nav.talk;
+      case 'log': return t.nav.log;
+      case 'report': return t.nav.report;
+      case 'settings': return t.nav.settings;
+    }
+  };
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border safe-area-inset-bottom z-50">
       <div className="flex items-center justify-around max-w-lg mx-auto">
@@ -47,7 +60,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                 "text-xs font-medium",
                 isActive && "font-semibold"
               )}>
-                {tab.label}
+                {getLabel(tab.id)}
               </span>
             </button>
           );
