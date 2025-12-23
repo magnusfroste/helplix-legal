@@ -231,6 +231,8 @@ export default function Index() {
         return (
           <ReportScreen 
             entries={conversation.logEntries}
+            sessionId={conversation.currentSessionId}
+            userId={auth.user?.id}
             onPlayReport={(text) => conversation.speak(text).catch(console.error)}
           />
         );
