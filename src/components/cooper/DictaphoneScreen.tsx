@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { memo, useState, useCallback } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { PushToTalkButton } from './PushToTalkButton';
 import { QuestionDisplay } from './QuestionDisplay';
@@ -19,7 +19,7 @@ interface DictaphoneScreenProps {
   audioLevel?: number;
 }
 
-export function DictaphoneScreen({
+export const DictaphoneScreen = memo(function DictaphoneScreen({
   status,
   currentQuestion,
   isFirstInteraction,
@@ -103,4 +103,4 @@ export function DictaphoneScreen({
       />
     </div>
   );
-}
+});

@@ -1,6 +1,6 @@
+import { memo, useRef, useCallback } from 'react';
 import { Mic, Square, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useRef, useCallback } from 'react';
 import type { ConversationStatus } from '@/types/cooper';
 
 interface PushToTalkButtonProps {
@@ -11,7 +11,7 @@ interface PushToTalkButtonProps {
   size?: 'small' | 'large';
 }
 
-export function PushToTalkButton({
+export const PushToTalkButton = memo(function PushToTalkButton({
   status,
   onStartRecording,
   onStopRecording,
@@ -164,4 +164,4 @@ export function PushToTalkButton({
       </span>
     </div>
   );
-}
+});
