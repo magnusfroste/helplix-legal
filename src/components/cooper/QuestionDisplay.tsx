@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Keyboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -7,7 +8,7 @@ interface QuestionDisplayProps {
   onTypeResponse?: () => void;
 }
 
-export function QuestionDisplay({ 
+export const QuestionDisplay = memo(function QuestionDisplay({ 
   question, 
   isFirstInteraction,
   onTypeResponse 
@@ -52,4 +53,4 @@ export function QuestionDisplay({
       )}
     </div>
   );
-}
+});

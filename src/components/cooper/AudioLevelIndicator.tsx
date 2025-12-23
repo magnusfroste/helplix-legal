@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { cn } from '@/lib/utils';
 
 interface AudioLevelIndicatorProps {
@@ -5,7 +6,7 @@ interface AudioLevelIndicatorProps {
   isRecording: boolean;
 }
 
-export function AudioLevelIndicator({ level, isRecording }: AudioLevelIndicatorProps) {
+export const AudioLevelIndicator = memo(function AudioLevelIndicator({ level, isRecording }: AudioLevelIndicatorProps) {
   if (!isRecording) return null;
 
   const bars = 12;
@@ -40,4 +41,4 @@ export function AudioLevelIndicator({ level, isRecording }: AudioLevelIndicatorP
       })}
     </div>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { MessageCircle } from 'lucide-react';
+import { memo } from 'react';
 import { cn } from '@/lib/utils';
 import type { LogEntry } from '@/types/cooper';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -7,11 +7,10 @@ interface LogScreenProps {
   entries: LogEntry[];
 }
 
-export function LogScreen({ entries }: LogScreenProps) {
+export const LogScreen = memo(function LogScreen({ entries }: LogScreenProps) {
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-8 text-center">
-        <MessageCircle className="h-12 w-12 text-muted-foreground/30 mb-3" />
         <p className="text-muted-foreground">
           No conversation yet
         </p>
@@ -39,9 +38,9 @@ export function LogScreen({ entries }: LogScreenProps) {
       </ScrollArea>
     </div>
   );
-}
+});
 
-function LogEntryCard({ entry }: { entry: LogEntry }) {
+const LogEntryCard = memo(function LogEntryCard({ entry }: { entry: LogEntry }) {
   const isQuestion = entry.type === 'question';
   
   return (
@@ -69,7 +68,7 @@ function LogEntryCard({ entry }: { entry: LogEntry }) {
       </p>
     </div>
   );
-}
+});
 
 function formatTime(date: Date): string {
   return new Intl.DateTimeFormat('sv-SE', {
