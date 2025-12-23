@@ -1,6 +1,6 @@
 import { Mic, Square, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState, useRef } from 'react';
+import { useRef, useCallback } from 'react';
 import type { ConversationStatus } from '@/types/cooper';
 
 interface PushToTalkButtonProps {
@@ -18,55 +18,63 @@ export function PushToTalkButton({
   disabled = false,
   size = 'large',
 }: PushToTalkButtonProps) {
-  const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
-  const rippleIdRef = useRef(0);
+  // Track if we're currently pressing (to prevent duplicate events)
+  const isPressing = useRef(false);
+  // Track if touch started the interaction (to ignore subsequent mouse events)
+  const isTouchDevice = useRef(false);
   
   const isRecording = status === 'listening';
   const isProcessing = status === 'processing' || status === 'thinking';
   const isSpeaking = status === 'speaking';
+  const isDisabled = disabled || isProcessing || isSpeaking;
   
-  const createRipple = (e: React.MouseEvent | React.TouchEvent) => {
-    const button = e.currentTarget as HTMLButtonElement;
-    const rect = button.getBoundingClientRect();
-    
-    let clientX: number, clientY: number;
-    if ('touches' in e) {
-      clientX = e.touches[0]?.clientX ?? rect.left + rect.width / 2;
-      clientY = e.touches[0]?.clientY ?? rect.top + rect.height / 2;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-    
-    const x = clientX - rect.left - rect.width / 2;
-    const y = clientY - rect.top - rect.height / 2;
-    
-    const id = rippleIdRef.current++;
-    setRipples(prev => [...prev, { id, x, y }]);
-    
-    setTimeout(() => {
-      setRipples(prev => prev.filter(r => r.id !== id));
-    }, 600);
-  };
-  
-  const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (disabled || isProcessing || isSpeaking || isRecording) return;
-    
-    e.preventDefault();
-    createRipple(e);
+  const handleStart = useCallback(() => {
+    if (isDisabled || isPressing.current) return;
+    isPressing.current = true;
     onStartRecording();
-  };
-  
-  const handlePressEnd = (e: React.MouseEvent | React.TouchEvent) => {
-    if (disabled || isProcessing || !isRecording) return;
-    
-    e.preventDefault();
+  }, [isDisabled, onStartRecording]);
+
+  const handleEnd = useCallback(() => {
+    if (!isPressing.current) return;
+    isPressing.current = false;
     onStopRecording();
-  };
+  }, [onStopRecording]);
+
+  // Touch handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent mouse event from firing
+    isTouchDevice.current = true;
+    handleStart();
+  }, [handleStart]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    handleEnd();
+  }, [handleEnd]);
+
+  // Mouse handlers (only fire if not a touch device)
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (isTouchDevice.current) return; // Ignore if touch already handled
+    e.preventDefault();
+    handleStart();
+  }, [handleStart]);
+
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    if (isTouchDevice.current) return;
+    e.preventDefault();
+    handleEnd();
+  }, [handleEnd]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (isTouchDevice.current) return;
+    if (isPressing.current) {
+      handleEnd();
+    }
+  }, [handleEnd]);
 
   const getButtonStyles = () => {
     if (isRecording) {
-      return "bg-cooper-recording cooper-recording-ring";
+      return "bg-cooper-recording scale-110";
     }
     if (isProcessing) {
       return "bg-cooper-processing";
@@ -113,54 +121,40 @@ export function PushToTalkButton({
           <>
             <span 
               className={cn(
-                "absolute rounded-full bg-cooper-recording/40 animate-pulse-ring",
+                "absolute rounded-full bg-cooper-recording/40 animate-ping",
                 buttonSizeClass
               )} 
             />
             <span 
               className={cn(
-                "absolute rounded-full bg-cooper-recording/30 animate-pulse-ring",
+                "absolute rounded-full bg-cooper-recording/20 animate-pulse",
                 buttonSizeClass
               )}
-              style={{ animationDelay: '0.5s' }}
             />
           </>
         )}
         
         <button
           type="button"
-          onMouseDown={handlePressStart}
-          onMouseUp={handlePressEnd}
-          onMouseLeave={handlePressEnd}
-          onTouchStart={handlePressStart}
-          onTouchEnd={handlePressEnd}
-          disabled={disabled || isProcessing}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          disabled={isDisabled}
           className={cn(
-            "rounded-full flex items-center justify-center relative overflow-hidden",
+            "rounded-full flex items-center justify-center relative",
             "text-primary-foreground shadow-lg transition-all duration-200",
             "focus:outline-none focus-visible:ring-4 focus-visible:ring-ring focus-visible:ring-offset-4",
             "disabled:opacity-50 disabled:cursor-not-allowed",
-            "touch-manipulation select-none z-10",
+            "touch-none select-none z-10 cursor-pointer",
             buttonSizeClass,
             getButtonStyles()
           )}
           style={{ WebkitTapHighlightColor: 'transparent' }}
-          aria-label={isRecording ? "Stop recording" : "Start recording"}
+          aria-label={isRecording ? "Release to stop recording" : "Hold to start recording"}
         >
-          {/* Ripple effects */}
-          {ripples.map(ripple => (
-            <span
-              key={ripple.id}
-              className="absolute rounded-full bg-white/30 animate-ripple pointer-events-none"
-              style={{
-                left: ripple.x,
-                top: ripple.y,
-                width: 20,
-                height: 20,
-                transform: 'translate(-50%, -50%)',
-              }}
-            />
-          ))}
           {getIcon()}
         </button>
       </div>
