@@ -225,28 +225,30 @@ export function ReportScreen({
 
   return (
     <div className="flex flex-col h-[calc(100vh-140px)]">
-      <header className="px-4 py-4 border-b border-border">
-        <h1 className="text-cooper-2xl font-bold text-foreground">
-          Case Report
-        </h1>
-        <p className="text-cooper-base text-muted-foreground flex items-center gap-2">
-          <Clock className="h-4 w-4" />
-          Based on {entries.length} entries
+      <header className="px-3 py-2 border-b border-border">
+        <div className="flex items-center justify-between">
+          <h1 className="text-cooper-lg font-bold text-foreground">
+            Rapport
+          </h1>
           {report && (
-            <span className="text-cooper-sm">
-              • Sparad {new Date(report.updated_at).toLocaleDateString('sv-SE')}
+            <span className="text-cooper-sm text-muted-foreground">
+              {new Date(report.updated_at).toLocaleDateString('sv-SE')}
             </span>
           )}
+        </div>
+        <p className="text-cooper-sm text-muted-foreground flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          {entries.length} poster
         </p>
       </header>
 
       {/* New entries banner */}
       {hasNewEntries && hasReport && (
-        <div className="px-4 py-3 bg-amber-500/10 border-b border-amber-500/30 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            <span className="text-cooper-sm">
-              {entries.length - (report?.entries_count || 0)} nya poster sedan rapporten skapades
+        <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/30 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 min-w-0">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            <span className="text-cooper-sm truncate">
+              +{entries.length - (report?.entries_count || 0)} nya poster
             </span>
           </div>
           <Button 
@@ -254,13 +256,13 @@ export function ReportScreen({
             variant="outline"
             onClick={() => generateReport('both')}
             disabled={isGenerating}
-            className="shrink-0"
+            className="shrink-0 h-7 px-2 text-xs"
           >
             {isGenerating ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
               <>
-                <RefreshCw className="h-4 w-4 mr-1" />
+                <RefreshCw className="h-3.5 w-3.5 mr-1" />
                 Uppdatera
               </>
             )}
@@ -270,101 +272,102 @@ export function ReportScreen({
 
       {/* Generate Button */}
       {!hasReport && (
-        <div className="px-4 py-4 border-b border-border">
+        <div className="px-3 py-3 border-b border-border">
           <Button 
-            size="lg" 
+            size="default" 
             className="w-full"
             onClick={() => generateReport('both')}
             disabled={isGenerating}
           >
             {isGenerating ? (
               <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Generating report...
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Genererar...
               </>
             ) : (
               <>
-                <FileText className="h-5 w-5 mr-2" />
-                Generate Full Report
+                <FileText className="h-4 w-4 mr-2" />
+                Generera rapport
               </>
             )}
           </Button>
         </div>
       )}
 
-      {/* Action Buttons */}
+      {/* Action Buttons - icon-only on mobile for space efficiency */}
       {hasReport && (
-        <div className="px-4 py-3 border-b border-border flex flex-wrap gap-2">
+        <div className="px-3 py-2 border-b border-border flex gap-2">
           <Button 
             variant="outline" 
-            size="lg" 
-            className="flex-1"
+            size="default" 
+            className="flex-1 h-10"
             onClick={handlePlayReport}
           >
-            <Volume2 className="h-5 w-5 mr-2" />
-            Listen
+            <Volume2 className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Lyssna</span>
           </Button>
           <Button 
             variant="outline" 
-            size="lg" 
-            className="flex-1"
+            size="default" 
+            className="flex-1 h-10"
             onClick={handleExportPdf}
           >
-            <Download className="h-5 w-5 mr-2" />
-            PDF
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">PDF</span>
           </Button>
           <Button 
             variant="outline" 
-            size="lg" 
-            className="flex-1"
+            size="default" 
+            className="flex-1 h-10"
             onClick={handleShare}
           >
-            <Share2 className="h-5 w-5 mr-2" />
-            Share
+            <Share2 className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Dela</span>
           </Button>
         </div>
       )}
 
       {/* Saving indicator */}
       {isSaving && (
-        <div className="px-4 py-2 bg-muted/50 text-cooper-sm text-muted-foreground flex items-center gap-2">
+        <div className="px-3 py-1.5 bg-muted/50 text-cooper-sm text-muted-foreground flex items-center gap-2">
           <Loader2 className="h-3 w-3 animate-spin" />
-          Sparar rapport...
+          Sparar...
         </div>
       )}
 
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-6">
+        <div className="px-3 py-3 space-y-4">
           {/* Timeline Section */}
           <section>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-cooper-lg font-semibold text-foreground">
-                Chronological Timeline
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-cooper-base font-semibold text-foreground">
+                Kronologisk tidslinje
               </h2>
               {timelineReport && (
                 <Button 
                   variant="ghost" 
                   size="sm"
+                  className="h-7 w-7 p-0"
                   onClick={() => generateReport('timeline')}
                   disabled={isGenerating}
                 >
-                  <RefreshCw className={`h-4 w-4 ${generatingType === 'timeline' ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`h-3.5 w-3.5 ${generatingType === 'timeline' ? 'animate-spin' : ''}`} />
                 </Button>
               )}
             </div>
-            <div className="bg-card border border-border rounded-lg p-4">
+            <div className="bg-card border border-border rounded-lg p-3">
               {isGenerating && generatingType === 'timeline' ? (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Generating timeline...
+                <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Genererar tidslinje...
                 </div>
               ) : timelineReport ? (
                 <div className="prose prose-sm max-w-none text-foreground">
                   <MarkdownRenderer content={timelineReport} />
                 </div>
               ) : (
-                <p className="text-cooper-base text-muted-foreground italic">
-                  Click "Generate Full Report" to create a chronological summary of events.
+                <p className="text-cooper-sm text-muted-foreground italic">
+                  Klicka "Generera rapport" för att skapa en kronologisk sammanfattning.
                 </p>
               )}
             </div>
@@ -372,34 +375,35 @@ export function ReportScreen({
 
           {/* Legal Overview Section */}
           <section>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-cooper-lg font-semibold text-foreground">
-                Legal Overview
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-cooper-base font-semibold text-foreground">
+                Juridisk översikt
               </h2>
               {legalReport && (
                 <Button 
                   variant="ghost" 
                   size="sm"
+                  className="h-7 w-7 p-0"
                   onClick={() => generateReport('legal')}
                   disabled={isGenerating}
                 >
-                  <RefreshCw className={`h-4 w-4 ${generatingType === 'legal' ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`h-3.5 w-3.5 ${generatingType === 'legal' ? 'animate-spin' : ''}`} />
                 </Button>
               )}
             </div>
-            <div className="bg-card border border-border rounded-lg p-4">
+            <div className="bg-card border border-border rounded-lg p-3">
               {isGenerating && generatingType === 'legal' ? (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Generating legal overview...
+                <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Genererar juridisk översikt...
                 </div>
               ) : legalReport ? (
                 <div className="prose prose-sm max-w-none text-foreground">
                   <MarkdownRenderer content={legalReport} />
                 </div>
               ) : (
-                <p className="text-cooper-base text-muted-foreground italic">
-                  Click "Generate Full Report" to identify potential legal issues.
+                <p className="text-cooper-sm text-muted-foreground italic">
+                  Klicka "Generera rapport" för att identifiera potentiella juridiska frågor.
                 </p>
               )}
             </div>
