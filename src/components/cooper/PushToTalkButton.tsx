@@ -1,6 +1,6 @@
 import { Mic, Square, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback } from 'react';
 import type { ConversationStatus } from '@/types/cooper';
 
 interface PushToTalkButtonProps {
@@ -18,9 +18,7 @@ export function PushToTalkButton({
   disabled = false,
   size = 'large',
 }: PushToTalkButtonProps) {
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const isActiveRef = useRef(false);
-  const touchIdRef = useRef<number | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
   
   const isRecording = status === 'listening';
   const isProcessing = status === 'processing' || status === 'thinking';
@@ -29,8 +27,11 @@ export function PushToTalkButton({
 
   // Pre-warm AudioContext on first user interaction (iOS requirement)
   const warmupAudio = useCallback(() => {
+    if (audioContextRef.current) return;
+    
     try {
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContextRef.current = ctx;
       ctx.resume().then(() => {
         // Create and play a silent buffer to unlock audio
         const buffer = ctx.createBuffer(1, 1, 22050);
@@ -45,143 +46,25 @@ export function PushToTalkButton({
     }
   }, []);
 
-  const handleStart = useCallback(() => {
-    if (isDisabled || isActiveRef.current) return;
-    console.log('PTT: Starting recording');
-    isActiveRef.current = true;
+  const handleToggle = useCallback(() => {
+    if (isDisabled) return;
     
     // Haptic feedback if available
     if (navigator.vibrate) {
       navigator.vibrate(10);
     }
     
-    onStartRecording();
-  }, [isDisabled, onStartRecording]);
-
-  const handleEnd = useCallback(() => {
-    if (!isActiveRef.current) return;
-    console.log('PTT: Stopping recording');
-    isActiveRef.current = false;
-    touchIdRef.current = null;
+    // Warm up audio on first interaction
+    warmupAudio();
     
-    // Haptic feedback if available
-    if (navigator.vibrate) {
-      navigator.vibrate(10);
+    if (isRecording) {
+      console.log('Toggle: Stopping recording');
+      onStopRecording();
+    } else {
+      console.log('Toggle: Starting recording');
+      onStartRecording();
     }
-    
-    onStopRecording();
-  }, [onStopRecording]);
-
-  // Use native event listeners with iOS-specific handling
-  useEffect(() => {
-    const button = buttonRef.current;
-    if (!button) return;
-
-    const onTouchStart = (e: TouchEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Track the touch ID for this interaction
-      if (e.touches.length > 0) {
-        touchIdRef.current = e.touches[0].identifier;
-      }
-      
-      // Warm up audio on first touch
-      warmupAudio();
-      handleStart();
-    };
-
-    const onTouchEnd = (e: TouchEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Check if our tracked touch ended
-      if (touchIdRef.current !== null) {
-        const touchEnded = !Array.from(e.touches).some(
-          t => t.identifier === touchIdRef.current
-        );
-        if (touchEnded) {
-          handleEnd();
-        }
-      }
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      // Prevent scrolling while holding button
-      if (isActiveRef.current) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-
-    const onMouseDown = (e: MouseEvent) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      warmupAudio();
-      handleStart();
-    };
-
-    const onMouseUp = (e: MouseEvent) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      handleEnd();
-    };
-
-    const onMouseLeave = () => {
-      if (isActiveRef.current) {
-        handleEnd();
-      }
-    };
-
-    // Prevent context menu on long press
-    const onContextMenu = (e: Event) => {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    };
-
-    // Prevent default touch behaviors
-    const onTouchStartPassive = (e: TouchEvent) => {
-      // This is needed to prevent iOS from triggering other gestures
-    };
-
-    button.addEventListener('touchstart', onTouchStart, { passive: false, capture: true });
-    button.addEventListener('touchend', onTouchEnd, { passive: false, capture: true });
-    button.addEventListener('touchcancel', onTouchEnd, { passive: false, capture: true });
-    button.addEventListener('touchmove', onTouchMove, { passive: false, capture: true });
-    button.addEventListener('mousedown', onMouseDown);
-    button.addEventListener('mouseup', onMouseUp);
-    button.addEventListener('mouseleave', onMouseLeave);
-    button.addEventListener('contextmenu', onContextMenu, { capture: true });
-
-    // Also listen on document for touchend in case finger moves off button
-    const onDocumentTouchEnd = (e: TouchEvent) => {
-      if (isActiveRef.current && touchIdRef.current !== null) {
-        const touchEnded = !Array.from(e.touches).some(
-          t => t.identifier === touchIdRef.current
-        );
-        if (touchEnded) {
-          handleEnd();
-        }
-      }
-    };
-    
-    document.addEventListener('touchend', onDocumentTouchEnd, { passive: false });
-    document.addEventListener('touchcancel', onDocumentTouchEnd, { passive: false });
-
-    return () => {
-      button.removeEventListener('touchstart', onTouchStart);
-      button.removeEventListener('touchend', onTouchEnd);
-      button.removeEventListener('touchcancel', onTouchEnd);
-      button.removeEventListener('touchmove', onTouchMove);
-      button.removeEventListener('mousedown', onMouseDown);
-      button.removeEventListener('mouseup', onMouseUp);
-      button.removeEventListener('mouseleave', onMouseLeave);
-      button.removeEventListener('contextmenu', onContextMenu);
-      document.removeEventListener('touchend', onDocumentTouchEnd);
-      document.removeEventListener('touchcancel', onDocumentTouchEnd);
-    };
-  }, [handleStart, handleEnd, warmupAudio]);
+  }, [isDisabled, isRecording, onStartRecording, onStopRecording, warmupAudio]);
 
   const getButtonStyles = () => {
     if (isRecording) {
@@ -193,7 +76,7 @@ export function PushToTalkButton({
     if (isSpeaking) {
       return "bg-cooper-speaking";
     }
-    return "bg-primary hover:bg-primary/90";
+    return "bg-primary hover:bg-primary/90 active:scale-95";
   };
 
   const getIcon = () => {
@@ -212,7 +95,7 @@ export function PushToTalkButton({
   const getLabel = () => {
     switch (status) {
       case 'listening':
-        return 'Release to send';
+        return 'Tap to send';
       case 'processing':
         return 'Processing...';
       case 'thinking':
@@ -220,7 +103,7 @@ export function PushToTalkButton({
       case 'speaking':
         return 'Cooper is speaking';
       default:
-        return 'Hold to speak';
+        return 'Tap to speak';
     }
   };
 
@@ -246,8 +129,8 @@ export function PushToTalkButton({
         )}
         
         <button
-          ref={buttonRef}
           type="button"
+          onClick={handleToggle}
           disabled={isDisabled}
           className={cn(
             "rounded-full flex items-center justify-center relative",
@@ -264,7 +147,7 @@ export function PushToTalkButton({
             WebkitUserSelect: 'none',
             userSelect: 'none',
           }}
-          aria-label={isRecording ? "Release to stop recording" : "Hold to start recording"}
+          aria-label={isRecording ? "Tap to stop recording" : "Tap to start recording"}
         >
           {getIcon()}
         </button>
