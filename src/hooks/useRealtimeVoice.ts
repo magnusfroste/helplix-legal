@@ -55,16 +55,16 @@ export function useRealtimeVoice() {
       mediaRecorderRef.current = mediaRecorder;
       
       mediaRecorder.ondataavailable = (event) => {
-        console.log('Data available:', event.data.size, 'bytes, total chunks:', chunksRef.current.length + 1);
+        console.log('Data available:', event.data.size, 'bytes');
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
       
-      // Start recording without timeslice - collect all data on stop
-      mediaRecorder.start();
+      // Use timeslice to collect data every 250ms during recording
+      mediaRecorder.start(250);
       setIsRecording(true);
-      console.log('Recording started');
+      console.log('Recording started with timeslice');
     } catch (error) {
       console.error('Error starting recording:', error);
       throw error;
