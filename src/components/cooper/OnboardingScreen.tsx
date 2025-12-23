@@ -16,7 +16,7 @@ export const OnboardingScreen = memo(function OnboardingScreen({
         Coopers Law
       </h1>
       <p className="text-sm text-muted-foreground mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '100ms' }}>
-        Välj din jurisdiktion
+        Select your jurisdiction
       </p>
       <div className="grid grid-cols-3 gap-6 max-w-xs">
         {COUNTRIES.map((country, index) => (
