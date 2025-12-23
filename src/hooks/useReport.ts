@@ -8,6 +8,7 @@ export interface Report {
   user_id: string | null;
   timeline_report: string | null;
   legal_report: string | null;
+  interpretation_report: string | null;
   entries_count: number;
   created_at: string;
   updated_at: string;
@@ -56,7 +57,8 @@ export function useReport({ sessionId, userId, currentEntriesCount }: UseReportO
   // Save or update report
   const saveReport = useCallback(async (
     timelineReport: string | null,
-    legalReport: string | null
+    legalReport: string | null,
+    interpretationReport?: string | null
   ) => {
     if (!sessionId) return null;
 
@@ -64,13 +66,18 @@ export function useReport({ sessionId, userId, currentEntriesCount }: UseReportO
     try {
       if (report?.id) {
         // Update existing report
+        const updateData: Record<string, unknown> = {
+          timeline_report: timelineReport,
+          legal_report: legalReport,
+          entries_count: currentEntriesCount,
+        };
+        if (interpretationReport !== undefined) {
+          updateData.interpretation_report = interpretationReport;
+        }
+        
         const { data, error } = await supabase
           .from('reports')
-          .update({
-            timeline_report: timelineReport,
-            legal_report: legalReport,
-            entries_count: currentEntriesCount,
-          })
+          .update(updateData)
           .eq('id', report.id)
           .select()
           .single();
@@ -87,6 +94,7 @@ export function useReport({ sessionId, userId, currentEntriesCount }: UseReportO
             user_id: userId || null,
             timeline_report: timelineReport,
             legal_report: legalReport,
+            interpretation_report: interpretationReport || null,
             entries_count: currentEntriesCount,
           })
           .select()
