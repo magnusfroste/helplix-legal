@@ -75,11 +75,17 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
 
   // Core action: process user response
   const processResponse = useCallback(async (text: string) => {
+    console.log('processResponse called with:', { text, userId, currentSessionId: session.currentSessionId });
+    
     let sessionId = session.currentSessionId;
     if (!sessionId) {
       try {
+        console.log('Creating new session for userId:', userId);
         sessionId = await session.createSession();
-      } catch {
+        console.log('Session created:', sessionId);
+      } catch (error) {
+        console.error('Failed to create session:', error);
+        toast.error('Kunde inte skapa session. Försök logga in igen.');
         return;
       }
     }
@@ -105,7 +111,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     } catch (error) {
       console.error('AI response error:', error);
     }
-  }, [session.currentSessionId, currentQuestion, settings.autoplaySpeech]);
+  }, [userId, session.currentSessionId, session.createSession, session.addLogEntry, currentQuestion, settings.autoplaySpeech, settings.audioEnabled, chat, voice]);
 
   // Actions
   const startRecording = useCallback(async () => {
