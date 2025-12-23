@@ -281,29 +281,27 @@ export function ReportScreen({
         </div>
       )}
 
-      {/* Generate Button */}
-      {!hasReport && (
-        <div className="px-3 py-3 border-b border-border">
-          <Button 
-            size="default" 
-            className="w-full"
-            onClick={() => generateReport('both')}
-            disabled={isGenerating}
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Genererar...
-              </>
-            ) : (
-              <>
-                <FileText className="h-4 w-4 mr-2" />
-                Generera rapport
-              </>
-            )}
-          </Button>
-        </div>
-      )}
+      {/* Generate Button - always visible */}
+      <div className="px-3 py-3 border-b border-border">
+        <Button 
+          size="default" 
+          className="w-full"
+          onClick={() => generateReport('both')}
+          disabled={isGenerating}
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Genererar...
+            </>
+          ) : (
+            <>
+              <FileText className="h-4 w-4 mr-2" />
+              {hasReport ? 'Regenerera rapport' : 'Generera rapport'}
+            </>
+          )}
+        </Button>
+      </div>
 
       {/* Action Buttons - icon-only on mobile for space efficiency */}
       {hasReport && (
