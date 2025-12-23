@@ -107,42 +107,63 @@ export function PushToTalkButton({
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <button
-        type="button"
-        onMouseDown={handlePressStart}
-        onMouseUp={handlePressEnd}
-        onMouseLeave={handlePressEnd}
-        onTouchStart={handlePressStart}
-        onTouchEnd={handlePressEnd}
-        disabled={disabled || isProcessing}
-        className={cn(
-          "rounded-full flex items-center justify-center relative overflow-hidden",
-          "text-primary-foreground shadow-lg transition-all duration-200",
-          "focus:outline-none focus-visible:ring-4 focus-visible:ring-ring focus-visible:ring-offset-4",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-          "touch-manipulation select-none",
-          buttonSizeClass,
-          getButtonStyles()
+      <div className="relative flex items-center justify-center">
+        {/* Pulsing rings when recording */}
+        {isRecording && (
+          <>
+            <span 
+              className={cn(
+                "absolute rounded-full bg-cooper-recording/40 animate-pulse-ring",
+                buttonSizeClass
+              )} 
+            />
+            <span 
+              className={cn(
+                "absolute rounded-full bg-cooper-recording/30 animate-pulse-ring",
+                buttonSizeClass
+              )}
+              style={{ animationDelay: '0.5s' }}
+            />
+          </>
         )}
-        style={{ WebkitTapHighlightColor: 'transparent' }}
-        aria-label={isRecording ? "Stop recording" : "Start recording"}
-      >
-        {/* Ripple effects */}
-        {ripples.map(ripple => (
-          <span
-            key={ripple.id}
-            className="absolute rounded-full bg-white/30 animate-ripple pointer-events-none"
-            style={{
-              left: ripple.x,
-              top: ripple.y,
-              width: 20,
-              height: 20,
-              transform: 'translate(-50%, -50%)',
-            }}
-          />
-        ))}
-        {getIcon()}
-      </button>
+        
+        <button
+          type="button"
+          onMouseDown={handlePressStart}
+          onMouseUp={handlePressEnd}
+          onMouseLeave={handlePressEnd}
+          onTouchStart={handlePressStart}
+          onTouchEnd={handlePressEnd}
+          disabled={disabled || isProcessing}
+          className={cn(
+            "rounded-full flex items-center justify-center relative overflow-hidden",
+            "text-primary-foreground shadow-lg transition-all duration-200",
+            "focus:outline-none focus-visible:ring-4 focus-visible:ring-ring focus-visible:ring-offset-4",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
+            "touch-manipulation select-none z-10",
+            buttonSizeClass,
+            getButtonStyles()
+          )}
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+          aria-label={isRecording ? "Stop recording" : "Start recording"}
+        >
+          {/* Ripple effects */}
+          {ripples.map(ripple => (
+            <span
+              key={ripple.id}
+              className="absolute rounded-full bg-white/30 animate-ripple pointer-events-none"
+              style={{
+                left: ripple.x,
+                top: ripple.y,
+                width: 20,
+                height: 20,
+                transform: 'translate(-50%, -50%)',
+              }}
+            />
+          ))}
+          {getIcon()}
+        </button>
+      </div>
       
       <span className={cn(
         "font-medium text-center select-none",
