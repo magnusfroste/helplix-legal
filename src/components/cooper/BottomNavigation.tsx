@@ -28,7 +28,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "flex flex-col items-center justify-center py-3 px-4 min-w-[80px] transition-colors",
+                "flex flex-col items-center justify-center py-2 px-3 min-w-[64px] transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 isActive 
                   ? "text-primary" 
@@ -38,13 +38,13 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
             >
               <Icon 
                 className={cn(
-                  "h-7 w-7 mb-1 transition-transform",
+                  "h-5 w-5 mb-0.5 transition-transform",
                   isActive && "scale-110"
                 )} 
                 strokeWidth={isActive ? 2.5 : 2}
               />
               <span className={cn(
-                "text-sm font-medium",
+                "text-xs font-medium",
                 isActive && "font-semibold"
               )}>
                 {tab.label}
