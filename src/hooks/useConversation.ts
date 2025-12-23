@@ -25,8 +25,15 @@ export function useConversation({ settings }: UseConversationOptions) {
   
   // Local state
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState(initialQuestion);
+  const [currentQuestion, setCurrentQuestion] = useState(() => getInitialQuestion(settings));
   const [isFirstInteraction, setIsFirstInteraction] = useState(true);
+
+  // Update current question when country changes and it's a fresh session
+  useEffect(() => {
+    if (isFirstInteraction && logEntries.length === 0) {
+      setCurrentQuestion(initialQuestion);
+    }
+  }, [initialQuestion, isFirstInteraction, logEntries.length]);
 
   // Voice service
   const voice = useRealtimeVoice();
