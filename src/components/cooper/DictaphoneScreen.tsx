@@ -35,19 +35,16 @@ export function DictaphoneScreen({
   const isBusy = status === 'listening' || status === 'processing' || status === 'thinking' || status === 'speaking';
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-[calc(100vh-140px)] py-8 px-4">
-      {/* Header */}
-      <header className="text-center">
-        <h1 className="text-cooper-3xl font-bold text-foreground tracking-tight">
+    <div className="flex flex-col items-center justify-between min-h-[calc(100vh-80px)] py-4 px-2">
+      {/* Header - compact */}
+      <header className="text-center py-2">
+        <h1 className="text-cooper-2xl font-bold text-foreground tracking-tight">
           Cooper
         </h1>
-        <p className="text-cooper-base text-muted-foreground mt-1">
-          Your legal documentation assistant
-        </p>
       </header>
 
-      {/* Question Display */}
-      <div className="flex-1 flex items-center justify-center w-full max-w-lg">
+      {/* Question Display - maximize space */}
+      <div className="flex-1 flex items-center justify-center w-full">
         <QuestionDisplay 
           question={currentQuestion}
           isFirstInteraction={isFirstInteraction}
@@ -56,7 +53,7 @@ export function DictaphoneScreen({
       </div>
 
       {/* Push-to-Talk Button */}
-      <div className="mb-4 flex flex-col items-center gap-4">
+      <div className="pb-2 flex flex-col items-center gap-3">
         <PushToTalkButton
           status={status}
           onStartRecording={onStartRecording}
@@ -70,18 +67,18 @@ export function DictaphoneScreen({
             onClick={onReplay}
             disabled={isBusy}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-full",
+              "flex items-center gap-2 px-3 py-1.5 rounded-full",
               "bg-secondary text-secondary-foreground",
               "hover:bg-secondary/80 active:scale-95",
               "transition-all duration-200",
               "disabled:opacity-50 disabled:cursor-not-allowed",
-              "touch-manipulation select-none"
+              "touch-manipulation select-none text-sm"
             )}
             style={{ WebkitTapHighlightColor: 'transparent' }}
             aria-label="Replay last question"
           >
-            <RotateCcw className="h-5 w-5" />
-            <span className="text-cooper-base font-medium">Replay</span>
+            <RotateCcw className="h-4 w-4" />
+            <span className="font-medium">Replay</span>
           </button>
         )}
       </div>
