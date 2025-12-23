@@ -335,10 +335,10 @@ export function ReportScreen({
         </div>
       )}
 
-      <ScrollArea className="flex-1">
-        <div className="px-3 py-3 space-y-4">
+      <ScrollArea className="flex-1 w-full">
+        <div className="px-3 py-3 space-y-4 w-full max-w-full overflow-x-hidden">
           {/* Timeline Section */}
-          <section>
+          <section className="w-full">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-cooper-base font-semibold text-foreground">
                 Kronologisk tidslinje
@@ -347,7 +347,7 @@ export function ReportScreen({
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  className="h-7 w-7 p-0"
+                  className="h-7 w-7 p-0 shrink-0"
                   onClick={() => generateReport('timeline')}
                   disabled={isGenerating}
                 >
@@ -355,14 +355,14 @@ export function ReportScreen({
                 </Button>
               )}
             </div>
-            <div className="bg-card border border-border rounded-lg p-3">
+            <div className="bg-card border border-border rounded-lg p-3 w-full overflow-hidden">
               {isGenerating && generatingType === 'timeline' ? (
                 <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   Genererar tidslinje...
                 </div>
               ) : timelineReport ? (
-                <div className="max-w-none text-foreground break-words overflow-hidden">
+                <div className="text-foreground w-full" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                   <MarkdownRenderer content={timelineReport} />
                 </div>
               ) : (
@@ -374,7 +374,7 @@ export function ReportScreen({
           </section>
 
           {/* Legal Overview Section */}
-          <section>
+          <section className="w-full">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-cooper-base font-semibold text-foreground">
                 Juridisk översikt
@@ -383,7 +383,7 @@ export function ReportScreen({
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  className="h-7 w-7 p-0"
+                  className="h-7 w-7 p-0 shrink-0"
                   onClick={() => generateReport('legal')}
                   disabled={isGenerating}
                 >
@@ -391,14 +391,14 @@ export function ReportScreen({
                 </Button>
               )}
             </div>
-            <div className="bg-card border border-border rounded-lg p-3">
+            <div className="bg-card border border-border rounded-lg p-3 w-full overflow-hidden">
               {isGenerating && generatingType === 'legal' ? (
                 <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   Genererar juridisk översikt...
                 </div>
               ) : legalReport ? (
-                <div className="max-w-none text-foreground break-words overflow-hidden">
+                <div className="text-foreground w-full" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                   <MarkdownRenderer content={legalReport} />
                 </div>
               ) : (
