@@ -201,10 +201,11 @@ export default function Index() {
       <PinScreen
         key={authFlow}
         mode={mode}
+        countryCode={selectedCountry!}
         country={country?.name || ''}
         countryFlag={country?.flag || ''}
         onPinSubmit={handlePinSubmit}
-        onBack={handlePinBack}
+        onBack={authFlow === 'enter-pin' ? handlePinBack : undefined}
         error={pinError}
         isLoading={isPinLoading}
       />
@@ -228,7 +229,7 @@ export default function Index() {
           />
         );
       case 'log':
-        return <LogScreen entries={conversation.logEntries} />;
+        return <LogScreen entries={conversation.logEntries} country={settings.country} />;
       case 'report':
         return (
           <ReportScreen 

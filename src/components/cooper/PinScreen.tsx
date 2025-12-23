@@ -2,9 +2,12 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Scale, Delete, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/hooks/useTranslation';
+import type { CountryCode } from '@/types/cooper';
 
 interface PinScreenProps {
   mode: 'login' | 'create' | 'confirm';
+  countryCode: CountryCode;
   country: string;
   countryFlag: string;
   onPinSubmit: (pin: string) => void;
@@ -15,6 +18,7 @@ interface PinScreenProps {
 
 export function PinScreen({
   mode,
+  countryCode,
   country,
   countryFlag,
   onPinSubmit,
@@ -22,6 +26,7 @@ export function PinScreen({
   error,
   isLoading = false,
 }: PinScreenProps) {
+  const t = useTranslation(countryCode);
   const [pin, setPin] = useState('');
   const maxLength = 6;
 
@@ -55,24 +60,24 @@ export function PinScreen({
   const getTitle = () => {
     switch (mode) {
       case 'create':
-        return 'Create PIN code';
+        return t.pin.title.create;
       case 'confirm':
-        return 'Confirm PIN code';
+        return t.pin.title.confirm;
       case 'login':
       default:
-        return 'Enter PIN code';
+        return t.pin.title.login;
     }
   };
 
   const getSubtitle = () => {
     switch (mode) {
       case 'create':
-        return 'Choose a 6-digit code to log in';
+        return t.pin.subtitle.create;
       case 'confirm':
-        return 'Enter the same code again to confirm';
+        return t.pin.subtitle.confirm;
       case 'login':
       default:
-        return 'Log in with your PIN code';
+        return t.pin.subtitle.login;
     }
   };
 
@@ -81,7 +86,7 @@ export function PinScreen({
       {/* Header */}
       <div className="flex flex-col items-center gap-2 animate-fade-in">
         <Scale className="w-8 h-8 text-primary" />
-        <h1 className="text-xl font-bold text-foreground">Coopers Law</h1>
+        <h1 className="text-xl font-bold text-foreground">{t.onboarding.appName}</h1>
         <div className="flex items-center gap-2 text-muted-foreground">
           <span className="text-2xl">{countryFlag}</span>
           <span className="text-sm">{country}</span>
@@ -138,7 +143,7 @@ export function PinScreen({
             disabled={isLoading}
             className="h-16 text-muted-foreground hover:text-foreground"
           >
-            {onBack ? 'Back' : 'Clear'}
+            {onBack ? t.pin.back : t.pin.clear}
           </Button>
           
           <Button

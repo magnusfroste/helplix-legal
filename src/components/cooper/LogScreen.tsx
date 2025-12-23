@@ -1,16 +1,19 @@
 import { memo, CSSProperties, ReactElement } from 'react';
 import { List, useDynamicRowHeight, ListImperativeAPI } from 'react-window';
 import { cn } from '@/lib/utils';
-import type { LogEntry } from '@/types/cooper';
+import type { LogEntry, CountryCode } from '@/types/cooper';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface LogScreenProps {
   entries: LogEntry[];
+  country: CountryCode | null;
 }
 
 const VIRTUALIZATION_THRESHOLD = 20;
 const DEFAULT_ROW_HEIGHT = 72;
 
-export const LogScreen = memo(function LogScreen({ entries }: LogScreenProps) {
+export const LogScreen = memo(function LogScreen({ entries, country }: LogScreenProps) {
+  const t = useTranslation(country);
   const dynamicRowHeight = useDynamicRowHeight({ 
     defaultRowHeight: DEFAULT_ROW_HEIGHT,
     key: entries.length 
@@ -20,7 +23,7 @@ export const LogScreen = memo(function LogScreen({ entries }: LogScreenProps) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-8 text-center">
         <p className="text-muted-foreground">
-          No conversation yet
+          {t.log.noConversation}
         </p>
       </div>
     );
@@ -32,10 +35,10 @@ export const LogScreen = memo(function LogScreen({ entries }: LogScreenProps) {
     <div className="flex flex-col h-[calc(100vh-80px)]">
       <header className="px-4 py-3 border-b border-border flex items-baseline justify-between">
         <h1 className="text-lg font-semibold text-foreground">
-          Log
+          {t.log.title}
         </h1>
         <span className="text-xs text-muted-foreground">
-          {entries.length} entries
+          {entries.length} {t.log.entries}
         </span>
       </header>
 
@@ -44,7 +47,7 @@ export const LogScreen = memo(function LogScreen({ entries }: LogScreenProps) {
           className="flex-1"
           rowCount={entries.length}
           rowHeight={dynamicRowHeight}
-          rowProps={{ entries, dynamicRowHeight }}
+          rowProps={{ entries, dynamicRowHeight, t }}
           rowComponent={VirtualizedLogEntry}
           overscanCount={5}
           style={{ height: 'calc(100vh - 80px - 56px)' }}
@@ -53,7 +56,7 @@ export const LogScreen = memo(function LogScreen({ entries }: LogScreenProps) {
         <div className="flex-1 overflow-y-auto">
           <div className="divide-y divide-border">
             {entries.map((entry) => (
-              <LogEntryCard key={entry.id} entry={entry} />
+              <LogEntryCard key={entry.id} entry={entry} t={t} />
             ))}
           </div>
         </div>
@@ -65,6 +68,7 @@ export const LogScreen = memo(function LogScreen({ entries }: LogScreenProps) {
 interface RowProps {
   entries: LogEntry[];
   dynamicRowHeight: ReturnType<typeof useDynamicRowHeight>;
+  t: ReturnType<typeof useTranslation>;
 }
 
 function VirtualizedLogEntry({ 
@@ -72,6 +76,7 @@ function VirtualizedLogEntry({
   style,
   entries,
   dynamicRowHeight,
+  t,
   ariaAttributes
 }: {
   ariaAttributes: {
@@ -107,7 +112,7 @@ function VirtualizedLogEntry({
             "text-xs font-medium",
             isQuestion ? "text-primary" : "text-muted-foreground"
           )}>
-            {isQuestion ? 'Cooper' : 'You'}
+            {isQuestion ? t.log.cooper : t.log.you}
           </span>
           <span className="text-[10px] text-muted-foreground/70">
             {formatTime(entry.timestamp)}
@@ -125,7 +130,7 @@ function VirtualizedLogEntry({
   );
 }
 
-const LogEntryCard = memo(function LogEntryCard({ entry }: { entry: LogEntry }) {
+const LogEntryCard = memo(function LogEntryCard({ entry, t }: { entry: LogEntry; t: ReturnType<typeof useTranslation> }) {
   const isQuestion = entry.type === 'question';
   
   return (
