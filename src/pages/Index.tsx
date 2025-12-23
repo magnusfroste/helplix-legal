@@ -110,12 +110,16 @@ export default function Index() {
   }, []);
 
   const handleStartRecording = useCallback(async () => {
+    // Set status immediately for instant UI feedback
+    setStatus('listening');
+    
     try {
       stopSpeaking(); // Stop any current speech
       await startRecording();
     } catch (error) {
       console.error('Failed to start recording:', error);
       toast.error('Could not access microphone');
+      setStatus('idle'); // Revert on error
     }
   }, [startRecording, stopSpeaking]);
 
