@@ -96,6 +96,8 @@ export default function Index() {
       setStatus('thinking');
     } else if (isSpeaking) {
       setStatus('speaking');
+    } else {
+      setStatus('idle');
     }
   }, [isRecording, isTranscribing, isThinking, isSpeaking]);
 
