@@ -13,6 +13,10 @@ export default function Index() {
 
   const conversation = useConversation({ settings });
 
+  const handleToggleAudio = () => {
+    setSettings(prev => ({ ...prev, audioEnabled: !prev.audioEnabled }));
+  };
+
   const renderScreen = () => {
     switch (activeTab) {
       case 'dictaphone':
@@ -27,6 +31,8 @@ export default function Index() {
             onReplay={conversation.replayQuestion}
             buttonSize={settings.buttonSize}
             audioLevel={conversation.audioLevel}
+            audioEnabled={settings.audioEnabled}
+            onToggleAudio={handleToggleAudio}
           />
         );
       case 'log':
