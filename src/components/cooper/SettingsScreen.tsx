@@ -7,7 +7,13 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { DEFAULT_SETTINGS, type CooperSettings } from '@/types/cooper';
+import { 
+  DEFAULT_SETTINGS, 
+  COUNTRIES, 
+  getSystemPromptForCountry,
+  type CooperSettings, 
+  type CountryCode 
+} from '@/types/cooper';
 
 interface SettingsScreenProps {
   settings: CooperSettings;
@@ -44,6 +50,17 @@ export function SettingsScreen({ settings, onSettingsChange }: SettingsScreenPro
     return 'Many questions (detailed)';
   };
 
+  const currentCountry = COUNTRIES.find(c => c.code === localSettings.country);
+
+  const handleCountryChange = (countryCode: CountryCode) => {
+    setLocalSettings(prev => ({
+      ...prev,
+      country: countryCode,
+      systemPrompt: getSystemPromptForCountry(countryCode),
+    }));
+    setHasChanges(true);
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-140px)]">
       <header className="px-4 py-4 border-b border-border">
@@ -54,6 +71,31 @@ export function SettingsScreen({ settings, onSettingsChange }: SettingsScreenPro
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-8">
+          {/* Country Selection */}
+          <section className="space-y-4">
+            <div>
+              <Label className="text-cooper-lg font-semibold">
+                Country / Legal System
+              </Label>
+              <p className="text-cooper-base text-muted-foreground mt-1">
+                {currentCountry ? `${currentCountry.flag} ${currentCountry.name}` : 'Select a country'}
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2">
+              {COUNTRIES.map((country) => (
+                <Button
+                  key={country.code}
+                  variant={localSettings.country === country.code ? 'default' : 'outline'}
+                  onClick={() => handleCountryChange(country.code)}
+                  className="text-2xl h-14"
+                >
+                  {country.flag}
+                </Button>
+              ))}
+            </div>
+          </section>
+
           {/* Question Intensity */}
           <section className="space-y-4">
             <div>
