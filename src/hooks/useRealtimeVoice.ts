@@ -22,7 +22,6 @@ export function useRealtimeVoice() {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: 44100,
         } 
       });
       streamRef.current = stream;
@@ -52,19 +51,18 @@ export function useRealtimeVoice() {
       
       const mediaRecorder = new MediaRecorder(stream, { 
         mimeType: selectedMimeType,
-        audioBitsPerSecond: 128000,
       });
       mediaRecorderRef.current = mediaRecorder;
       
       mediaRecorder.ondataavailable = (event) => {
-        console.log('Data available:', event.data.size, 'bytes');
+        console.log('Data available:', event.data.size, 'bytes, total chunks:', chunksRef.current.length + 1);
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
       
-      // Request data every 500ms for more reliable capture
-      mediaRecorder.start(500);
+      // Start recording without timeslice - collect all data on stop
+      mediaRecorder.start();
       setIsRecording(true);
       console.log('Recording started');
     } catch (error) {
@@ -150,13 +148,8 @@ export function useRealtimeVoice() {
         }
       };
       
-      // Request final data and stop
-      mediaRecorder.requestData();
-      setTimeout(() => {
-        if (mediaRecorder.state !== 'inactive') {
-          mediaRecorder.stop();
-        }
-      }, 100);
+      // Stop recording - this triggers ondataavailable with all data
+      mediaRecorder.stop();
     });
   }, []);
 
