@@ -249,8 +249,8 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <main className="max-w-lg mx-auto">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
+      <main className="flex-1 max-w-lg mx-auto w-full overflow-hidden pb-20">
         {renderScreen()}
       </main>
       
