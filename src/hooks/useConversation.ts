@@ -53,6 +53,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   // Chat service
   const chat = useCooperChat({
     settings,
+    currentPhase: phaseProgress.currentPhase,
     onError: (error) => toast.error(error),
   });
 
@@ -107,7 +108,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
 
   // Core action: process user response
   const processResponse = useCallback(async (text: string) => {
-    console.log('processResponse called with:', { text, userId, currentSessionId: session.currentSessionId });
+    console.log('processResponse called with:', { text, userId, currentSessionId: session.currentSessionId, phase: phaseProgress.currentPhase });
     
     let sessionId = session.currentSessionId;
     if (!sessionId) {
@@ -132,8 +133,36 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       setLogEntries(prev => [...prev, savedQuestion, savedAnswer]);
     }
 
+    // Update phase progress - increment questions in current phase
+    setPhaseProgress(prev => ({
+      ...prev,
+      questionsInPhase: prev.questionsInPhase + 1
+    }));
+
+    // Check if we should transition to next phase
+    const shouldTransition = shouldTransitionPhase(
+      phaseProgress,
+      text.length,
+      text.length > 50 // Simple heuristic: longer responses likely contain new info
+    );
+
+    let nextPhase = phaseProgress.currentPhase;
+    if (shouldTransition) {
+      const newPhase = getNextPhase(phaseProgress.currentPhase);
+      if (newPhase) {
+        console.log(`Phase transition: ${phaseProgress.currentPhase} -> ${newPhase}`);
+        nextPhase = newPhase;
+        setPhaseProgress(prev => ({
+          ...prev,
+          currentPhase: newPhase,
+          questionsInPhase: 0,
+          phaseHistory: [...prev.phaseHistory, newPhase]
+        }));
+      }
+    }
+
     try {
-      const nextQuestion = await chat.sendMessage(text);
+      const nextQuestion = await chat.sendMessage(text, nextPhase);
       setCurrentQuestion(nextQuestion);
       setIsFirstInteraction(false);
 
@@ -143,7 +172,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     } catch (error) {
       console.error('AI response error:', error);
     }
-  }, [userId, session.currentSessionId, session.createSession, session.addLogEntry, currentQuestion, settings.autoplaySpeech, settings.ttsEnabled, chat, voice]);
+  }, [userId, session.currentSessionId, session.createSession, session.addLogEntry, currentQuestion, settings.autoplaySpeech, settings.ttsEnabled, chat, voice, phaseProgress]);
 
   // Actions
   const startRecording = useCallback(async () => {
@@ -209,6 +238,16 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       setCurrentQuestion(initialQuestion);
       setIsFirstInteraction(true);
       chat.resetConversation();
+      
+      // Reset phase tracking to opening phase
+      setPhaseProgress({
+        currentPhase: 'opening',
+        questionsInPhase: 0,
+        coveredTopics: new Set<string>(),
+        missingInfo: [],
+        phaseHistory: ['opening']
+      });
+      
       toast.success('New session started');
 
       if (settings.autoplaySpeech && settings.ttsEnabled) {
@@ -229,6 +268,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     logEntries,
     audioLevel: voice.audioLevel,
     currentSessionId: session.currentSessionId,
+    phaseProgress, // Phase tracking state
 
     // Actions
     startRecording,
