@@ -49,16 +49,19 @@ export function PushToTalkButton({
     }, 600);
   };
   
-  const handlePress = (e: React.MouseEvent | React.TouchEvent) => {
-    if (disabled || isProcessing || isSpeaking) return;
+  const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
+    if (disabled || isProcessing || isSpeaking || isRecording) return;
     
+    e.preventDefault();
     createRipple(e);
+    onStartRecording();
+  };
+  
+  const handlePressEnd = (e: React.MouseEvent | React.TouchEvent) => {
+    if (disabled || isProcessing || !isRecording) return;
     
-    if (isRecording) {
-      onStopRecording();
-    } else {
-      onStartRecording();
-    }
+    e.preventDefault();
+    onStopRecording();
   };
 
   const getButtonStyles = () => {
@@ -90,7 +93,7 @@ export function PushToTalkButton({
   const getLabel = () => {
     switch (status) {
       case 'listening':
-        return 'Tap to stop';
+        return 'Release to send';
       case 'processing':
         return 'Processing...';
       case 'thinking':
@@ -106,7 +109,11 @@ export function PushToTalkButton({
     <div className="flex flex-col items-center gap-3">
       <button
         type="button"
-        onClick={handlePress}
+        onMouseDown={handlePressStart}
+        onMouseUp={handlePressEnd}
+        onMouseLeave={handlePressEnd}
+        onTouchStart={handlePressStart}
+        onTouchEnd={handlePressEnd}
         disabled={disabled || isProcessing}
         className={cn(
           "rounded-full flex items-center justify-center relative overflow-hidden",
