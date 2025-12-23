@@ -109,14 +109,6 @@ export function useRealtimeVoice() {
           const audioBlob = new Blob(chunksRef.current, { type: mimeType });
           console.log('Audio blob created:', audioBlob.size, 'bytes, type:', audioBlob.type);
           
-          if (audioBlob.size < 1000) {
-            console.log('Audio too short');
-            setIsRecording(false);
-            setIsTranscribing(false);
-            resolve('');
-            return;
-          }
-          
           // Determine file extension
           const extension = mimeType.includes('webm') ? 'webm' : 
                            mimeType.includes('mp4') ? 'mp4' : 
@@ -124,7 +116,7 @@ export function useRealtimeVoice() {
           
           // Send to STT
           const formData = new FormData();
-          formData.append('file', audioBlob, `recording.${extension}`);
+          formData.append('audio', audioBlob, `recording.${extension}`);
           
           console.log('Sending to STT...');
           const response = await fetch(
