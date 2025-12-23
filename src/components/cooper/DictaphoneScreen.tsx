@@ -4,6 +4,7 @@ import { PushToTalkButton } from './PushToTalkButton';
 import { QuestionDisplay } from './QuestionDisplay';
 import { TextInputDialog } from './TextInputDialog';
 import { AudioLevelIndicator } from './AudioLevelIndicator';
+import { RealtimeTranscription } from './RealtimeTranscription';
 import { cn } from '@/lib/utils';
 import type { ConversationStatus, CooperSettings, CountryCode } from '@/types/cooper';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -19,6 +20,8 @@ interface DictaphoneScreenProps {
   buttonSize?: CooperSettings['buttonSize'];
   audioLevel?: number;
   country: CountryCode | null;
+  showRealtimeTranscription?: boolean;
+  realtimeTranscriptionText?: string;
 }
 
 export const DictaphoneScreen = memo(function DictaphoneScreen({
@@ -32,6 +35,8 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
   buttonSize = 'large',
   audioLevel = 0,
   country,
+  showRealtimeTranscription = false,
+  realtimeTranscriptionText = '',
 }: DictaphoneScreenProps) {
   const t = useTranslation(country);
   const [showTextInput, setShowTextInput] = useState(false);
@@ -63,12 +68,19 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
       </header>
 
       {/* Question Display - maximize space */}
-      <div className="flex-1 flex items-center justify-center w-full">
-        <QuestionDisplay 
-          question={currentQuestion}
-          isFirstInteraction={isFirstInteraction}
-          isSpeaking={isSpeaking}
-        />
+      <div className="flex-1 flex flex-col items-center justify-center w-full gap-4">
+        {showRealtimeTranscription && status === 'listening' ? (
+          <RealtimeTranscription
+            text={realtimeTranscriptionText}
+            isVisible={true}
+          />
+        ) : (
+          <QuestionDisplay 
+            question={currentQuestion}
+            isFirstInteraction={isFirstInteraction}
+            isSpeaking={isSpeaking}
+          />
+        )}
       </div>
 
       {/* Controls area */}

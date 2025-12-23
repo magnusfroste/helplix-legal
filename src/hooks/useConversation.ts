@@ -51,6 +51,9 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   const [qualityMetrics, setQualityMetrics] = useState<QualityMetrics>(() => initializeQualityMetrics());
   const [consecutiveFollowUps, setConsecutiveFollowUps] = useState(0);
   const [lastAssessment, setLastAssessment] = useState<AnswerQualityAssessment | null>(null);
+  
+  // Real-time transcription state
+  const [realtimeTranscriptionText, setRealtimeTranscriptionText] = useState<string>('');
 
   // Update current question when country/initialQuestion changes
   useEffect(() => {
@@ -227,17 +230,16 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
 
   // Actions
   const startRecording = useCallback(async () => {
-    if (!settings.sttEnabled) {
-      toast.error('Speech-to-text is disabled');
-      return;
-    }
+    if (isBusy) return;
+    
     try {
-      voice.stopSpeaking();
+      setRealtimeTranscriptionText(''); // Clear previous transcription
       await voice.startRecording();
-    } catch {
-      toast.error('Could not access microphone');
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      toast.error('Failed to start recording');
     }
-  }, [settings.sttEnabled]);
+  }, [isBusy, voice]);
 
   const stopRecording = useCallback(async () => {
     // Optimistic UI: Show placeholder immediately
@@ -252,6 +254,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
 
     try {
       const text = await voice.stopRecording();
+      setRealtimeTranscriptionText(''); // Clear transcription after recording stops
       
       // Remove optimistic entry
       setLogEntries(prev => prev.filter(e => e.id !== optimisticId));
@@ -262,6 +265,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       }
       await processResponse(text);
     } catch {
+      setRealtimeTranscriptionText(''); // Clear on error too
       // Remove optimistic entry on error
       setLogEntries(prev => prev.filter(e => e.id !== optimisticId));
       toast.error('Failed to process recording');
@@ -306,6 +310,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       setQualityMetrics(initializeQualityMetrics());
       setConsecutiveFollowUps(0);
       setLastAssessment(null);
+      setRealtimeTranscriptionText('');
       
       toast.success('New session started');
 
@@ -331,6 +336,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     infoTracker, // Information tracking state
     qualityMetrics, // Quality metrics
     lastAssessment, // Last quality assessment
+    realtimeTranscriptionText, // Real-time transcription text
 
     // Actions
     startRecording,

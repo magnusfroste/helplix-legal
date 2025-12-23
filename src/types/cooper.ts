@@ -146,6 +146,7 @@ export interface CooperSettings {
   autoplaySpeech: boolean;
   ttsEnabled: boolean; // Toggle for TTS on/off
   sttEnabled: boolean; // Toggle for STT on/off
+  showRealtimeTranscription: boolean; // Show user's speech transcription in real-time
   audioEnabled?: boolean; // Deprecated: use ttsEnabled and sttEnabled
 }
 
@@ -171,6 +172,7 @@ export const DEFAULT_SETTINGS: CooperSettings = {
   autoplaySpeech: false,
   ttsEnabled: true,
   sttEnabled: true,
+  showRealtimeTranscription: false, // Default off
 };
 
 // Helper function to get country-specific system prompt

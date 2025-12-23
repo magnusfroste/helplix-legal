@@ -227,6 +227,8 @@ export default function Index() {
             buttonSize={settings.buttonSize}
             audioLevel={conversation.audioLevel}
             country={settings.country}
+            showRealtimeTranscription={settings.showRealtimeTranscription && settings.sttEnabled}
+            realtimeTranscriptionText={conversation.realtimeTranscriptionText || ''}
           />
         );
       case 'log':

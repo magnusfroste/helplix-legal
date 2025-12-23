@@ -220,6 +220,23 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             />
           </section>
 
+          {/* Real-time Transcription Display */}
+          <section className="flex items-center justify-between">
+            <div>
+              <Label className="text-cooper-lg font-semibold">
+                {t.settings.realtimeTranscription?.title || 'Show Real-time Transcription'}
+              </Label>
+              <p className="text-cooper-base text-muted-foreground">
+                {t.settings.realtimeTranscription?.description || 'Display your speech as text in real-time while recording'}
+              </p>
+            </div>
+            <Switch
+              checked={localSettings.showRealtimeTranscription}
+              onCheckedChange={(checked) => handleChange('showRealtimeTranscription', checked)}
+              disabled={!localSettings.sttEnabled}
+            />
+          </section>
+
           {/* Autoplay Speech */}
           <section className="flex items-center justify-between">
             <div>
