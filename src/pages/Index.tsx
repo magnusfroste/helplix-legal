@@ -109,12 +109,12 @@ export default function Index() {
         // Try to login first
         const loginResult = await auth.login(pin);
         
-        if (loginResult.success) {
-          // Logged in successfully
+        if (loginResult.success && loginResult.user) {
+          // Logged in successfully - use returned user data directly
           setSettings(prev => ({
             ...prev,
-            country: auth.user?.country || selectedCountry!,
-            systemPrompt: getSystemPromptForCountry(auth.user?.country || selectedCountry!),
+            country: loginResult.user!.country,
+            systemPrompt: getSystemPromptForCountry(loginResult.user!.country),
           }));
           setAuthFlow('authenticated');
         } else {

@@ -70,7 +70,7 @@ export function useAuth() {
   }, []);
 
   // Login with PIN
-  const login = useCallback(async (pin: string): Promise<{ success: boolean; error?: string }> => {
+  const login = useCallback(async (pin: string): Promise<{ success: boolean; error?: string; user?: User }> => {
     try {
       const pinHash = await hashPin(pin);
       const { data, error } = await supabase
@@ -89,11 +89,13 @@ export function useAuth() {
         .update({ last_login_at: new Date().toISOString() })
         .eq('id', data.id);
 
+      const loggedInUser = { id: data.id, country: data.country as CountryCode };
+      
       // Store user ID
       localStorage.setItem(USER_STORAGE_KEY, data.id);
-      setUser({ id: data.id, country: data.country as CountryCode });
+      setUser(loggedInUser);
       
-      return { success: true };
+      return { success: true, user: loggedInUser };
     } catch (e) {
       console.error('Login failed:', e);
       return { success: false, error: 'Ett fel uppstod vid inloggning' };
@@ -101,7 +103,7 @@ export function useAuth() {
   }, []);
 
   // Create new user with PIN
-  const createUser = useCallback(async (pin: string, country: CountryCode): Promise<{ success: boolean; error?: string }> => {
+  const createUser = useCallback(async (pin: string, country: CountryCode): Promise<{ success: boolean; error?: string; user?: User }> => {
     try {
       const pinHash = await hashPin(pin);
       
@@ -122,11 +124,13 @@ export function useAuth() {
         return { success: false, error: 'Kunde inte skapa användare' };
       }
 
+      const newUser = { id: data.id, country: data.country as CountryCode };
+      
       // Store user ID
       localStorage.setItem(USER_STORAGE_KEY, data.id);
-      setUser({ id: data.id, country: data.country as CountryCode });
+      setUser(newUser);
       
-      return { success: true };
+      return { success: true, user: newUser };
     } catch (e) {
       console.error('Create user failed:', e);
       return { success: false, error: 'Ett fel uppstod vid skapande av konto' };
