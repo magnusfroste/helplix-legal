@@ -3,6 +3,8 @@ import type { CooperSettings, LogEntry, ConversationStatus } from '@/types/coope
 import { COUNTRIES } from '@/types/cooper';
 import type { ConversationPhase, PhaseProgress } from '@/types/phases';
 import { shouldTransitionPhase, getNextPhase } from '@/types/phases';
+import type { InformationTracker } from '@/types/information-tracking';
+import { initializeTracker, updateTracker } from '@/types/information-tracking';
 import { useRealtimeVoice } from './useRealtimeVoice';
 import { useCooperChat } from './useCooperChat';
 import { useSession } from './useSession';
@@ -39,6 +41,9 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     missingInfo: [],
     phaseHistory: ['opening']
   });
+  
+  // Information tracking state
+  const [infoTracker, setInfoTracker] = useState<InformationTracker>(() => initializeTracker());
 
   // Update current question when country/initialQuestion changes
   useEffect(() => {
@@ -54,6 +59,8 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   const chat = useCooperChat({
     settings,
     currentPhase: phaseProgress.currentPhase,
+    informationGaps: infoTracker.gaps,
+    completeness: infoTracker.completeness,
     onError: (error) => toast.error(error),
   });
 
@@ -133,6 +140,9 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       setLogEntries(prev => [...prev, savedQuestion, savedAnswer]);
     }
 
+    // Update information tracker with user's response
+    setInfoTracker(prev => updateTracker(prev, phaseProgress.currentPhase, text));
+    
     // Update phase progress - increment questions in current phase
     setPhaseProgress(prev => ({
       ...prev,
@@ -248,6 +258,9 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
         phaseHistory: ['opening']
       });
       
+      // Reset information tracker
+      setInfoTracker(initializeTracker());
+      
       toast.success('New session started');
 
       if (settings.autoplaySpeech && settings.ttsEnabled) {
@@ -269,6 +282,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     audioLevel: voice.audioLevel,
     currentSessionId: session.currentSessionId,
     phaseProgress, // Phase tracking state
+    infoTracker, // Information tracking state
 
     // Actions
     startRecording,

@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import type { CooperSettings } from '@/types/cooper';
 import type { ConversationPhase } from '@/types/phases';
+import type { InformationGaps } from '@/types/information-tracking';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -13,11 +14,13 @@ interface Message {
 interface UseCooperChatOptions {
   settings: CooperSettings;
   currentPhase?: ConversationPhase;
+  informationGaps?: InformationGaps;
+  completeness?: number;
   onResponse?: (response: string) => void;
   onError?: (error: string) => void;
 }
 
-export function useCooperChat({ settings, currentPhase, onResponse, onError }: UseCooperChatOptions) {
+export function useCooperChat({ settings, currentPhase, informationGaps, completeness, onResponse, onError }: UseCooperChatOptions) {
   const [isLoading, setIsLoading] = useState(false);
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const messagesRef = useRef<Message[]>([]);
@@ -63,6 +66,8 @@ export function useCooperChat({ settings, currentPhase, onResponse, onError }: U
             userLanguage: detectedLanguage,
             country: settings.country,
             currentPhase: activePhase,
+            informationGaps,
+            completeness,
           }),
         }
       );

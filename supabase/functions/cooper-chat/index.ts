@@ -5,6 +5,42 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function getGapsInstruction(gaps?: InformationGaps, completeness?: number): string {
+  if (!gaps || completeness === undefined) {
+    return "";
+  }
+
+  let instruction = `\n## INFORMATION COMPLETENESS: ${completeness}%\n`;
+
+  if (completeness < 30) {
+    instruction += "**Status:** Early stage - focus on gathering basic information\n";
+  } else if (completeness < 60) {
+    instruction += "**Status:** Moderate progress - continue building the case\n";
+  } else if (completeness < 90) {
+    instruction += "**Status:** Good progress - focus on filling remaining gaps\n";
+  } else {
+    instruction += "**Status:** Nearly complete - verify and clarify details\n";
+  }
+
+  if (gaps.critical.length > 0) {
+    instruction += `\n**CRITICAL MISSING INFORMATION (must address):**\n`;
+    gaps.critical.forEach(gap => {
+      instruction += `- ${gap}\n`;
+    });
+    instruction += "\n**Priority:** Ask about these critical gaps in your next questions.\n";
+  }
+
+  if (gaps.important.length > 0 && gaps.critical.length === 0) {
+    instruction += `\n**IMPORTANT MISSING INFORMATION:**\n`;
+    gaps.important.slice(0, 3).forEach(gap => {
+      instruction += `- ${gap}\n`;
+    });
+    instruction += "\n**Note:** Consider addressing these gaps when appropriate.\n";
+  }
+
+  return instruction;
+}
+
 function getPhaseInstruction(phase: string): string {
   switch (phase) {
     case 'opening':
@@ -89,6 +125,12 @@ interface Message {
   content: string;
 }
 
+interface InformationGaps {
+  critical: string[];
+  important: string[];
+  optional: string[];
+}
+
 interface ChatRequest {
   messages: Message[];
   systemPrompt: string;
@@ -96,6 +138,8 @@ interface ChatRequest {
   userLanguage?: string;
   country?: string; // Country code for legal context
   currentPhase?: string; // Current interview phase
+  informationGaps?: InformationGaps; // Missing information
+  completeness?: number; // 0-100 percentage
 }
 
 serve(async (req) => {
@@ -104,14 +148,14 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, systemPrompt, questionIntensity, userLanguage, country, currentPhase } = await req.json() as ChatRequest;
+    const { messages, systemPrompt, questionIntensity, userLanguage, country, currentPhase, informationGaps, completeness } = await req.json() as ChatRequest;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Cooper chat request - messages:", messages.length, "intensity:", questionIntensity, "country:", country, "phase:", currentPhase);
+    console.log("Cooper chat request - messages:", messages.length, "intensity:", questionIntensity, "country:", country, "phase:", currentPhase, "completeness:", completeness);
 
     // Build the enhanced system prompt
     const intensityInstruction = questionIntensity >= 7 
@@ -125,6 +169,8 @@ serve(async (req) => {
       : "Detect the user's preferred language from their responses and continue in that language.";
 
     const phaseInstruction = getPhaseInstruction(currentPhase || 'opening');
+    
+    const gapsInstruction = getGapsInstruction(informationGaps, completeness);
 
     const fullSystemPrompt = `${systemPrompt}
 
@@ -137,6 +183,8 @@ serve(async (req) => {
 - Never provide legal advice - only gather information for documentation.
 
 ${phaseInstruction}
+
+${gapsInstruction}
 
 ## Response Format:
 - Respond with your next question directly.
