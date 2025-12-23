@@ -234,6 +234,8 @@ export default function Index() {
             sessionId={conversation.currentSessionId}
             userId={auth.user?.id}
             onPlayReport={(text) => conversation.speak(text).catch(console.error)}
+            onStopReport={conversation.stopSpeaking}
+            isPlaying={conversation.isSpeaking}
           />
         );
       case 'settings':

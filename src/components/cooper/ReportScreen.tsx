@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { FileText, Clock, Download, Share2, Volume2, RefreshCw, Loader2, AlertTriangle } from 'lucide-react';
+import { FileText, Clock, Download, Share2, Volume2, VolumeX, RefreshCw, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { LogEntry } from '@/types/cooper';
@@ -14,6 +14,8 @@ interface ReportScreenProps {
   sessionId: string | null;
   userId?: string;
   onPlayReport?: (text: string) => void;
+  onStopReport?: () => void;
+  isPlaying?: boolean;
 }
 
 export function ReportScreen({ 
@@ -21,6 +23,8 @@ export function ReportScreen({
   sessionId,
   userId,
   onPlayReport,
+  onStopReport,
+  isPlaying = false,
 }: ReportScreenProps) {
   const [timelineReport, setTimelineReport] = useState<string | null>(null);
   const [legalReport, setLegalReport] = useState<string | null>(null);
@@ -200,14 +204,18 @@ export function ReportScreen({
     }
   }, [timelineReport, legalReport]);
 
-  const handlePlayReport = useCallback(() => {
-    const reportText = [timelineReport, legalReport].filter(Boolean).join('\n\n');
-    if (reportText && onPlayReport) {
-      onPlayReport(reportText);
-    } else if (!reportText) {
-      toast.error('Generate a report first');
+  const handleTogglePlayReport = useCallback(() => {
+    if (isPlaying) {
+      onStopReport?.();
+    } else {
+      const reportText = [timelineReport, legalReport].filter(Boolean).join('\n\n');
+      if (reportText && onPlayReport) {
+        onPlayReport(reportText);
+      } else if (!reportText) {
+        toast.error('Generate a report first');
+      }
     }
-  }, [timelineReport, legalReport, onPlayReport]);
+  }, [timelineReport, legalReport, onPlayReport, onStopReport, isPlaying]);
 
   if (isLoading) {
     return (
@@ -307,13 +315,17 @@ export function ReportScreen({
       {hasReport && (
         <div className="px-3 py-2 border-b border-border flex gap-2">
           <Button 
-            variant="outline" 
+            variant={isPlaying ? "default" : "outline"}
             size="default" 
             className="flex-1 h-10"
-            onClick={handlePlayReport}
+            onClick={handleTogglePlayReport}
           >
-            <Volume2 className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Lyssna</span>
+            {isPlaying ? (
+              <VolumeX className="h-4 w-4 sm:mr-2" />
+            ) : (
+              <Volume2 className="h-4 w-4 sm:mr-2" />
+            )}
+            <span className="hidden sm:inline">{isPlaying ? 'Stoppa' : 'Lyssna'}</span>
           </Button>
           <Button 
             variant="outline" 
