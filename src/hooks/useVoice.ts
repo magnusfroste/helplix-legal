@@ -53,6 +53,11 @@ export function useVoice() {
         return;
       }
 
+      // Request any pending data before stopping
+      if (mediaRecorder.state === 'recording') {
+        mediaRecorder.requestData();
+      }
+
       mediaRecorder.onstop = async () => {
         setIsRecording(false);
         setIsTranscribing(true);
@@ -63,6 +68,15 @@ export function useVoice() {
           });
           
           console.log('Audio blob created, size:', audioBlob.size);
+          
+          // Check if we have enough audio data (at least 5KB for meaningful speech)
+          if (audioBlob.size < 5000) {
+            console.log('Audio too short, likely no speech detected');
+            setIsTranscribing(false);
+            resolve('');
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            return;
+          }
           
           // Send to STT edge function
           const formData = new FormData();
