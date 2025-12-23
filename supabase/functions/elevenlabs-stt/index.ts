@@ -26,15 +26,15 @@ serve(async (req) => {
     console.log("Transcribing audio file:", {
       size: audioFile.size,
       type: audioFile.type,
-      name: audioFile.name
+      name: audioFile.name,
     });
 
     // Read the audio file as array buffer
     const audioBuffer = await audioFile.arrayBuffer();
     const audioBytes = new Uint8Array(audioBuffer);
-    
+
     console.log("Audio bytes length:", audioBytes.length);
-    
+
     // Validate that we have actual audio data
     if (audioBytes.length < 100) {
       throw new Error("Audio file too small - no speech detected");
@@ -43,7 +43,7 @@ serve(async (req) => {
     // Determine the correct MIME type and filename
     let mimeType = audioFile.type || "audio/webm";
     let fileName = audioFile.name || "audio.webm";
-    
+
     // ElevenLabs prefers specific formats
     if (mimeType.includes("webm")) {
       mimeType = "audio/webm";
@@ -79,21 +79,15 @@ serve(async (req) => {
     const transcription = await response.json();
     console.log("Transcription success:", transcription.text?.substring(0, 100));
 
-    return new Response(
-      JSON.stringify({ text: transcription.text || "" }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ text: transcription.text || "" }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("STT error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(
-      JSON.stringify({ error: message }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: message }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
