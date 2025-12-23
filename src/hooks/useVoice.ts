@@ -69,8 +69,8 @@ export function useVoice() {
           
           console.log('Audio blob created, size:', audioBlob.size);
           
-          // Check if we have enough audio data (at least 5KB for meaningful speech)
-          if (audioBlob.size < 5000) {
+          // Check if we have enough audio data (at least 1KB for any speech)
+          if (audioBlob.size < 1000) {
             console.log('Audio too short, likely no speech detected');
             setIsTranscribing(false);
             resolve('');
