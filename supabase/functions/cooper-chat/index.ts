@@ -155,7 +155,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Cooper chat request - messages:", messages.length, "intensity:", questionIntensity, "country:", country, "phase:", currentPhase, "completeness:", completeness);
+    console.log("Helplix chat request - messages:", messages.length, "intensity:", questionIntensity, "country:", country, "phase:", currentPhase, "completeness:", completeness);
 
     // Build the enhanced system prompt
     const intensityInstruction = questionIntensity >= 7 
@@ -231,14 +231,14 @@ ${gapsInstruction}
       throw new Error("No response from AI");
     }
 
-    console.log("Cooper response:", assistantMessage.substring(0, 100) + "...");
+    console.log("Helplix response:", assistantMessage.substring(0, 100) + "...");
 
     return new Response(
       JSON.stringify({ message: assistantMessage }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Cooper chat error:", error);
+    console.error("Helplix chat error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return new Response(
       JSON.stringify({ error: message }),
