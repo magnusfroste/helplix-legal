@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2 } from 'lucide-react';
+import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -47,6 +47,7 @@ export default function Admin() {
   const [users, setUsers] = useState<User[]>([]);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [togglingRole, setTogglingRole] = useState<string | null>(null);
 
   // Get current user from localStorage (since we use PIN auth)
   useEffect(() => {
@@ -66,36 +67,80 @@ export default function Admin() {
   }, [isAdmin, adminLoading, currentUserId, navigate]);
 
   // Fetch users and roles
-  useEffect(() => {
-    async function fetchUsers() {
-      if (!isAdmin) return;
-      
-      setLoadingUsers(true);
-      try {
-        const { data: usersData, error: usersError } = await supabase
-          .from('users')
-          .select('id, country, created_at, last_login_at')
-          .order('created_at', { ascending: false });
+  const fetchUsers = async () => {
+    if (!isAdmin) return;
+    
+    setLoadingUsers(true);
+    try {
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, country, created_at, last_login_at')
+        .order('created_at', { ascending: false });
 
-        if (usersError) throw usersError;
-        setUsers(usersData || []);
+      if (usersError) throw usersError;
+      setUsers(usersData || []);
 
-        const { data: rolesData, error: rolesError } = await supabase
-          .from('user_roles')
-          .select('user_id, role');
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
 
-        if (rolesError) throw rolesError;
-        setUserRoles((rolesData as UserRole[]) || []);
-      } catch (err) {
-        console.error('Error fetching users:', err);
-        toast.error('Kunde inte hämta användare');
-      } finally {
-        setLoadingUsers(false);
-      }
+      if (rolesError) throw rolesError;
+      setUserRoles((rolesData as UserRole[]) || []);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      toast.error('Kunde inte hämta användare');
+    } finally {
+      setLoadingUsers(false);
     }
+  };
 
+  useEffect(() => {
     fetchUsers();
   }, [isAdmin]);
+
+  const handleToggleAdminRole = async (targetUserId: string, currentRole: 'admin' | 'user') => {
+    if (!currentUserId) return;
+    
+    // Prevent removing own admin role
+    if (targetUserId === currentUserId && currentRole === 'admin') {
+      toast.error('Du kan inte ta bort din egen admin-roll');
+      return;
+    }
+
+    setTogglingRole(targetUserId);
+
+    try {
+      const action = currentRole === 'admin' ? 'remove' : 'add';
+      
+      const { data, error } = await supabase.functions.invoke('manage-role', {
+        body: {
+          adminUserId: currentUserId,
+          targetUserId,
+          action,
+          role: 'admin'
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast.success(
+          action === 'add' 
+            ? 'Användare uppgraderad till admin' 
+            : 'Admin-roll borttagen'
+        );
+        // Refresh user roles
+        await fetchUsers();
+      } else {
+        throw new Error(data?.error || 'Okänt fel');
+      }
+    } catch (err) {
+      console.error('Error toggling role:', err);
+      toast.error(err instanceof Error ? err.message : 'Kunde inte ändra roll');
+    } finally {
+      setTogglingRole(null);
+    }
+  };
 
   const handleToggleFlag = async (flag: FeatureFlag) => {
     const success = await updateFlag(flag.feature_key, !flag.enabled);
@@ -275,10 +320,15 @@ export default function Admin() {
                 <div className="space-y-3">
                   {users.map((user) => {
                     const role = getUserRole(user.id);
+                    const isCurrentUser = user.id === currentUserId;
+                    const isToggling = togglingRole === user.id;
+                    
                     return (
                       <div 
                         key={user.id}
-                        className="flex items-center justify-between p-3 rounded-lg border border-border"
+                        className={`flex items-center justify-between p-3 rounded-lg border ${
+                          isCurrentUser ? 'border-primary/50 bg-primary/5' : 'border-border'
+                        }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className="text-2xl">
@@ -290,9 +340,14 @@ export default function Admin() {
                              user.country === 'NL' ? '🇳🇱' : '🌍'}
                           </div>
                           <div>
-                            <p className="text-sm font-mono text-muted-foreground">
-                              {user.id.slice(0, 8)}...
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-mono text-muted-foreground">
+                                {user.id.slice(0, 8)}...
+                              </p>
+                              {isCurrentUser && (
+                                <Badge variant="outline" className="text-xs">Du</Badge>
+                              )}
+                            </div>
                             <p className="text-xs text-muted-foreground">
                               {user.last_login_at 
                                 ? `Senast: ${new Date(user.last_login_at).toLocaleDateString('sv-SE')}`
@@ -300,24 +355,38 @@ export default function Admin() {
                             </p>
                           </div>
                         </div>
-                        <Badge variant={role === 'admin' ? 'default' : 'secondary'}>
-                          {role === 'admin' ? 'Admin' : 'Användare'}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={role === 'admin' ? 'default' : 'secondary'}>
+                            {role === 'admin' ? 'Admin' : 'Användare'}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleToggleAdminRole(user.id, role)}
+                            disabled={isToggling || (isCurrentUser && role === 'admin')}
+                            title={
+                              isCurrentUser && role === 'admin' 
+                                ? 'Du kan inte ta bort din egen admin-roll'
+                                : role === 'admin' 
+                                  ? 'Ta bort admin-roll' 
+                                  : 'Gör till admin'
+                            }
+                          >
+                            {isToggling ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : role === 'admin' ? (
+                              <ShieldOff className="h-4 w-4 text-destructive" />
+                            ) : (
+                              <ShieldCheck className="h-4 w-4 text-primary" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Info box */}
-          <Card className="bg-muted/50">
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">
-                <strong>Tips:</strong> För att göra en användare till admin, lägg till deras user_id i 
-                tabellen <code className="bg-background px-1 rounded">user_roles</code> med rollen 'admin'.
-              </p>
             </CardContent>
           </Card>
         </div>

@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.perplexity-legal-search]
 verify_jwt = false
+
+[functions.manage-role]
+verify_jwt = false
