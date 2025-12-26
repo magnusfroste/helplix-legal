@@ -7,74 +7,25 @@ import { LogScreen } from '@/components/helplix/LogScreen';
 import { ReportScreen } from '@/components/helplix/ReportScreen';
 import { SettingsScreen } from '@/components/helplix/SettingsScreen';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  DEFAULT_SETTINGS, 
-  type CooperSettings, 
-  COUNTRIES,
-  getSystemPromptForCountry 
-} from '@/types/helplix';
+import { COUNTRIES } from '@/types/helplix';
 import { useConversation } from '@/hooks/useConversation';
-
-const SETTINGS_STORAGE_KEY = 'helplix-settings';
-
-function loadSettings(): CooperSettings {
-  try {
-    const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      // Backward compatibility: migrate audioEnabled to ttsEnabled and sttEnabled
-      if ('audioEnabled' in parsed) {
-        parsed.ttsEnabled = parsed.audioEnabled;
-        parsed.sttEnabled = parsed.audioEnabled;
-        delete parsed.audioEnabled;
-      }
-      return { ...DEFAULT_SETTINGS, ...parsed };
-    }
-  } catch (e) {
-    console.error('Failed to load settings:', e);
-  }
-  return DEFAULT_SETTINGS;
-}
-
-function saveSettings(settings: CooperSettings): void {
-  try {
-    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-  } catch (e) {
-    console.error('Failed to save settings:', e);
-  }
-}
+import { useSettings } from '@/hooks/useSettings';
 
 export default function Index() {
   const navigate = useNavigate();
-  const [isInitialized, setIsInitialized] = useState(false);
   const [activeTab, setActiveTab] = useState<NavigationTab>('dictaphone');
-  const [settings, setSettings] = useState<CooperSettings>(DEFAULT_SETTINGS);
   
   const auth = useAuth();
+  const { settings, setSettings, isInitialized } = useSettings({ 
+    userCountry: auth.user?.country 
+  });
 
   // Redirect to auth if not logged in
   useEffect(() => {
-    if (!auth.isLoading) {
-      if (!auth.isAuthenticated) {
-        navigate('/auth', { replace: true });
-      } else if (auth.user) {
-        // Initialize settings with user's country
-        setSettings(prev => ({
-          ...loadSettings(),
-          country: auth.user!.country,
-          systemPrompt: getSystemPromptForCountry(auth.user!.country),
-        }));
-        setIsInitialized(true);
-      }
+    if (!auth.isLoading && !auth.isAuthenticated) {
+      navigate('/auth', { replace: true });
     }
-  }, [auth.isLoading, auth.isAuthenticated, auth.user, navigate]);
-
-  // Persist settings changes
-  useEffect(() => {
-    if (isInitialized) {
-      saveSettings(settings);
-    }
-  }, [settings, isInitialized]);
+  }, [auth.isLoading, auth.isAuthenticated, navigate]);
 
   const conversation = useConversation({ 
     settings,
