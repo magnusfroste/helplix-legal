@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { BottomNavigation, type NavigationTab } from '@/components/cooper/BottomNavigation';
-import { DictaphoneScreen } from '@/components/cooper/DictaphoneScreen';
-import { LogScreen } from '@/components/cooper/LogScreen';
-import { ReportScreen } from '@/components/cooper/ReportScreen';
-import { SettingsScreen } from '@/components/cooper/SettingsScreen';
+import { BottomNavigation, type NavigationTab } from '@/components/helplix/BottomNavigation';
+import { DictaphoneScreen } from '@/components/helplix/DictaphoneScreen';
+import { LogScreen } from '@/components/helplix/LogScreen';
+import { ReportScreen } from '@/components/helplix/ReportScreen';
+import { SettingsScreen } from '@/components/helplix/SettingsScreen';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   DEFAULT_SETTINGS, 
@@ -15,7 +15,7 @@ import {
 } from '@/types/cooper';
 import { useConversation } from '@/hooks/useConversation';
 
-const SETTINGS_STORAGE_KEY = 'cooper-settings';
+const SETTINGS_STORAGE_KEY = 'helplix-settings';
 
 function loadSettings(): CooperSettings {
   try {
