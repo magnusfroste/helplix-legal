@@ -68,13 +68,13 @@ export const PushToTalkButton = memo(function PushToTalkButton({
 
   const getButtonStyles = () => {
     if (isRecording) {
-      return "bg-cooper-recording scale-110";
+      return "bg-helplix-recording scale-110";
     }
     if (isProcessing) {
-      return "bg-cooper-processing";
+      return "bg-helplix-processing";
     }
     if (isSpeaking) {
-      return "bg-cooper-speaking";
+      return "bg-helplix-speaking";
     }
     return "bg-primary hover:bg-primary/90 active:scale-95";
   };
@@ -101,7 +101,7 @@ export const PushToTalkButton = memo(function PushToTalkButton({
       case 'thinking':
         return 'Thinking...';
       case 'speaking':
-        return 'Cooper is speaking';
+        return 'Helplix is speaking';
       default:
         return 'Tap to speak';
     }
@@ -115,13 +115,13 @@ export const PushToTalkButton = memo(function PushToTalkButton({
           <>
             <span 
               className={cn(
-                "absolute rounded-full bg-cooper-recording/40 animate-ping",
+                "absolute rounded-full bg-helplix-recording/40 animate-ping",
                 buttonSizeClass
               )} 
             />
             <span 
               className={cn(
-                "absolute rounded-full bg-cooper-recording/20 animate-pulse",
+                "absolute rounded-full bg-helplix-recording/20 animate-pulse",
                 buttonSizeClass
               )}
             />
@@ -155,10 +155,10 @@ export const PushToTalkButton = memo(function PushToTalkButton({
       
       <span className={cn(
         "font-medium text-center select-none",
-        size === 'large' ? "text-cooper-lg" : "text-sm",
-        isRecording && "text-cooper-recording",
-        isProcessing && "text-cooper-processing",
-        isSpeaking && "text-cooper-speaking"
+        size === 'large' ? "text-helplix-lg" : "text-sm",
+        isRecording && "text-helplix-recording",
+        isProcessing && "text-helplix-processing",
+        isSpeaking && "text-helplix-speaking"
       )}>
         {getLabel()}
       </span>

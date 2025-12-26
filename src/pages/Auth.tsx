@@ -163,7 +163,7 @@ export default function Auth() {
         
         <Scale className="w-10 h-10 text-primary mb-4 animate-fade-in" />
         <h1 className="text-2xl font-bold text-foreground mb-2 animate-fade-in">
-          Cooper
+          Helplix Assist
         </h1>
         <p className="text-sm text-muted-foreground mb-8 animate-fade-in">
           Välj din jurisdiktion
@@ -198,7 +198,7 @@ export default function Auth() {
         {/* Header */}
         <div className="flex flex-col items-center gap-2 animate-fade-in">
           <Scale className="w-10 h-10 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Cooper</h1>
+          <h1 className="text-2xl font-bold text-foreground">Helplix Assist</h1>
           {mode === 'signup' && selectedCountryData && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <span className="text-2xl">{selectedCountryData.flag}</span>

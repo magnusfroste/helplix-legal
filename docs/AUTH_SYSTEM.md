@@ -1,8 +1,8 @@
-# Cooper Authentication System
+# Helplix Assist Authentication System
 
 ## Översikt
 
-Cooper använder Supabase Auth med email/lösenord för autentisering. Systemet stöder anonymitet genom att användare kan registrera sig med dummy-emails (protonmail, yahoo, etc.).
+Helplix Assist använder Supabase Auth med email/lösenord för autentisering. Systemet stöder anonymitet genom att användare kan registrera sig med dummy-emails (protonmail, yahoo, etc.).
 
 ## Arkitektur
 

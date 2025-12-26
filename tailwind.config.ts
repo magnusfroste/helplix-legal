@@ -51,12 +51,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        cooper: {
-          recording: "hsl(var(--cooper-recording))",
-          "recording-glow": "hsl(var(--cooper-recording-glow))",
-          listening: "hsl(var(--cooper-listening))",
-          processing: "hsl(var(--cooper-processing))",
-          speaking: "hsl(var(--cooper-speaking))",
+        helplix: {
+          recording: "hsl(var(--helplix-recording))",
+          "recording-glow": "hsl(var(--helplix-recording-glow))",
+          listening: "hsl(var(--helplix-listening))",
+          processing: "hsl(var(--helplix-processing))",
+          speaking: "hsl(var(--helplix-speaking))",
         },
       },
       borderRadius: {
@@ -66,11 +66,11 @@ export default {
         full: "9999px",
       },
       fontSize: {
-        "cooper-base": ["1.125rem", { lineHeight: "1.6" }],
-        "cooper-lg": ["1.375rem", { lineHeight: "1.5" }],
-        "cooper-xl": ["1.75rem", { lineHeight: "1.4" }],
-        "cooper-2xl": ["2.25rem", { lineHeight: "1.3" }],
-        "cooper-3xl": ["3rem", { lineHeight: "1.2" }],
+        "helplix-base": ["1.125rem", { lineHeight: "1.6" }],
+        "helplix-lg": ["1.375rem", { lineHeight: "1.5" }],
+        "helplix-xl": ["1.75rem", { lineHeight: "1.4" }],
+        "helplix-2xl": ["2.25rem", { lineHeight: "1.3" }],
+        "helplix-3xl": ["3rem", { lineHeight: "1.2" }],
       },
       spacing: {
         "touch-min": "48px",
