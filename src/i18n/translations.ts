@@ -9,6 +9,33 @@ export interface Translations {
     settings: string;
   };
   
+  // Auth / Landing
+  auth: {
+    tagline: string;
+    description: string;
+    feature1: string;
+    feature2: string;
+    feature3: string;
+    getStarted: string;
+    selectCountry: string;
+    alreadyHaveAccount: string;
+    noAccount: string;
+    login: string;
+    signUp: string;
+    email: string;
+    password: string;
+    createAccount: string;
+    back: string;
+    invalidEmail: string;
+    passwordMinLength: string;
+    wrongCredentials: string;
+    emailAlreadyRegistered: string;
+    accountCreated: string;
+    youAreLoggedIn: string;
+    errorOccurred: string;
+    selectCountryError: string;
+  };
+  
   // PIN Screen
   pin: {
     title: {
@@ -187,6 +214,31 @@ export const translations: Record<CountryCode, Translations> = {
       report: 'Relatório',
       settings: 'Configurações',
     },
+    auth: {
+      tagline: 'Seu assistente de documentação jurídica',
+      description: 'O Helplix ajuda você a documentar sua situação jurídica fazendo perguntas estruturadas e criando uma visão geral abrangente.',
+      feature1: 'Responda perguntas sobre sua situação',
+      feature2: 'Obtenha uma linha do tempo e resumo jurídico',
+      feature3: 'Prepare-se para processos legais',
+      getStarted: 'Começar',
+      selectCountry: 'Selecione seu país',
+      alreadyHaveAccount: 'Já tem uma conta?',
+      noAccount: 'Não tem uma conta?',
+      login: 'Entrar',
+      signUp: 'Cadastrar',
+      email: 'E-mail',
+      password: 'Senha',
+      createAccount: 'Criar conta',
+      back: 'Voltar',
+      invalidEmail: 'Endereço de e-mail inválido',
+      passwordMinLength: 'A senha deve ter pelo menos 6 caracteres',
+      wrongCredentials: 'E-mail ou senha incorretos',
+      emailAlreadyRegistered: 'Este e-mail já está cadastrado',
+      accountCreated: 'Conta criada',
+      youAreLoggedIn: 'Você está conectado!',
+      errorOccurred: 'Ocorreu um erro',
+      selectCountryError: 'Selecione um país',
+    },
     pin: {
       title: {
         create: 'Criar código PIN',
@@ -341,6 +393,31 @@ export const translations: Record<CountryCode, Translations> = {
       log: 'Registro',
       report: 'Informe',
       settings: 'Configuración',
+    },
+    auth: {
+      tagline: 'Tu asistente de documentación legal',
+      description: 'Helplix te ayuda a documentar tu situación legal haciendo preguntas estructuradas y creando un resumen completo.',
+      feature1: 'Responde preguntas sobre tu situación',
+      feature2: 'Obtén una línea de tiempo y resumen legal',
+      feature3: 'Prepárate para procedimientos legales',
+      getStarted: 'Comenzar',
+      selectCountry: 'Selecciona tu país',
+      alreadyHaveAccount: '¿Ya tienes una cuenta?',
+      noAccount: '¿No tienes una cuenta?',
+      login: 'Iniciar sesión',
+      signUp: 'Registrarse',
+      email: 'Correo electrónico',
+      password: 'Contraseña',
+      createAccount: 'Crear cuenta',
+      back: 'Atrás',
+      invalidEmail: 'Dirección de correo inválida',
+      passwordMinLength: 'La contraseña debe tener al menos 6 caracteres',
+      wrongCredentials: 'Correo o contraseña incorrectos',
+      emailAlreadyRegistered: 'Este correo ya está registrado',
+      accountCreated: 'Cuenta creada',
+      youAreLoggedIn: '¡Has iniciado sesión!',
+      errorOccurred: 'Ocurrió un error',
+      selectCountryError: 'Selecciona un país',
     },
     pin: {
       title: {
@@ -497,6 +574,31 @@ export const translations: Record<CountryCode, Translations> = {
       report: 'Informe',
       settings: 'Configuración',
     },
+    auth: {
+      tagline: 'Tu asistente de documentación legal',
+      description: 'Helplix te ayuda a documentar tu situación legal haciendo preguntas estructuradas y creando un resumen completo.',
+      feature1: 'Responde preguntas sobre tu situación',
+      feature2: 'Obtén una línea de tiempo y resumen legal',
+      feature3: 'Prepárate para procedimientos legales',
+      getStarted: 'Comenzar',
+      selectCountry: 'Selecciona tu país',
+      alreadyHaveAccount: '¿Ya tienes una cuenta?',
+      noAccount: '¿No tienes una cuenta?',
+      login: 'Iniciar sesión',
+      signUp: 'Registrarse',
+      email: 'Correo electrónico',
+      password: 'Contraseña',
+      createAccount: 'Crear cuenta',
+      back: 'Atrás',
+      invalidEmail: 'Dirección de correo inválida',
+      passwordMinLength: 'La contraseña debe tener al menos 6 caracteres',
+      wrongCredentials: 'Correo o contraseña incorrectos',
+      emailAlreadyRegistered: 'Este correo ya está registrado',
+      accountCreated: 'Cuenta creada',
+      youAreLoggedIn: '¡Has iniciado sesión!',
+      errorOccurred: 'Ocurrió un error',
+      selectCountryError: 'Selecciona un país',
+    },
     pin: {
       title: {
         create: 'Crear código PIN',
@@ -651,6 +753,31 @@ export const translations: Record<CountryCode, Translations> = {
       log: 'Logg',
       report: 'Rapport',
       settings: 'Inställningar',
+    },
+    auth: {
+      tagline: 'Din juridiska dokumentationsassistent',
+      description: 'Helplix hjälper dig dokumentera din juridiska situation genom strukturerade frågor och skapar en omfattande översikt.',
+      feature1: 'Besvara frågor om din situation',
+      feature2: 'Få en tidslinje och juridisk sammanfattning',
+      feature3: 'Förbered dig för rättsliga förfaranden',
+      getStarted: 'Kom igång',
+      selectCountry: 'Välj ditt land',
+      alreadyHaveAccount: 'Har du redan ett konto?',
+      noAccount: 'Har du inget konto?',
+      login: 'Logga in',
+      signUp: 'Registrera dig',
+      email: 'E-post',
+      password: 'Lösenord',
+      createAccount: 'Skapa konto',
+      back: 'Tillbaka',
+      invalidEmail: 'Ogiltig e-postadress',
+      passwordMinLength: 'Lösenordet måste vara minst 6 tecken',
+      wrongCredentials: 'Felaktig e-post eller lösenord',
+      emailAlreadyRegistered: 'Denna e-post är redan registrerad',
+      accountCreated: 'Konto skapat',
+      youAreLoggedIn: 'Du är nu inloggad!',
+      errorOccurred: 'Ett fel uppstod',
+      selectCountryError: 'Välj ett land',
     },
     pin: {
       title: {
@@ -807,6 +934,31 @@ export const translations: Record<CountryCode, Translations> = {
       report: 'Report',
       settings: 'Settings',
     },
+    auth: {
+      tagline: 'Your legal documentation assistant',
+      description: 'Helplix helps you document your legal situation by asking structured questions and creating a comprehensive overview.',
+      feature1: 'Answer questions about your situation',
+      feature2: 'Get a timeline and legal summary',
+      feature3: 'Prepare for legal proceedings',
+      getStarted: 'Get Started',
+      selectCountry: 'Select your country',
+      alreadyHaveAccount: 'Already have an account?',
+      noAccount: "Don't have an account?",
+      login: 'Log in',
+      signUp: 'Sign up',
+      email: 'Email',
+      password: 'Password',
+      createAccount: 'Create account',
+      back: 'Back',
+      invalidEmail: 'Invalid email address',
+      passwordMinLength: 'Password must be at least 6 characters',
+      wrongCredentials: 'Wrong email or password',
+      emailAlreadyRegistered: 'This email is already registered',
+      accountCreated: 'Account created',
+      youAreLoggedIn: 'You are now logged in!',
+      errorOccurred: 'An error occurred',
+      selectCountryError: 'Select a country',
+    },
     pin: {
       title: {
         create: 'Create PIN code',
@@ -961,6 +1113,31 @@ export const translations: Record<CountryCode, Translations> = {
       log: 'Logboek',
       report: 'Rapport',
       settings: 'Instellingen',
+    },
+    auth: {
+      tagline: 'Uw juridische documentatie-assistent',
+      description: 'Helplix helpt u uw juridische situatie te documenteren door gestructureerde vragen te stellen en een uitgebreid overzicht te maken.',
+      feature1: 'Beantwoord vragen over uw situatie',
+      feature2: 'Krijg een tijdlijn en juridische samenvatting',
+      feature3: 'Bereid u voor op juridische procedures',
+      getStarted: 'Aan de slag',
+      selectCountry: 'Selecteer uw land',
+      alreadyHaveAccount: 'Heeft u al een account?',
+      noAccount: 'Heeft u geen account?',
+      login: 'Inloggen',
+      signUp: 'Registreren',
+      email: 'E-mail',
+      password: 'Wachtwoord',
+      createAccount: 'Account aanmaken',
+      back: 'Terug',
+      invalidEmail: 'Ongeldig e-mailadres',
+      passwordMinLength: 'Wachtwoord moet minimaal 6 tekens bevatten',
+      wrongCredentials: 'Verkeerde e-mail of wachtwoord',
+      emailAlreadyRegistered: 'Dit e-mailadres is al geregistreerd',
+      accountCreated: 'Account aangemaakt',
+      youAreLoggedIn: 'U bent nu ingelogd!',
+      errorOccurred: 'Er is een fout opgetreden',
+      selectCountryError: 'Selecteer een land',
     },
     pin: {
       title: {

@@ -1,30 +1,36 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Scale, Loader2, Mail, Lock, ArrowLeft } from 'lucide-react';
+import { Scale, Loader2, Mail, Lock, ArrowLeft, FileText, Clock, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { COUNTRIES, type CountryCode } from '@/types/helplix';
 import { useToast } from '@/hooks/use-toast';
+import { translations } from '@/i18n/translations';
 import { z } from 'zod';
 
-const emailSchema = z.string().email('Ogiltig e-postadress');
-const passwordSchema = z.string().min(6, 'Lösenordet måste vara minst 6 tecken');
-
-type AuthMode = 'login' | 'signup' | 'select-country';
+type AuthMode = 'landing' | 'select-country' | 'login' | 'signup';
 
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const [mode, setMode] = useState<AuthMode>('login');
+  // Default to English (US)
+  const [displayLanguage, setDisplayLanguage] = useState<CountryCode>('US');
+  const [mode, setMode] = useState<AuthMode>('landing');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<CountryCode | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  const t = translations[displayLanguage].auth;
+
+  // Dynamic validation schemas based on language
+  const emailSchema = z.string().email(t.invalidEmail);
+  const passwordSchema = z.string().min(6, t.passwordMinLength);
 
   // Check if already logged in
   useEffect(() => {
@@ -70,13 +76,13 @@ export default function Auth() {
 
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
-          setError('Felaktig e-post eller lösenord');
+          setError(t.wrongCredentials);
         } else {
           setError(error.message);
         }
       }
     } catch (err) {
-      setError('Ett fel uppstod vid inloggning');
+      setError(t.errorOccurred);
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +93,7 @@ export default function Auth() {
     setError('');
 
     if (!selectedCountry) {
-      setError('Välj ett land');
+      setError(t.selectCountryError);
       return;
     }
     
@@ -118,18 +124,18 @@ export default function Auth() {
 
       if (error) {
         if (error.message.includes('already registered')) {
-          setError('Denna e-postadress är redan registrerad');
+          setError(t.emailAlreadyRegistered);
         } else {
           setError(error.message);
         }
       } else {
         toast({
-          title: 'Konto skapat',
-          description: 'Du är nu inloggad!',
+          title: t.accountCreated,
+          description: t.youAreLoggedIn,
         });
       }
     } catch (err) {
-      setError('Ett fel uppstod vid registrering');
+      setError(t.errorOccurred);
     } finally {
       setIsLoading(false);
     }
@@ -137,7 +143,16 @@ export default function Auth() {
 
   const handleCountrySelect = (country: CountryCode) => {
     setSelectedCountry(country);
+    setDisplayLanguage(country);
     setMode('signup');
+  };
+
+  const handleGetStarted = () => {
+    setMode('select-country');
+  };
+
+  const handleGoToLogin = () => {
+    setMode('login');
   };
 
   if (isCheckingSession) {
@@ -148,17 +163,85 @@ export default function Auth() {
     );
   }
 
+  // Landing page with app description
+  if (mode === 'landing') {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <div className="w-full max-w-sm space-y-8">
+          {/* Header */}
+          <div className="flex flex-col items-center gap-3 animate-fade-in">
+            <Scale className="w-12 h-12 text-primary" />
+            <h1 className="text-2xl font-bold text-foreground">Helplix Assist</h1>
+            <p className="text-muted-foreground text-center text-sm">
+              {t.tagline}
+            </p>
+          </div>
+
+          {/* Features */}
+          <div className="space-y-4 animate-fade-in" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+              <FileText className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-foreground">{t.feature1}</p>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+              <Clock className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-foreground">{t.feature2}</p>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+              <Shield className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-foreground">{t.feature3}</p>
+            </div>
+          </div>
+
+          {/* Country flags preview */}
+          <div className="flex justify-center gap-3 animate-fade-in" style={{ animationDelay: '200ms' }}>
+            {COUNTRIES.map((country) => (
+              <button
+                key={country.code}
+                onClick={() => {
+                  setDisplayLanguage(country.code);
+                }}
+                className={`text-2xl p-2 rounded-lg transition-all duration-200 
+                           hover:scale-110 hover:bg-muted/50
+                           ${displayLanguage === country.code ? 'bg-muted ring-2 ring-primary' : ''}`}
+                aria-label={country.name}
+              >
+                {country.flag}
+              </button>
+            ))}
+          </div>
+
+          {/* Actions */}
+          <div className="space-y-3 animate-fade-in" style={{ animationDelay: '300ms' }}>
+            <Button onClick={handleGetStarted} className="w-full" size="lg">
+              {t.getStarted}
+            </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              {t.alreadyHaveAccount}{' '}
+              <button
+                onClick={handleGoToLogin}
+                className="text-primary hover:underline"
+              >
+                {t.login}
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Country selection for signup
   if (mode === 'select-country') {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
         <Button
           variant="ghost"
-          onClick={() => setMode('login')}
+          onClick={() => setMode('landing')}
           className="absolute top-4 left-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Tillbaka
+          {t.back}
         </Button>
         
         <Scale className="w-10 h-10 text-primary mb-4 animate-fade-in" />
@@ -166,7 +249,7 @@ export default function Auth() {
           Helplix Assist
         </h1>
         <p className="text-sm text-muted-foreground mb-8 animate-fade-in">
-          Välj din jurisdiktion
+          {t.selectCountry}
         </p>
         
         <div className="grid grid-cols-3 gap-6 max-w-xs">
@@ -195,6 +278,18 @@ export default function Auth() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-6">
+        {/* Back button for signup */}
+        {mode === 'signup' && (
+          <Button
+            variant="ghost"
+            onClick={() => setMode('select-country')}
+            className="absolute top-4 left-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {t.back}
+          </Button>
+        )}
+
         {/* Header */}
         <div className="flex flex-col items-center gap-2 animate-fade-in">
           <Scale className="w-10 h-10 text-primary" />
@@ -210,13 +305,13 @@ export default function Auth() {
         {/* Form */}
         <form onSubmit={mode === 'login' ? handleLogin : handleSignup} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">E-post</Label>
+            <Label htmlFor="email">{t.email}</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
-                placeholder="din@email.com"
+                placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="pl-10"
@@ -227,7 +322,7 @@ export default function Auth() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Lösenord</Label>
+            <Label htmlFor="password">{t.password}</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -251,9 +346,9 @@ export default function Auth() {
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : mode === 'login' ? (
-              'Logga in'
+              t.login
             ) : (
-              'Skapa konto'
+              t.createAccount
             )}
           </Button>
         </form>
@@ -262,18 +357,18 @@ export default function Auth() {
         <div className="text-center text-sm text-muted-foreground">
           {mode === 'login' ? (
             <>
-              Har du inget konto?{' '}
+              {t.noAccount}{' '}
               <button
                 onClick={() => setMode('select-country')}
                 className="text-primary hover:underline"
                 disabled={isLoading}
               >
-                Registrera dig
+                {t.signUp}
               </button>
             </>
           ) : (
             <>
-              Har du redan ett konto?{' '}
+              {t.alreadyHaveAccount}{' '}
               <button
                 onClick={() => {
                   setMode('login');
@@ -282,7 +377,7 @@ export default function Auth() {
                 className="text-primary hover:underline"
                 disabled={isLoading}
               >
-                Logga in
+                {t.login}
               </button>
             </>
           )}
