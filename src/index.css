@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Cooper - Juridisk AI-Diktafon
+/* Helplix Assist - Juridisk AI-Diktafon
    Design system optimerad för äldre användare (70+)
    Super-minimalistisk, hög kontrast, stora touch-targets
    All colors MUST be HSL.
@@ -49,12 +49,12 @@
 
     --radius: 1rem;
 
-    /* Cooper-specific tokens */
-    --cooper-recording: 0 85% 50%;
-    --cooper-recording-glow: 0 85% 60%;
-    --cooper-listening: 195 70% 45%;
-    --cooper-processing: 45 90% 50%;
-    --cooper-speaking: 145 60% 45%;
+    /* Helplix-specific tokens */
+    --helplix-recording: 0 85% 50%;
+    --helplix-recording-glow: 0 85% 60%;
+    --helplix-listening: 195 70% 45%;
+    --helplix-processing: 45 90% 50%;
+    --helplix-speaking: 145 60% 45%;
     
     /* Typography scale for elderly users */
     --font-size-base: 1.125rem;
@@ -96,11 +96,11 @@
     --input: 220 15% 25%;
     --ring: 195 65% 55%;
 
-    --cooper-recording: 0 80% 55%;
-    --cooper-recording-glow: 0 80% 65%;
-    --cooper-listening: 195 65% 55%;
-    --cooper-processing: 45 85% 55%;
-    --cooper-speaking: 145 55% 55%;
+    --helplix-recording: 0 80% 55%;
+    --helplix-recording-glow: 0 80% 65%;
+    --helplix-listening: 195 65% 55%;
+    --helplix-processing: 45 85% 55%;
+    --helplix-speaking: 145 55% 55%;
   }
 }
 
@@ -132,13 +132,13 @@
 }
 
 @layer components {
-  /* Cooper-specific animation keyframes */
-  .cooper-pulse {
-    animation: cooper-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  /* Helplix-specific animation keyframes */
+  .helplix-pulse {
+    animation: helplix-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
-  .cooper-recording-ring {
-    animation: cooper-recording-ring 1.5s ease-in-out infinite;
+  .helplix-recording-ring {
+    animation: helplix-recording-ring 1.5s ease-in-out infinite;
   }
 }
 
@@ -157,7 +157,7 @@
   }
 }
 
-@keyframes cooper-pulse {
+@keyframes helplix-pulse {
   0%, 100% {
     opacity: 1;
     transform: scale(1);
@@ -168,14 +168,14 @@
   }
 }
 
-@keyframes cooper-recording-ring {
+@keyframes helplix-recording-ring {
   0% {
-    box-shadow: 0 0 0 0 hsl(var(--cooper-recording) / 0.6);
+    box-shadow: 0 0 0 0 hsl(var(--helplix-recording) / 0.6);
   }
   70% {
-    box-shadow: 0 0 0 20px hsl(var(--cooper-recording) / 0);
+    box-shadow: 0 0 0 20px hsl(var(--helplix-recording) / 0);
   }
   100% {
-    box-shadow: 0 0 0 0 hsl(var(--cooper-recording) / 0);
+    box-shadow: 0 0 0 0 hsl(var(--helplix-recording) / 0);
   }
 }

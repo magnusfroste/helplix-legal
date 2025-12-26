@@ -202,14 +202,14 @@ export const translations: Record<CountryCode, Translations> = {
       clear: 'Limpar',
     },
     onboarding: {
-      appName: 'Coopers Law',
+      appName: 'Helplix Assist',
       selectJurisdiction: 'Selecione sua jurisdição',
     },
     log: {
       title: 'Registro',
       entries: 'entradas',
       noConversation: 'Ainda não há conversa',
-      cooper: 'Cooper',
+      cooper: 'Helplix',
       you: 'Você',
     },
     report: {
@@ -278,7 +278,7 @@ export const translations: Record<CountryCode, Translations> = {
       },
       tts: {
         title: 'Texto para Fala',
-        description: 'Ativar texto para fala nas respostas do Cooper',
+        description: 'Ativar texto para fala nas respostas do Helplix',
       },
       stt: {
         title: 'Fala para Texto',
@@ -290,11 +290,11 @@ export const translations: Record<CountryCode, Translations> = {
       },
       autoplay: {
         title: 'Reprodução Automática',
-        description: 'Ler automaticamente as perguntas do Cooper em voz alta',
+        description: 'Ler automaticamente as perguntas do Helplix em voz alta',
       },
       systemPrompt: {
         title: 'Prompt do Sistema',
-        description: 'Avançado: Personalize o comportamento do Cooper',
+        description: 'Avançado: Personalize o comportamento do Helplix',
       },
       changeJurisdiction: 'Mudar jurisdição',
       logout: 'Sair',
@@ -308,7 +308,7 @@ export const translations: Record<CountryCode, Translations> = {
       },
     },
     dictaphone: {
-      cooper: 'Cooper',
+      cooper: 'Helplix',
       replay: 'Repetir',
       type: 'Digitar',
     },
@@ -357,14 +357,14 @@ export const translations: Record<CountryCode, Translations> = {
       clear: 'Borrar',
     },
     onboarding: {
-      appName: 'Coopers Law',
+      appName: 'Helplix Assist',
       selectJurisdiction: 'Seleccione su jurisdicción',
     },
     log: {
       title: 'Registro',
       entries: 'entradas',
       noConversation: 'Aún no hay conversación',
-      cooper: 'Cooper',
+      cooper: 'Helplix',
       you: 'Usted',
     },
     report: {
@@ -433,7 +433,7 @@ export const translations: Record<CountryCode, Translations> = {
       },
       tts: {
         title: 'Texto a Voz',
-        description: 'Activar texto a voz para las respuestas de Cooper',
+        description: 'Activar texto a voz para las respuestas de Helplix',
       },
       stt: {
         title: 'Voz a Texto',
@@ -445,11 +445,11 @@ export const translations: Record<CountryCode, Translations> = {
       },
       autoplay: {
         title: 'Reproducción Automática',
-        description: 'Leer automáticamente las preguntas de Cooper en voz alta',
+        description: 'Leer automáticamente las preguntas de Helplix en voz alta',
       },
       systemPrompt: {
         title: 'Prompt del Sistema',
-        description: 'Avanzado: Personalice el comportamiento de Cooper',
+        description: 'Avanzado: Personalice el comportamiento de Helplix',
       },
       changeJurisdiction: 'Cambiar jurisdicción',
       logout: 'Cerrar sesión',
@@ -463,7 +463,7 @@ export const translations: Record<CountryCode, Translations> = {
       },
     },
     dictaphone: {
-      cooper: 'Cooper',
+      cooper: 'Helplix',
       replay: 'Repetir',
       type: 'Escribir',
     },
@@ -512,14 +512,14 @@ export const translations: Record<CountryCode, Translations> = {
       clear: 'Borrar',
     },
     onboarding: {
-      appName: 'Coopers Law',
+      appName: 'Helplix Assist',
       selectJurisdiction: 'Seleccione su jurisdicción',
     },
     log: {
       title: 'Registro',
       entries: 'entradas',
       noConversation: 'Aún no hay conversación',
-      cooper: 'Cooper',
+      cooper: 'Helplix',
       you: 'Usted',
     },
     report: {
@@ -588,7 +588,7 @@ export const translations: Record<CountryCode, Translations> = {
       },
       tts: {
         title: 'Texto a Voz',
-        description: 'Activar texto a voz para las respuestas de Cooper',
+        description: 'Activar texto a voz para las respuestas de Helplix',
       },
       stt: {
         title: 'Voz a Texto',
@@ -600,11 +600,11 @@ export const translations: Record<CountryCode, Translations> = {
       },
       autoplay: {
         title: 'Reproducción Automática',
-        description: 'Leer automáticamente las preguntas de Cooper en voz alta',
+        description: 'Leer automáticamente las preguntas de Helplix en voz alta',
       },
       systemPrompt: {
         title: 'Prompt del Sistema',
-        description: 'Avanzado: Personalice el comportamiento de Cooper',
+        description: 'Avanzado: Personalice el comportamiento de Helplix',
       },
       changeJurisdiction: 'Cambiar jurisdicción',
       logout: 'Cerrar sesión',
@@ -618,7 +618,7 @@ export const translations: Record<CountryCode, Translations> = {
       },
     },
     dictaphone: {
-      cooper: 'Cooper',
+      cooper: 'Helplix',
       replay: 'Repetir',
       type: 'Escribir',
     },
@@ -667,14 +667,14 @@ export const translations: Record<CountryCode, Translations> = {
       clear: 'Rensa',
     },
     onboarding: {
-      appName: 'Coopers Law',
+      appName: 'Helplix Assist',
       selectJurisdiction: 'Välj din jurisdiktion',
     },
     log: {
       title: 'Logg',
       entries: 'poster',
       noConversation: 'Ingen konversation ännu',
-      cooper: 'Cooper',
+      cooper: 'Helplix',
       you: 'Du',
     },
     report: {
@@ -743,7 +743,7 @@ export const translations: Record<CountryCode, Translations> = {
       },
       tts: {
         title: 'Text-till-tal',
-        description: 'Aktivera text-till-tal för Coopers svar',
+        description: 'Aktivera text-till-tal för Helplix svar',
       },
       stt: {
         title: 'Tal-till-text',
@@ -755,11 +755,11 @@ export const translations: Record<CountryCode, Translations> = {
       },
       autoplay: {
         title: 'Automatisk uppspelning',
-        description: 'Läs automatiskt upp Coopers frågor högt',
+        description: 'Läs automatiskt upp Helplix frågor högt',
       },
       systemPrompt: {
         title: 'Systemprompt',
-        description: 'Avancerat: Anpassa Coopers beteende',
+        description: 'Avancerat: Anpassa Helplix beteende',
       },
       changeJurisdiction: 'Byt jurisdiktion',
       logout: 'Logga ut',
@@ -773,7 +773,7 @@ export const translations: Record<CountryCode, Translations> = {
       },
     },
     dictaphone: {
-      cooper: 'Cooper',
+      cooper: 'Helplix',
       replay: 'Spela upp',
       type: 'Skriv',
     },
@@ -822,14 +822,14 @@ export const translations: Record<CountryCode, Translations> = {
       clear: 'Clear',
     },
     onboarding: {
-      appName: 'Coopers Law',
+      appName: 'Helplix Assist',
       selectJurisdiction: 'Select your jurisdiction',
     },
     log: {
       title: 'Log',
       entries: 'entries',
       noConversation: 'No conversation yet',
-      cooper: 'Cooper',
+      cooper: 'Helplix',
       you: 'You',
     },
     report: {
@@ -898,7 +898,7 @@ export const translations: Record<CountryCode, Translations> = {
       },
       tts: {
         title: 'Text-to-Speech',
-        description: 'Enable text-to-speech for Cooper\'s responses',
+        description: 'Enable text-to-speech for Helplix\'s responses',
       },
       stt: {
         title: 'Speech-to-Text',
@@ -910,11 +910,11 @@ export const translations: Record<CountryCode, Translations> = {
       },
       autoplay: {
         title: 'Autoplay Responses',
-        description: 'Automatically read Cooper\'s questions aloud',
+        description: 'Automatically read Helplix\'s questions aloud',
       },
       systemPrompt: {
         title: 'System Prompt',
-        description: 'Advanced: Customize Cooper\'s behavior',
+        description: 'Advanced: Customize Helplix\'s behavior',
       },
       changeJurisdiction: 'Change jurisdiction',
       logout: 'Log out',
@@ -928,7 +928,7 @@ export const translations: Record<CountryCode, Translations> = {
       },
     },
     dictaphone: {
-      cooper: 'Cooper',
+      cooper: 'Helplix',
       replay: 'Replay',
       type: 'Type',
     },
@@ -977,14 +977,14 @@ export const translations: Record<CountryCode, Translations> = {
       clear: 'Wissen',
     },
     onboarding: {
-      appName: 'Coopers Law',
+      appName: 'Helplix Assist',
       selectJurisdiction: 'Selecteer uw jurisdictie',
     },
     log: {
       title: 'Logboek',
       entries: 'items',
       noConversation: 'Nog geen gesprek',
-      cooper: 'Cooper',
+      cooper: 'Helplix',
       you: 'U',
     },
     report: {
@@ -1053,7 +1053,7 @@ export const translations: Record<CountryCode, Translations> = {
       },
       tts: {
         title: 'Tekst-naar-spraak',
-        description: 'Schakel tekst-naar-spraak in voor Cooper\'s antwoorden',
+        description: 'Schakel tekst-naar-spraak in voor Helplix\'s antwoorden',
       },
       stt: {
         title: 'Spraak-naar-tekst',
@@ -1065,11 +1065,11 @@ export const translations: Record<CountryCode, Translations> = {
       },
       autoplay: {
         title: 'Automatisch afspelen',
-        description: 'Lees Cooper\'s vragen automatisch hardop voor',
+        description: 'Lees Helplix\'s vragen automatisch hardop voor',
       },
       systemPrompt: {
         title: 'Systeemprompt',
-        description: 'Geavanceerd: Pas Cooper\'s gedrag aan',
+        description: 'Geavanceerd: Pas Helplix\'s gedrag aan',
       },
       changeJurisdiction: 'Wijzig jurisdictie',
       logout: 'Uitloggen',
@@ -1083,7 +1083,7 @@ export const translations: Record<CountryCode, Translations> = {
       },
     },
     dictaphone: {
-      cooper: 'Cooper',
+      cooper: 'Helplix',
       replay: 'Herhalen',
       type: 'Typen',
     },
