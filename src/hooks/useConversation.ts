@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CooperSettings, ConversationStatus } from '@/types/helplix';
 import { useRealtimeVoice } from './useRealtimeVoice';
 import { useCooperChat } from './useCooperChat';
 import { usePhaseTracking } from './usePhaseTracking';
 import { useLogEntries } from './useLogEntries';
+import { useFeatureFlags } from './useFeatureFlags';
 import { toast } from 'sonner';
 
 interface UseConversationOptions {
@@ -12,6 +13,13 @@ interface UseConversationOptions {
 }
 
 export function useConversation({ settings, userId }: UseConversationOptions) {
+  // Feature flags
+  const { getFlag } = useFeatureFlags();
+  const useRealtimeSTT = getFlag('realtime_transcription');
+  
+  // State for realtime transcript display
+  const [realtimeTranscriptText, setRealtimeTranscriptText] = useState('');
+
   // Log entries and session management
   const logEntries = useLogEntries({
     settings,
@@ -22,8 +30,11 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   // Phase and quality tracking
   const phaseTracking = usePhaseTracking();
 
-  // Voice service
-  const voice = useRealtimeVoice();
+  // Voice service - with realtime STT support
+  const voice = useRealtimeVoice({
+    useRealtimeSTT,
+    onRealtimeTranscript: (text) => setRealtimeTranscriptText(text),
+  });
 
   // Chat service
   const chat = useCooperChat({
@@ -175,7 +186,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     infoTracker: phaseTracking.infoTracker,
     qualityMetrics: phaseTracking.qualityMetrics,
     lastAssessment: phaseTracking.lastAssessment,
-    realtimeTranscriptionText: '', // Placeholder - can be added to voice hook if needed
+    realtimeTranscriptionText: voice.partialTranscript || realtimeTranscriptText,
 
     // Actions
     startRecording,
