@@ -6,7 +6,7 @@ import { TextInputDialog } from './TextInputDialog';
 import { AudioLevelIndicator } from './AudioLevelIndicator';
 import { RealtimeTranscription } from './RealtimeTranscription';
 import { cn } from '@/lib/utils';
-import type { ConversationStatus, CooperSettings, CountryCode } from '@/types/cooper';
+import type { ConversationStatus, CooperSettings, CountryCode } from '@/types/helplix';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface DictaphoneScreenProps {

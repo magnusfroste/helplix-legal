@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { LogEntry } from '@/types/cooper';
+import type { LogEntry } from '@/types/helplix';
 
 interface Session {
   id: string;

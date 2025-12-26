@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
-import type { CountryCode } from '@/types/cooper';
+import type { CountryCode } from '@/types/helplix';
 
 interface AuthUser {
   id: string;

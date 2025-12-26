@@ -12,7 +12,7 @@ import {
   type CooperSettings, 
   COUNTRIES,
   getSystemPromptForCountry 
-} from '@/types/cooper';
+} from '@/types/helplix';
 import { useConversation } from '@/hooks/useConversation';
 
 const SETTINGS_STORAGE_KEY = 'helplix-settings';

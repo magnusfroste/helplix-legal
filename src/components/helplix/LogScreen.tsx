@@ -1,7 +1,7 @@
 import { memo, CSSProperties, ReactElement } from 'react';
 import { List, useDynamicRowHeight, ListImperativeAPI } from 'react-window';
 import { cn } from '@/lib/utils';
-import type { LogEntry, CountryCode } from '@/types/cooper';
+import type { LogEntry, CountryCode } from '@/types/helplix';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface LogScreenProps {

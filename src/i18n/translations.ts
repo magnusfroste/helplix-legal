@@ -1,4 +1,4 @@
-import type { CountryCode } from '@/types/cooper';
+import type { CountryCode } from '@/types/helplix';
 
 export interface Translations {
   // Navigation

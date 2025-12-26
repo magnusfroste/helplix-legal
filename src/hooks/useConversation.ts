@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import type { CooperSettings, LogEntry, ConversationStatus } from '@/types/cooper';
-import { COUNTRIES } from '@/types/cooper';
+import type { CooperSettings, LogEntry, ConversationStatus } from '@/types/helplix';
+import { COUNTRIES } from '@/types/helplix';
 import type { ConversationPhase, PhaseProgress } from '@/types/phases';
 import { shouldTransitionPhase, getNextPhase } from '@/types/phases';
 import type { InformationTracker } from '@/types/information-tracking';

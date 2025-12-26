@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { FileText, Clock, Download, Share2, Volume2, VolumeX, RefreshCw, Loader2, AlertTriangle, Scale, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { LogEntry, CountryCode } from '@/types/cooper';
+import type { LogEntry, CountryCode } from '@/types/helplix';
 import { toast } from 'sonner';
 import { useReport } from '@/hooks/useReport';
 import { useTranslation } from '@/hooks/useTranslation';
