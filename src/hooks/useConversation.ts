@@ -16,6 +16,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   // Feature flags
   const { getFlag } = useFeatureFlags();
   const useRealtimeSTT = getFlag('realtime_transcription');
+  const useStreamingTTS = getFlag('streaming_tts');
   
   // State for realtime transcript display
   const [realtimeTranscriptText, setRealtimeTranscriptText] = useState('');
@@ -30,9 +31,10 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   // Phase and quality tracking
   const phaseTracking = usePhaseTracking();
 
-  // Voice service - with realtime STT support
+  // Voice service - with realtime STT and streaming TTS support
   const voice = useRealtimeVoice({
     useRealtimeSTT,
+    useStreamingTTS,
     onRealtimeTranscript: (text) => setRealtimeTranscriptText(text),
   });
 

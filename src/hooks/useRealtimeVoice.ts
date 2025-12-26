@@ -6,11 +6,12 @@ const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 interface UseRealtimeVoiceOptions {
   useRealtimeSTT?: boolean;
+  useStreamingTTS?: boolean;
   onRealtimeTranscript?: (text: string) => void;
 }
 
 export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
-  const { useRealtimeSTT = false, onRealtimeTranscript } = options;
+  const { useRealtimeSTT = false, useStreamingTTS = false, onRealtimeTranscript } = options;
   
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -378,17 +379,19 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
     
     try {
       setIsSpeaking(true);
-      console.log('Speaking (streaming):', text.substring(0, 50) + '...');
       
       // Stop any current playback
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
+
+      // Choose TTS endpoint based on flag
+      const endpoint = useStreamingTTS ? 'elevenlabs-tts-stream' : 'elevenlabs-tts';
+      console.log(`Speaking (${useStreamingTTS ? 'streaming' : 'batch'}):`, text.substring(0, 50) + '...');
       
-      // Use streaming TTS endpoint
       const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/elevenlabs-tts-stream`,
+        `${SUPABASE_URL}/functions/v1/${endpoint}`,
         {
           method: 'POST',
           headers: {
@@ -412,33 +415,86 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
         throw new Error(errorMessage);
       }
 
-      if (!response.body) {
-        throw new Error('No response body');
-      }
-
-      // Collect chunks and play as soon as we have enough data
-      const reader = response.body.getReader();
-      const chunks: Uint8Array[] = [];
-      let totalSize = 0;
-      let audioStarted = false;
-      let audio: HTMLAudioElement | null = null;
-
-      const startPlayback = async () => {
-        if (audioStarted || chunks.length === 0) return;
-        audioStarted = true;
-        
-        // Combine all collected chunks
-        const combinedArray = new Uint8Array(totalSize);
-        let offset = 0;
-        for (const chunk of chunks) {
-          combinedArray.set(chunk, offset);
-          offset += chunk.length;
+      // Streaming mode: read chunks and start playback early
+      if (useStreamingTTS) {
+        if (!response.body) {
+          throw new Error('No response body');
         }
+
+        const reader = response.body.getReader();
+        const chunks: Uint8Array[] = [];
+        let totalSize = 0;
+        let audioStarted = false;
+        let audio: HTMLAudioElement | null = null;
+
+        const startPlayback = async () => {
+          if (audioStarted || chunks.length === 0) return;
+          audioStarted = true;
+          
+          const combinedArray = new Uint8Array(totalSize);
+          let offset = 0;
+          for (const chunk of chunks) {
+            combinedArray.set(chunk, offset);
+            offset += chunk.length;
+          }
+          
+          const audioBlob = new Blob([combinedArray], { type: 'audio/mpeg' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          
+          audio = new Audio(audioUrl);
+          audioRef.current = audio;
+          
+          audio.onended = () => {
+            setIsSpeaking(false);
+            URL.revokeObjectURL(audioUrl);
+            audioRef.current = null;
+          };
+          
+          audio.onerror = (e) => {
+            console.error('Audio playback error:', e);
+            setIsSpeaking(false);
+            URL.revokeObjectURL(audioUrl);
+            audioRef.current = null;
+          };
+          
+          try {
+            await audio.play();
+            console.log('Audio playback started with', totalSize, 'bytes');
+          } catch (playError) {
+            console.error('Play error:', playError);
+            setIsSpeaking(false);
+          }
+        };
+
+        const MIN_BYTES_BEFORE_PLAY = 8192;
         
-        const audioBlob = new Blob([combinedArray], { type: 'audio/mpeg' });
+        while (true) {
+          const { done, value } = await reader.read();
+          
+          if (done) {
+            console.log('Stream complete, total bytes:', totalSize);
+            if (!audioStarted) {
+              await startPlayback();
+            }
+            break;
+          }
+          
+          if (value) {
+            chunks.push(value);
+            totalSize += value.length;
+            
+            if (!audioStarted && totalSize >= MIN_BYTES_BEFORE_PLAY) {
+              console.log('Starting early playback at', totalSize, 'bytes');
+              await startPlayback();
+            }
+          }
+        }
+      } else {
+        // Batch mode: wait for full response
+        const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         
-        audio = new Audio(audioUrl);
+        const audio = new Audio(audioUrl);
         audioRef.current = audio;
         
         audio.onended = () => {
@@ -454,40 +510,8 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
           audioRef.current = null;
         };
         
-        try {
-          await audio.play();
-          console.log('Audio playback started with', totalSize, 'bytes');
-        } catch (playError) {
-          console.error('Play error:', playError);
-          setIsSpeaking(false);
-        }
-      };
-
-      // Read stream
-      const MIN_BYTES_BEFORE_PLAY = 8192; // Start playing after ~8KB
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        
-        if (done) {
-          console.log('Stream complete, total bytes:', totalSize);
-          // If we haven't started playback yet, do it now with all data
-          if (!audioStarted) {
-            await startPlayback();
-          }
-          break;
-        }
-        
-        if (value) {
-          chunks.push(value);
-          totalSize += value.length;
-          
-          // Start playback early once we have enough data
-          if (!audioStarted && totalSize >= MIN_BYTES_BEFORE_PLAY) {
-            console.log('Starting early playback at', totalSize, 'bytes');
-            await startPlayback();
-          }
-        }
+        await audio.play();
+        console.log('Audio playback started (batch mode)');
       }
       
     } catch (error) {
@@ -495,7 +519,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
       setIsSpeaking(false);
       throw error;
     }
-  }, []);
+  }, [useStreamingTTS]);
 
   const stopSpeaking = useCallback(() => {
     if (audioRef.current) {

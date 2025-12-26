@@ -26,12 +26,14 @@ interface UserRole {
 const FEATURE_ICONS: Record<string, React.ReactNode> = {
   'perplexity_case_search': <Search className="h-5 w-5" />,
   'realtime_transcription': <Mic className="h-5 w-5" />,
+  'streaming_tts': <Volume2 className="h-5 w-5" />,
   'voice_cloning': <Volume2 className="h-5 w-5" />,
 };
 
 const FEATURE_LABELS: Record<string, string> = {
   'perplexity_case_search': 'Perplexity Rättsfallssökning',
   'realtime_transcription': 'Real-time Transkription',
+  'streaming_tts': 'Streaming TTS',
   'voice_cloning': 'Avancerad Röstkloning',
 };
 
