@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Save, RotateCcw, RefreshCw, Globe, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Save, RotateCcw, RefreshCw, Globe, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
@@ -15,6 +16,7 @@ import {
   type CountryCode 
 } from '@/types/cooper';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface SettingsScreenProps {
   settings: CooperSettings;
@@ -24,10 +26,21 @@ interface SettingsScreenProps {
 }
 
 export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, onLogout }: SettingsScreenProps) {
+  const navigate = useNavigate();
   const t = useTranslation(settings.country);
   const [localSettings, setLocalSettings] = useState<CooperSettings>(settings);
   const [hasChanges, setHasChanges] = useState(false);
   const [countryChanged, setCountryChanged] = useState(false);
+  
+  // Check admin status
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const storedUserId = localStorage.getItem('cooper_user_id');
+    setCurrentUserId(storedUserId);
+  }, []);
+  
+  const { isAdmin } = useAdminAuth(currentUserId);
 
   const handleChange = <K extends keyof CooperSettings>(
     key: K,
@@ -286,6 +299,20 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
               {t.settings.changeJurisdiction}
             </Button>
           </section>
+
+          {/* Admin Panel Link - Only visible for admins */}
+          {isAdmin && (
+            <section className="pt-4 border-t border-border">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/admin')}
+                className="w-full"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Admin Panel
+              </Button>
+            </section>
+          )}
 
           {/* Logout */}
           {onLogout && (
