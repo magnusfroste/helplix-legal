@@ -1,14 +1,23 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useRealtimeScribe } from './useRealtimeScribe';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-export function useRealtimeVoice() {
+interface UseRealtimeVoiceOptions {
+  useRealtimeSTT?: boolean;
+  onRealtimeTranscript?: (text: string) => void;
+}
+
+export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
+  const { useRealtimeSTT = false, onRealtimeTranscript } = options;
+  
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
   const [isPreloaded, setIsPreloaded] = useState(false);
+  const [realtimeTranscript, setRealtimeTranscript] = useState('');
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -19,6 +28,21 @@ export function useRealtimeVoice() {
   const animationFrameRef = useRef<number | null>(null);
   const preloadedStreamRef = useRef<MediaStream | null>(null);
   const preloadedAudioContextRef = useRef<AudioContext | null>(null);
+
+  // Realtime scribe hook for WebSocket-based STT
+  const realtimeScribe = useRealtimeScribe({
+    onPartialTranscript: (text) => {
+      setRealtimeTranscript(text);
+      onRealtimeTranscript?.(text);
+    },
+    onFinalTranscript: (text) => {
+      setRealtimeTranscript('');
+      onRealtimeTranscript?.(text);
+    },
+    onError: (error) => {
+      console.error('Realtime scribe error:', error);
+    },
+  });
 
   // Preload microphone access on first user interaction
   const preloadMicrophone = useCallback(async () => {
@@ -84,8 +108,17 @@ export function useRealtimeVoice() {
   }, []);
 
   const startRecording = useCallback(async (): Promise<void> => {
+    // If using realtime STT, use WebSocket-based scribe
+    if (useRealtimeSTT) {
+      console.log('Starting realtime STT recording...');
+      setIsRecording(true);
+      await realtimeScribe.connect();
+      return;
+    }
+
+    // Batch mode - original implementation
     try {
-      console.log('Starting recording...');
+      console.log('Starting batch recording...');
       chunksRef.current = [];
       
       let stream: MediaStream;
@@ -234,9 +267,26 @@ export function useRealtimeVoice() {
       console.error('Error starting recording:', error);
       throw error;
     }
-  }, []);
+  }, [useRealtimeSTT, realtimeScribe]);
 
   const stopRecording = useCallback(async (): Promise<string> => {
+    // If using realtime STT, get transcript and disconnect
+    if (useRealtimeSTT) {
+      console.log('Stopping realtime STT recording...');
+      realtimeScribe.commit(); // Commit any remaining audio
+      
+      // Give a small delay for final transcript
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const transcript = realtimeScribe.getTranscript();
+      realtimeScribe.disconnect();
+      setIsRecording(false);
+      
+      console.log('Realtime transcript:', transcript);
+      return transcript;
+    }
+
+    // Batch mode - original implementation
     return new Promise((resolve, reject) => {
       const mediaRecorder = mediaRecorderRef.current;
       
@@ -321,7 +371,7 @@ export function useRealtimeVoice() {
       // Stop recording - this triggers ondataavailable with all data
       mediaRecorder.stop();
     });
-  }, []);
+  }, [useRealtimeSTT, realtimeScribe]);
 
   const speak = useCallback(async (text: string): Promise<void> => {
     if (!text) return;
@@ -388,14 +438,20 @@ export function useRealtimeVoice() {
     }
   }, []);
 
+  // Combine audio level from either realtime or batch mode
+  const effectiveAudioLevel = useRealtimeSTT && realtimeScribe.isConnected 
+    ? realtimeScribe.audioLevel 
+    : audioLevel;
+
   return {
-    isRecording,
+    isRecording: useRealtimeSTT ? realtimeScribe.isConnected : isRecording,
     isTranscribing,
     isSpeaking,
-    audioLevel,
+    audioLevel: effectiveAudioLevel,
     isConnected: true,
     isPreloaded,
-    partialTranscript: '',
+    partialTranscript: useRealtimeSTT ? realtimeScribe.partialTranscript : '',
+    realtimeTranscript,
     preloadMicrophone,
     startRecording,
     stopRecording,

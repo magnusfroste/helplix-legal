@@ -249,7 +249,6 @@ export default function Admin() {
               ) : (
                 flags.map((flag) => {
                   const connectionStatus = getConnectionStatus(flag.requires_connection);
-                  const isNotImplemented = flag.feature_key === 'realtime_transcription';
                   
                   return (
                     <div 
@@ -268,12 +267,7 @@ export default function Admin() {
                             {flag.description}
                           </p>
                           <div className="flex items-center gap-2 mt-2">
-                            {isNotImplemented ? (
-                              <Badge variant="outline" className="text-amber-600 border-amber-600">
-                                <Wrench className="h-3 w-3 mr-1" />
-                                Kräver WebSocket
-                              </Badge>
-                            ) : connectionStatus.status === 'connected' ? (
+                            {connectionStatus.status === 'connected' ? (
                               <Badge variant="outline" className="text-green-600 border-green-600">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 {connectionStatus.label}
@@ -284,13 +278,18 @@ export default function Admin() {
                                 {connectionStatus.label}
                               </Badge>
                             ) : null}
+                            {flag.feature_key === 'realtime_transcription' && (
+                              <Badge variant="outline" className="text-blue-600 border-blue-600">
+                                <Mic className="h-3 w-3 mr-1" />
+                                WebSocket
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
                       <Switch
                         checked={flag.enabled}
                         onCheckedChange={() => handleToggleFlag(flag)}
-                        disabled={isNotImplemented}
                       />
                     </div>
                   );
