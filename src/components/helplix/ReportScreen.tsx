@@ -1,15 +1,12 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { FileText, Clock, Download, Share2, Volume2, VolumeX, RefreshCw, Loader2, AlertTriangle, Scale, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { LogEntry, CountryCode } from '@/types/helplix';
 import { toast } from 'sonner';
-import { useReport } from '@/hooks/useReport';
+import { useReport, type ReportType } from '@/hooks/useReport';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 interface ReportScreenProps {
   entries: LogEntry[];
@@ -33,203 +30,45 @@ export function ReportScreen({
   isPlaying = false,
 }: ReportScreenProps) {
   const t = useTranslation(country || null);
-  const [timelineReport, setTimelineReport] = useState<string | null>(null);
-  const [legalReport, setLegalReport] = useState<string | null>(null);
-  const [interpretationReport, setInterpretationReport] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatingType, setGeneratingType] = useState<string | null>(null);
-  const [isSearchingCaseLaw, setIsSearchingCaseLaw] = useState(false);
-
   const { getFlag } = useFeatureFlags();
+  const caseSearchEnabled = getFlag('perplexity_case_search');
 
   const { 
-    report, 
+    report,
     isLoading, 
     isSaving,
-    hasNewEntries, 
-    saveReport 
+    hasNewEntries,
+    timelineReport,
+    legalReport,
+    interpretationReport,
+    hasReport,
+    isGenerating,
+    generatingType,
+    isSearchingCaseLaw,
+    generateReport,
+    getFullReportText,
   } = useReport({ 
     sessionId, 
     userId, 
-    currentEntriesCount: entries.length 
+    entries,
+    country,
+    language,
+    caseSearchEnabled,
   });
 
   const hasEntries = entries.length > 0;
 
-  // Load saved report content when report loads
-  useEffect(() => {
-    if (report) {
-      setTimelineReport(report.timeline_report);
-      setLegalReport(report.legal_report);
-      setInterpretationReport(report.interpretation_report);
+  const handleGenerateReport = useCallback(async (reportType: ReportType) => {
+    const caseLawIncluded = await generateReport(reportType);
+    if (caseLawIncluded) {
+      toast.success('Report generated with case law');
+    } else {
+      toast.success(t.report.toast.generated);
     }
-  }, [report]);
-
-  const generateReport = useCallback(async (reportType: 'timeline' | 'legal' | 'interpretation' | 'both' | 'all') => {
-    if (!hasEntries) return;
-
-    setIsGenerating(true);
-    setGeneratingType(reportType);
-    
-    // Check if case search is enabled and we're generating interpretation
-    const caseSearchEnabled = getFlag('perplexity_case_search');
-    const willSearchCases = caseSearchEnabled && (reportType === 'interpretation' || reportType === 'all');
-    
-    if (willSearchCases) {
-      setIsSearchingCaseLaw(true);
-    }
-
-    try {
-      const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/cooper-report`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-          },
-          body: JSON.stringify({
-            entries: entries.map(e => ({
-              type: e.type,
-              content: e.content,
-              timestamp: e.timestamp.toISOString(),
-            })),
-            reportType,
-            country,
-            language,
-            enableCaseSearch: caseSearchEnabled,
-          }),
-        }
-      );
-
-      setIsSearchingCaseLaw(false);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate report');
-      }
-
-      const data = await response.json();
-      
-      let newTimeline = timelineReport;
-      let newLegal = legalReport;
-      let newInterpretation = interpretationReport;
-
-      if (reportType === 'all') {
-        // Split into three sections - support multiple languages
-        const timelinePatterns = [
-          /## Linha do Tempo Cronológica[\s\S]*?(?=## Visão Geral Jurídica|## Resumen Legal|## Juridisk Översikt|## Legal Overview|## Juridisch Overzicht|$)/i,
-          /## Línea de Tiempo Cronológica[\s\S]*?(?=## Visão Geral Jurídica|## Resumen Legal|## Juridisk Översikt|## Legal Overview|## Juridisch Overzicht|$)/i,
-          /## Kronologisk Tidslinje[\s\S]*?(?=## Visão Geral Jurídica|## Resumen Legal|## Juridisk Översikt|## Legal Overview|## Juridisch Overzicht|$)/i,
-          /## Chronological Timeline[\s\S]*?(?=## Visão Geral Jurídica|## Resumen Legal|## Juridisk Översikt|## Legal Overview|## Juridisch Overzicht|$)/i,
-          /## Chronologische Tijdlijn[\s\S]*?(?=## Visão Geral Jurídica|## Resumen Legal|## Juridisk Översikt|## Legal Overview|## Juridisch Overzicht|$)/i,
-        ];
-        const legalPatterns = [
-          /## Visão Geral Jurídica[\s\S]*?(?=## Interpretação Jurídica|## Interpretación Legal|## Juridisk Tolkning|## Legal Interpretation|## Juridische Interpretatie|$)/i,
-          /## Resumen Legal[\s\S]*?(?=## Interpretação Jurídica|## Interpretación Legal|## Juridisk Tolkning|## Legal Interpretation|## Juridische Interpretatie|$)/i,
-          /## Juridisk Översikt[\s\S]*?(?=## Interpretação Jurídica|## Interpretación Legal|## Juridisk Tolkning|## Legal Interpretation|## Juridische Interpretatie|$)/i,
-          /## Legal Overview[\s\S]*?(?=## Interpretação Jurídica|## Interpretación Legal|## Juridisk Tolkning|## Legal Interpretation|## Juridische Interpretatie|$)/i,
-          /## Juridisch Overzicht[\s\S]*?(?=## Interpretação Jurídica|## Interpretación Legal|## Juridisk Tolkning|## Legal Interpretation|## Juridische Interpretatie|$)/i,
-        ];
-        const interpretationPatterns = [
-          /## Interpretação Jurídica[\s\S]*/i,
-          /## Interpretación Legal[\s\S]*/i,
-          /## Juridisk Tolkning[\s\S]*/i,
-          /## Legal Interpretation[\s\S]*/i,
-          /## Juridische Interpretatie[\s\S]*/i,
-        ];
-        
-        let timelineMatch = null;
-        let legalMatch = null;
-        let interpretationMatch = null;
-        
-        for (const pattern of timelinePatterns) {
-          timelineMatch = data.report.match(pattern);
-          if (timelineMatch) break;
-        }
-        for (const pattern of legalPatterns) {
-          legalMatch = data.report.match(pattern);
-          if (legalMatch) break;
-        }
-        for (const pattern of interpretationPatterns) {
-          interpretationMatch = data.report.match(pattern);
-          if (interpretationMatch) break;
-        }
-        
-        newTimeline = timelineMatch ? timelineMatch[0].trim() : null;
-        newLegal = legalMatch ? legalMatch[0].trim() : null;
-        newInterpretation = interpretationMatch ? interpretationMatch[0].trim() : null;
-        
-        setTimelineReport(newTimeline);
-        setLegalReport(newLegal);
-        setInterpretationReport(newInterpretation);
-      } else if (reportType === 'both') {
-        // Split using legal overview header in any language
-        const splitPatterns = [
-          /(##\s*Visão Geral Jurídica)/i,
-          /(##\s*Resumen Legal)/i,
-          /(##\s*Juridisk Översikt)/i,
-          /(##\s*Legal Overview)/i,
-          /(##\s*Juridisch Overzicht)/i,
-        ];
-        
-        let parts: string[] = [];
-        for (const pattern of splitPatterns) {
-          parts = data.report.split(pattern);
-          if (parts.length >= 2) break;
-        }
-        
-        if (parts.length >= 2) {
-          newTimeline = parts[0].trim();
-          newLegal = parts.slice(1).join('').trim();
-        } else {
-          // Fallback: find any second ## header
-          const headerMatches = [...data.report.matchAll(/^##\s+[^\n]+/gm)];
-          if (headerMatches.length >= 2) {
-            const secondHeaderIndex = headerMatches[1].index || 0;
-            newTimeline = data.report.substring(0, secondHeaderIndex).trim();
-            newLegal = data.report.substring(secondHeaderIndex).trim();
-          } else {
-            newTimeline = data.report;
-            newLegal = null;
-            console.warn('Could not split report into sections');
-          }
-        }
-        setTimelineReport(newTimeline);
-        setLegalReport(newLegal);
-      } else if (reportType === 'timeline') {
-        newTimeline = data.report;
-        setTimelineReport(newTimeline);
-      } else if (reportType === 'legal') {
-        newLegal = data.report;
-        setLegalReport(newLegal);
-      } else if (reportType === 'interpretation') {
-        newInterpretation = data.report;
-        setInterpretationReport(newInterpretation);
-      }
-
-      // Save to database
-      await saveReport(newTimeline, newLegal, newInterpretation);
-      
-      // Check if case law was included in the response
-      if (data.caseLawIncluded) {
-        toast.success('Report generated with case law');
-      } else {
-        toast.success(t.report.toast.generated);
-      }
-    } catch (error) {
-      console.error('Report generation error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to generate report');
-    } finally {
-      setIsGenerating(false);
-      setGeneratingType(null);
-      setIsSearchingCaseLaw(false);
-    }
-  }, [entries, hasEntries, timelineReport, legalReport, interpretationReport, saveReport, country, language, getFlag]);
+  }, [generateReport, t.report.toast.generated]);
 
   const handleExportPdf = useCallback(() => {
-    if (!timelineReport && !legalReport && !interpretationReport) {
+    if (!hasReport) {
       toast.error('Generate a report first');
       return;
     }
@@ -267,15 +106,15 @@ export function ReportScreen({
       printWindow.document.close();
       printWindow.print();
     }
-  }, [timelineReport, legalReport, interpretationReport]);
+  }, [hasReport, timelineReport, legalReport, interpretationReport]);
 
   const handleShare = useCallback(async () => {
-    if (!timelineReport && !legalReport && !interpretationReport) {
+    if (!hasReport) {
       toast.error('Generate a report first');
       return;
     }
 
-    const shareText = [timelineReport, legalReport, interpretationReport].filter(Boolean).join('\n\n---\n\n');
+    const shareText = getFullReportText();
 
     if (navigator.share) {
       try {
@@ -298,20 +137,20 @@ export function ReportScreen({
         toast.error('Could not copy to clipboard');
       }
     }
-  }, [timelineReport, legalReport, interpretationReport]);
+  }, [hasReport, getFullReportText]);
 
   const handleTogglePlayReport = useCallback(() => {
     if (isPlaying) {
       onStopReport?.();
     } else {
-      const reportText = [timelineReport, legalReport, interpretationReport].filter(Boolean).join('\n\n');
+      const reportText = getFullReportText();
       if (reportText && onPlayReport) {
         onPlayReport(reportText);
       } else if (!reportText) {
         toast.error('Generate a report first');
       }
     }
-  }, [timelineReport, legalReport, interpretationReport, onPlayReport, onStopReport, isPlaying]);
+  }, [getFullReportText, onPlayReport, onStopReport, isPlaying]);
 
   if (isLoading) {
     return (
@@ -335,8 +174,6 @@ export function ReportScreen({
       </div>
     );
   }
-
-  const hasReport = timelineReport || legalReport || interpretationReport;
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -369,7 +206,7 @@ export function ReportScreen({
           <Button 
             size="sm" 
             variant="outline"
-            onClick={() => generateReport('all')}
+            onClick={() => handleGenerateReport('all')}
             disabled={isGenerating}
             className="shrink-0 h-7 px-2 text-xs"
           >
@@ -390,7 +227,7 @@ export function ReportScreen({
         <Button 
           size="default" 
           className="w-full"
-          onClick={() => generateReport('all')}
+          onClick={() => handleGenerateReport('all')}
           disabled={isGenerating}
         >
           {isGenerating ? (
@@ -465,7 +302,7 @@ export function ReportScreen({
                   variant="ghost" 
                   size="sm"
                   className="h-7 w-7 p-0 shrink-0"
-                  onClick={() => generateReport('timeline')}
+                  onClick={() => handleGenerateReport('timeline')}
                   disabled={isGenerating}
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${generatingType === 'timeline' ? 'animate-spin' : ''}`} />
@@ -501,7 +338,7 @@ export function ReportScreen({
                   variant="ghost" 
                   size="sm"
                   className="h-7 w-7 p-0 shrink-0"
-                  onClick={() => generateReport('legal')}
+                  onClick={() => handleGenerateReport('legal')}
                   disabled={isGenerating}
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${generatingType === 'legal' ? 'animate-spin' : ''}`} />
@@ -540,7 +377,7 @@ export function ReportScreen({
                   variant="ghost" 
                   size="sm"
                   className="h-7 w-7 p-0 shrink-0"
-                  onClick={() => generateReport('interpretation')}
+                  onClick={() => handleGenerateReport('interpretation')}
                   disabled={isGenerating}
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${generatingType === 'interpretation' ? 'animate-spin' : ''}`} />
