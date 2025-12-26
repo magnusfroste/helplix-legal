@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useReport, type ReportType } from '@/hooks/useReport';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { ReportSkeleton } from './skeletons';
 
 interface ReportScreenProps {
   entries: LogEntry[];
@@ -153,12 +154,7 @@ export function ReportScreen({
   }, [getFullReportText, onPlayReport, onStopReport, isPlaying]);
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-8 text-center">
-        <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
-        <p className="text-cooper-base text-muted-foreground">{t.report.loading}</p>
-      </div>
-    );
+    return <ReportSkeleton />;
   }
 
   if (!hasEntries) {

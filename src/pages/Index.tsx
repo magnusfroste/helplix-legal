@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
 import { BottomNavigation, type NavigationTab } from '@/components/helplix/BottomNavigation';
 import { DictaphoneScreen } from '@/components/helplix/DictaphoneScreen';
 import { LogScreen } from '@/components/helplix/LogScreen';
 import { ReportScreen } from '@/components/helplix/ReportScreen';
 import { SettingsScreen } from '@/components/helplix/SettingsScreen';
+import { DictaphoneSkeleton, LogSkeleton, ReportSkeleton } from '@/components/helplix/skeletons';
 import { useAuth } from '@/hooks/useAuth';
 import { COUNTRIES } from '@/types/helplix';
 import { useConversation } from '@/hooks/useConversation';
@@ -37,11 +37,18 @@ export default function Index() {
     navigate('/auth', { replace: true });
   };
 
-  // Show loading spinner while initializing
+  // Show skeleton while initializing
   if (auth.isLoading || !isInitialized) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      <div className="h-screen bg-background flex flex-col overflow-hidden">
+        <main className="flex-1 max-w-lg mx-auto w-full overflow-hidden pb-20">
+          <DictaphoneSkeleton />
+        </main>
+        <BottomNavigation 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab}
+          country={null}
+        />
       </div>
     );
   }
