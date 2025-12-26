@@ -16,7 +16,6 @@ interface User {
   id: string;
   country: string;
   created_at: string;
-  last_login_at: string | null;
 }
 
 interface UserRole {
@@ -49,22 +48,25 @@ export default function Admin() {
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [togglingRole, setTogglingRole] = useState<string | null>(null);
 
-  // Get current user from localStorage (since we use PIN auth)
-  useEffect(() => {
-    const storedUserId = localStorage.getItem('cooper_user_id');
-    setCurrentUserId(storedUserId);
-  }, []);
-
-  const { isAdmin, isLoading: adminLoading, error: adminError } = useAdminAuth(currentUserId);
+  const { isAdmin, isLoading: adminLoading, error: adminError } = useAdminAuth();
   const { flags, isLoading: flagsLoading, updateFlag, refreshFlags } = useFeatureFlags();
+
+  // Get current user ID from session
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setCurrentUserId(session?.user?.id || null);
+    };
+    getCurrentUser();
+  }, []);
 
   // Redirect if not admin
   useEffect(() => {
-    if (!adminLoading && !isAdmin && currentUserId) {
+    if (!adminLoading && !isAdmin) {
       toast.error('Åtkomst nekad. Endast administratörer.');
       navigate('/');
     }
-  }, [isAdmin, adminLoading, currentUserId, navigate]);
+  }, [isAdmin, adminLoading, navigate]);
 
   // Fetch users and roles
   const fetchUsers = async () => {
@@ -72,9 +74,10 @@ export default function Admin() {
     
     setLoadingUsers(true);
     try {
+      // Fetch from profiles table instead of users
       const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('id, country, created_at, last_login_at')
+        .from('profiles')
+        .select('id, country, created_at')
         .order('created_at', { ascending: false });
 
       if (usersError) throw usersError;
@@ -349,9 +352,7 @@ export default function Admin() {
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {user.last_login_at 
-                                ? `Senast: ${new Date(user.last_login_at).toLocaleDateString('sv-SE')}`
-                                : 'Aldrig inloggad'}
+                              Skapad: {new Date(user.created_at).toLocaleDateString('sv-SE')}
                             </p>
                           </div>
                         </div>
