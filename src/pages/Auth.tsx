@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
-import { COUNTRIES, type CountryCode } from '@/types/cooper';
+import { COUNTRIES, type CountryCode } from '@/types/helplix';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 

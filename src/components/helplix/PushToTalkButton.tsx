@@ -1,7 +1,7 @@
 import { memo, useRef, useCallback } from 'react';
 import { Mic, Square, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { ConversationStatus } from '@/types/cooper';
+import type { ConversationStatus } from '@/types/helplix';
 
 interface PushToTalkButtonProps {
   status: ConversationStatus;

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Send, X, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
-import type { CountryCode } from '@/types/cooper';
+import type { CountryCode } from '@/types/helplix';
 
 interface TextInputDialogProps {
   open: boolean;

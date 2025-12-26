@@ -1,7 +1,7 @@
 import { Mic, FileText, ClipboardList, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
-import type { CountryCode } from '@/types/cooper';
+import type { CountryCode } from '@/types/helplix';
 
 export type NavigationTab = 'dictaphone' | 'log' | 'report' | 'settings';
 

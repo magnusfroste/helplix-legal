@@ -14,7 +14,7 @@ import {
   getSystemPromptForCountry,
   type CooperSettings, 
   type CountryCode 
-} from '@/types/cooper';
+} from '@/types/helplix';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import type { CooperSettings } from '@/types/cooper';
+import type { CooperSettings } from '@/types/helplix';
 import type { ConversationPhase } from '@/types/phases';
 import type { InformationGaps } from '@/types/information-tracking';
 
