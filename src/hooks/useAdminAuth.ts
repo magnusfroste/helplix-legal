@@ -8,23 +8,26 @@ interface UseAdminAuthReturn {
   checkAdminStatus: () => Promise<void>;
 }
 
-export function useAdminAuth(userId: string | null): UseAdminAuthReturn {
+export function useAdminAuth(): UseAdminAuthReturn {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const checkAdminStatus = useCallback(async () => {
-    if (!userId) {
-      setIsAdmin(false);
-      setIsLoading(false);
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
 
     try {
-      console.log('Checking admin status for user:', userId);
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        setIsAdmin(false);
+        setIsLoading(false);
+        return;
+      }
+
+      const userId = session.user.id;
       
       const { data, error: fnError } = await supabase.functions.invoke('verify-admin', {
         body: { userId }
@@ -35,7 +38,6 @@ export function useAdminAuth(userId: string | null): UseAdminAuthReturn {
         setError(fnError.message);
         setIsAdmin(false);
       } else {
-        console.log('Admin verification result:', data);
         setIsAdmin(data?.isAdmin ?? false);
       }
     } catch (err) {
@@ -45,10 +47,17 @@ export function useAdminAuth(userId: string | null): UseAdminAuthReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
     checkAdminStatus();
+    
+    // Also listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      checkAdminStatus();
+    });
+
+    return () => subscription.unsubscribe();
   }, [checkAdminStatus]);
 
   return { isAdmin, isLoading, error, checkAdminStatus };

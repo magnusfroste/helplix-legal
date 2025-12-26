@@ -33,14 +33,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
   const [countryChanged, setCountryChanged] = useState(false);
   
   // Check admin status
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  
-  useEffect(() => {
-    const storedUserId = localStorage.getItem('cooper_user_id');
-    setCurrentUserId(storedUserId);
-  }, []);
-  
-  const { isAdmin } = useAdminAuth(currentUserId);
+  const { isAdmin } = useAdminAuth();
 
   const handleChange = <K extends keyof CooperSettings>(
     key: K,

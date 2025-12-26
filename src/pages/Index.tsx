@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { BottomNavigation, type NavigationTab } from '@/components/cooper/BottomNavigation';
 import { DictaphoneScreen } from '@/components/cooper/DictaphoneScreen';
 import { LogScreen } from '@/components/cooper/LogScreen';
 import { ReportScreen } from '@/components/cooper/ReportScreen';
 import { SettingsScreen } from '@/components/cooper/SettingsScreen';
-import { OnboardingScreen } from '@/components/cooper/OnboardingScreen';
-import { PinScreen } from '@/components/cooper/PinScreen';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   DEFAULT_SETTINGS, 
   type CooperSettings, 
-  type CountryCode,
   COUNTRIES,
   getSystemPromptForCountry 
 } from '@/types/cooper';
@@ -46,169 +44,54 @@ function saveSettings(settings: CooperSettings): void {
   }
 }
 
-type AuthFlow = 'select-country' | 'enter-pin' | 'create-pin' | 'confirm-pin' | 'authenticated';
-
 export default function Index() {
-  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const [isInitialized, setIsInitialized] = useState(false);
   const [activeTab, setActiveTab] = useState<NavigationTab>('dictaphone');
   const [settings, setSettings] = useState<CooperSettings>(DEFAULT_SETTINGS);
   
-  // Auth flow state
-  const [authFlow, setAuthFlow] = useState<AuthFlow>('select-country');
-  const [selectedCountry, setSelectedCountry] = useState<CountryCode | null>(null);
-  const [firstPin, setFirstPin] = useState<string>('');
-  const [pinError, setPinError] = useState<string>('');
-  const [isPinLoading, setIsPinLoading] = useState(false);
-
   const auth = useAuth();
 
-  // Load settings and check auth state on mount
+  // Redirect to auth if not logged in
   useEffect(() => {
-    const init = async () => {
-      setSettings(loadSettings());
-      // Wait for auth to load
-      if (!auth.isLoading) {
-        if (auth.user) {
-          setAuthFlow('authenticated');
-          // Sync country from user
-          setSettings(prev => ({
-            ...prev,
-            country: auth.user!.country,
-            systemPrompt: getSystemPromptForCountry(auth.user!.country),
-          }));
-        }
-        setIsLoading(false);
+    if (!auth.isLoading) {
+      if (!auth.isAuthenticated) {
+        navigate('/auth', { replace: true });
+      } else if (auth.user) {
+        // Initialize settings with user's country
+        setSettings(prev => ({
+          ...loadSettings(),
+          country: auth.user!.country,
+          systemPrompt: getSystemPromptForCountry(auth.user!.country),
+        }));
+        setIsInitialized(true);
       }
-    };
-    init();
-  }, [auth.isLoading, auth.user]);
+    }
+  }, [auth.isLoading, auth.isAuthenticated, auth.user, navigate]);
 
   // Persist settings changes
   useEffect(() => {
-    if (authFlow === 'authenticated') {
+    if (isInitialized) {
       saveSettings(settings);
     }
-  }, [settings, authFlow]);
+  }, [settings, isInitialized]);
 
   const conversation = useConversation({ 
     settings,
     userId: auth.user?.id,
   });
 
-
-  // Country selection handler
-  const handleCountrySelect = (countryCode: CountryCode) => {
-    setSelectedCountry(countryCode);
-    setAuthFlow('enter-pin');
-    setPinError('');
-  };
-
-  // PIN handlers
-  const handlePinSubmit = async (pin: string) => {
-    setPinError('');
-    setIsPinLoading(true);
-
-    try {
-      if (authFlow === 'enter-pin') {
-        // Try to login first
-        const loginResult = await auth.login(pin);
-        
-        if (loginResult.success && loginResult.user) {
-          // Logged in successfully - use returned user data directly
-          setSettings(prev => ({
-            ...prev,
-            country: loginResult.user!.country,
-            systemPrompt: getSystemPromptForCountry(loginResult.user!.country),
-          }));
-          setAuthFlow('authenticated');
-        } else {
-          // PIN doesn't exist - create new user
-          setFirstPin(pin);
-          setAuthFlow('create-pin');
-        }
-      } else if (authFlow === 'create-pin') {
-        // Show message that this is a new PIN
-        setFirstPin(pin);
-        setAuthFlow('confirm-pin');
-      } else if (authFlow === 'confirm-pin') {
-        // Confirm PIN matches
-        if (pin !== firstPin) {
-          setPinError('PIN codes do not match. Please try again.');
-          setAuthFlow('create-pin');
-          setFirstPin('');
-          return;
-        }
-
-        // Create new user
-        const result = await auth.createUser(pin, selectedCountry!);
-        
-        if (result.success) {
-          setSettings(prev => ({
-            ...prev,
-            country: selectedCountry!,
-            systemPrompt: getSystemPromptForCountry(selectedCountry!),
-          }));
-          setAuthFlow('authenticated');
-        } else {
-          setPinError(result.error || 'Could not create account');
-          setAuthFlow('create-pin');
-          setFirstPin('');
-        }
-      }
-    } finally {
-      setIsPinLoading(false);
-    }
-  };
-
-  const handlePinBack = () => {
-    if (authFlow === 'confirm-pin') {
-      setAuthFlow('create-pin');
-      setFirstPin('');
-    } else {
-      setAuthFlow('select-country');
-      setSelectedCountry(null);
-    }
-    setPinError('');
-  };
-
-  const handleLogout = () => {
-    auth.logout();
-    setAuthFlow('select-country');
-    setSelectedCountry(null);
-    setSettings(DEFAULT_SETTINGS);
+  const handleLogout = async () => {
+    await auth.logout();
+    navigate('/auth', { replace: true });
   };
 
   // Show loading spinner while initializing
-  if (isLoading || auth.isLoading) {
+  if (auth.isLoading || !isInitialized) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
-    );
-  }
-
-  // Show onboarding if no country selected
-  if (authFlow === 'select-country') {
-    return <OnboardingScreen onCountrySelect={handleCountrySelect} />;
-  }
-
-  // Show PIN screen
-  if (authFlow === 'enter-pin' || authFlow === 'create-pin' || authFlow === 'confirm-pin') {
-    const country = COUNTRIES.find(c => c.code === selectedCountry);
-    const mode = authFlow === 'enter-pin' ? 'login' : authFlow === 'create-pin' ? 'create' : 'confirm';
-    
-    return (
-      <PinScreen
-        key={authFlow}
-        mode={mode}
-        countryCode={selectedCountry!}
-        country={country?.name || ''}
-        countryFlag={country?.flag || ''}
-        onPinSubmit={handlePinSubmit}
-        onBack={authFlow === 'enter-pin' ? handlePinBack : undefined}
-        error={pinError}
-        isLoading={isPinLoading}
-      />
     );
   }
 

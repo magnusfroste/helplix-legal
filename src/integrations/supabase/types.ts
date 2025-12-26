@@ -89,6 +89,24 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          country: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          country: string
+          created_at?: string | null
+          id: string
+        }
+        Update: {
+          country?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           created_at: string

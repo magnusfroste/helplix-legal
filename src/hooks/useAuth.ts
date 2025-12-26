@@ -1,154 +1,119 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { User, Session } from '@supabase/supabase-js';
 import type { CountryCode } from '@/types/cooper';
 
-interface User {
+interface AuthUser {
   id: string;
+  email: string;
   country: CountryCode;
 }
 
-const USER_STORAGE_KEY = 'cooper-user-id';
-
-// Simple hash function for PIN (for demo purposes - in production use bcrypt via edge function)
-async function hashPin(pin: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(pin + 'cooper-salt-2024');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load user from storage on mount
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const storedUserId = localStorage.getItem(USER_STORAGE_KEY);
-        if (storedUserId) {
-          const { data, error } = await supabase
-            .from('users')
-            .select('id, country')
-            .eq('id', storedUserId)
-            .single();
-          
-          if (data && !error) {
-            setUser({ id: data.id, country: data.country as CountryCode });
-          } else {
-            localStorage.removeItem(USER_STORAGE_KEY);
-          }
-        }
-      } catch (e) {
-        console.error('Failed to load user:', e);
-      } finally {
-        setIsLoading(false);
-      }
+  // Helper to extract user data from session
+  const extractUserData = useCallback(async (supabaseUser: User): Promise<AuthUser | null> => {
+    // Try to get country from profile first
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('country')
+      .eq('id', supabaseUser.id)
+      .maybeSingle();
+
+    const country = (profile?.country || supabaseUser.user_metadata?.country || 'SE') as CountryCode;
+
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email || '',
+      country,
     };
+  }, []);
+
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      setSession(newSession);
+      
+      if (newSession?.user) {
+        // Defer the async profile fetch
+        setTimeout(async () => {
+          const userData = await extractUserData(newSession.user);
+          setUser(userData);
+        }, 0);
+      } else {
+        setUser(null);
+      }
+    });
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(async ({ data: { session: existingSession } }) => {
+      setSession(existingSession);
+      
+      if (existingSession?.user) {
+        const userData = await extractUserData(existingSession.user);
+        setUser(userData);
+      }
+      
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [extractUserData]);
+
+  const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  }, []);
+
+  const signUp = useCallback(async (
+    email: string, 
+    password: string, 
+    country: CountryCode
+  ): Promise<{ success: boolean; error?: string }> => {
+    const redirectUrl = `${window.location.origin}/`;
     
-    loadUser();
+    const { error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          country,
+        },
+      },
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
   }, []);
 
-  // Check if PIN exists for a country
-  const checkPinExists = useCallback(async (pin: string): Promise<{ exists: boolean; userId?: string }> => {
-    try {
-      const pinHash = await hashPin(pin);
-      const { data, error } = await supabase
-        .from('users')
-        .select('id')
-        .eq('pin_hash', pinHash)
-        .maybeSingle();
-      
-      if (error) throw error;
-      
-      return { exists: !!data, userId: data?.id };
-    } catch (e) {
-      console.error('Failed to check PIN:', e);
-      return { exists: false };
-    }
-  }, []);
-
-  // Login with PIN
-  const login = useCallback(async (pin: string): Promise<{ success: boolean; error?: string; user?: User }> => {
-    try {
-      const pinHash = await hashPin(pin);
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, country')
-        .eq('pin_hash', pinHash)
-        .single();
-      
-      if (error || !data) {
-        return { success: false, error: 'Felaktig PIN-kod' };
-      }
-
-      // Update last login
-      await supabase
-        .from('users')
-        .update({ last_login_at: new Date().toISOString() })
-        .eq('id', data.id);
-
-      const loggedInUser = { id: data.id, country: data.country as CountryCode };
-      
-      // Store user ID
-      localStorage.setItem(USER_STORAGE_KEY, data.id);
-      setUser(loggedInUser);
-      
-      return { success: true, user: loggedInUser };
-    } catch (e) {
-      console.error('Login failed:', e);
-      return { success: false, error: 'Ett fel uppstod vid inloggning' };
-    }
-  }, []);
-
-  // Create new user with PIN
-  const createUser = useCallback(async (pin: string, country: CountryCode): Promise<{ success: boolean; error?: string; user?: User }> => {
-    try {
-      const pinHash = await hashPin(pin);
-      
-      // Check if PIN already exists
-      const { exists } = await checkPinExists(pin);
-      if (exists) {
-        return { success: false, error: 'Denna PIN-kod används redan. Välj en annan.' };
-      }
-
-      const { data, error } = await supabase
-        .from('users')
-        .insert({ pin_hash: pinHash, country })
-        .select('id, country')
-        .single();
-      
-      if (error) {
-        console.error('Create user error:', error);
-        return { success: false, error: 'Kunde inte skapa användare' };
-      }
-
-      const newUser = { id: data.id, country: data.country as CountryCode };
-      
-      // Store user ID
-      localStorage.setItem(USER_STORAGE_KEY, data.id);
-      setUser(newUser);
-      
-      return { success: true, user: newUser };
-    } catch (e) {
-      console.error('Create user failed:', e);
-      return { success: false, error: 'Ett fel uppstod vid skapande av konto' };
-    }
-  }, [checkPinExists]);
-
-  // Logout
-  const logout = useCallback(() => {
-    localStorage.removeItem(USER_STORAGE_KEY);
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setUser(null);
+    setSession(null);
   }, []);
 
   return {
     user,
+    session,
     isLoading,
+    isAuthenticated: !!session,
     login,
-    createUser,
+    signUp,
     logout,
-    checkPinExists,
   };
 }
