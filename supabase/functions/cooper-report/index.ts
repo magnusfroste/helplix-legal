@@ -110,7 +110,7 @@ serve(async (req) => {
 
     // Format the conversation for the AI
     const conversationText = entries.map(entry => {
-      const prefix = entry.type === "question" ? "Cooper:" : entry.type === "answer" ? "User:" : "System:";
+      const prefix = entry.type === "question" ? "Helplix:" : entry.type === "answer" ? "User:" : "System:";
       return `${prefix} ${entry.content}`;
     }).join("\n\n");
 

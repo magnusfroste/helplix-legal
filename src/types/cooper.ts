@@ -1,4 +1,4 @@
-// Cooper App Types
+// Helplix Assist App Types
 
 export type ConversationStatus = 
   | 'idle'           // Waiting for user to start
@@ -38,16 +38,16 @@ export interface Country {
 }
 
 export const COUNTRIES: Country[] = [
-  { code: 'BR', flag: '🇧🇷', name: 'Brasil', language: 'Portuguese', greeting: 'Olá! Sou Cooper, seu assistente jurídico. Pode me contar o que aconteceu?' },
-  { code: 'MX', flag: '🇲🇽', name: 'México', language: 'Spanish', greeting: '¡Hola! Soy Cooper, tu asistente legal. ¿Puedes contarme qué sucedió?' },
-  { code: 'DO', flag: '🇩🇴', name: 'República Dominicana', language: 'Spanish', greeting: '¡Hola! Soy Cooper, tu asistente legal. ¿Puedes contarme qué sucedió?' },
-  { code: 'SE', flag: '🇸🇪', name: 'Sverige', language: 'Swedish', greeting: 'Hej! Jag är Cooper, din juridiska assistent. Kan du berätta vad som har hänt?' },
-  { code: 'US', flag: '🇺🇸', name: 'United States', language: 'English', greeting: 'Hello! I\'m Cooper, your legal assistant. Can you tell me what happened?' },
-  { code: 'NL', flag: '🇳🇱', name: 'Nederland', language: 'Dutch', greeting: 'Hallo! Ik ben Cooper, uw juridisch assistent. Kunt u mij vertellen wat er is gebeurd?' },
+  { code: 'BR', flag: '🇧🇷', name: 'Brasil', language: 'Portuguese', greeting: 'Olá! Sou Helplix, seu assistente jurídico. Pode me contar o que aconteceu?' },
+  { code: 'MX', flag: '🇲🇽', name: 'México', language: 'Spanish', greeting: '¡Hola! Soy Helplix, tu asistente legal. ¿Puedes contarme qué sucedió?' },
+  { code: 'DO', flag: '🇩🇴', name: 'República Dominicana', language: 'Spanish', greeting: '¡Hola! Soy Helplix, tu asistente legal. ¿Puedes contarme qué sucedió?' },
+  { code: 'SE', flag: '🇸🇪', name: 'Sverige', language: 'Swedish', greeting: 'Hej! Jag är Helplix, din juridiska assistent. Kan du berätta vad som har hänt?' },
+  { code: 'US', flag: '🇺🇸', name: 'United States', language: 'English', greeting: 'Hello! I\'m Helplix, your legal assistant. Can you tell me what happened?' },
+  { code: 'NL', flag: '🇳🇱', name: 'Nederland', language: 'Dutch', greeting: 'Hallo! Ik ben Helplix, uw juridisch assistent. Kunt u mij vertellen wat er is gebeurd?' },
 ];
 
 export const COUNTRY_SYSTEM_PROMPTS: Record<CountryCode, string> = {
-  BR: `You are Cooper, a professional legal documentation assistant specializing in Brazilian law.
+  BR: `You are Helplix, a professional legal documentation assistant specializing in Brazilian law.
 
 LEGAL EXPERTISE:
 - Código Civil Brasileiro (Civil Code)
@@ -60,7 +60,7 @@ LEGAL EXPERTISE:
 
 LANGUAGE: Always communicate in Portuguese (Brazilian).`,
 
-  MX: `You are Cooper, a professional legal documentation assistant specializing in Mexican law.
+  MX: `You are Helplix, a professional legal documentation assistant specializing in Mexican law.
 
 LEGAL EXPERTISE:
 - Código Civil Federal
@@ -74,7 +74,7 @@ LEGAL EXPERTISE:
 
 LANGUAGE: Always communicate in Spanish (Mexican).`,
 
-  DO: `You are Cooper, a professional legal documentation assistant specializing in Dominican Republic law.
+  DO: `You are Helplix, a professional legal documentation assistant specializing in Dominican Republic law.
 
 LEGAL EXPERTISE:
 - Código Civil Dominicano
@@ -88,7 +88,7 @@ LEGAL EXPERTISE:
 
 LANGUAGE: Always communicate in Spanish (Dominican).`,
 
-  SE: `You are Cooper, a professional legal documentation assistant specializing in Swedish law.
+  SE: `You are Helplix, a professional legal documentation assistant specializing in Swedish law.
 
 LEGAL EXPERTISE:
 - Brottsbalken (Criminal Code)
@@ -103,7 +103,7 @@ LEGAL EXPERTISE:
 
 LANGUAGE: Always communicate in Swedish.`,
 
-  US: `You are Cooper, a professional legal documentation assistant specializing in United States law.
+  US: `You are Helplix, a professional legal documentation assistant specializing in United States law.
 
 LEGAL EXPERTISE:
 - Common law principles and case law
@@ -121,7 +121,7 @@ IMPORTANT: Always clarify which state the issue occurred in, as many laws vary s
 
 LANGUAGE: Always communicate in English (American).`,
 
-  NL: `You are Cooper, a professional legal documentation assistant specializing in Dutch law.
+  NL: `You are Helplix, a professional legal documentation assistant specializing in Dutch law.
 
 LEGAL EXPERTISE:
 - Burgerlijk Wetboek (Civil Code)
@@ -137,7 +137,7 @@ LEGAL EXPERTISE:
 LANGUAGE: Always communicate in Dutch.`,
 };
 
-export interface CooperSettings {
+export interface HelplixSettings {
   country: CountryCode | null;
   systemPrompt: string;
   questionIntensity: number; // 0-100, higher = more questions
@@ -150,7 +150,7 @@ export interface CooperSettings {
   audioEnabled?: boolean; // Deprecated: use ttsEnabled and sttEnabled
 }
 
-export const DEFAULT_SYSTEM_PROMPT = `You are Cooper, a legal assistant. Your role is to help document legal cases by asking structured questions.
+export const DEFAULT_SYSTEM_PROMPT = `You are Helplix, a legal assistant. Your role is to help document legal cases by asking structured questions.
 
 IMPORTANT RULES:
 1. Ask general opening questions about the case.
@@ -163,7 +163,7 @@ IMPORTANT RULES:
 
 Your goal is to help prepare the user for potential legal proceedings by thoroughly documenting their case.`;
 
-export const DEFAULT_SETTINGS: CooperSettings = {
+export const DEFAULT_SETTINGS: HelplixSettings = {
   country: null, // null means onboarding not complete
   systemPrompt: DEFAULT_SYSTEM_PROMPT,
   questionIntensity: 70, // Default to more questions
@@ -174,6 +174,9 @@ export const DEFAULT_SETTINGS: CooperSettings = {
   sttEnabled: true,
   showRealtimeTranscription: false, // Default off
 };
+
+// Type alias for backward compatibility
+export type CooperSettings = HelplixSettings;
 
 // Helper function to get country-specific system prompt
 export function getSystemPromptForCountry(countryCode: CountryCode): string {

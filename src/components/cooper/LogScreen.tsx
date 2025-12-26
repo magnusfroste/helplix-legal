@@ -143,7 +143,7 @@ const LogEntryCard = memo(function LogEntryCard({ entry, t }: { entry: LogEntry;
           "text-xs font-medium",
           isQuestion ? "text-primary" : "text-muted-foreground"
         )}>
-          {isQuestion ? 'Cooper' : 'You'}
+          {isQuestion ? t.log.cooper : t.log.you}
         </span>
         <span className="text-[10px] text-muted-foreground/70">
           {formatTime(entry.timestamp)}
