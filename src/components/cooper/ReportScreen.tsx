@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
-import { FileText, Clock, Download, Share2, Volume2, VolumeX, RefreshCw, Loader2, AlertTriangle, Scale } from 'lucide-react';
+import { FileText, Clock, Download, Share2, Volume2, VolumeX, RefreshCw, Loader2, AlertTriangle, Scale, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { LogEntry, CountryCode } from '@/types/cooper';
 import { toast } from 'sonner';
 import { useReport } from '@/hooks/useReport';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -37,6 +38,9 @@ export function ReportScreen({
   const [interpretationReport, setInterpretationReport] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingType, setGeneratingType] = useState<string | null>(null);
+  const [isSearchingCaseLaw, setIsSearchingCaseLaw] = useState(false);
+
+  const { getFlag } = useFeatureFlags();
 
   const { 
     report, 
@@ -66,6 +70,14 @@ export function ReportScreen({
 
     setIsGenerating(true);
     setGeneratingType(reportType);
+    
+    // Check if case search is enabled and we're generating interpretation
+    const caseSearchEnabled = getFlag('perplexity_case_search');
+    const willSearchCases = caseSearchEnabled && (reportType === 'interpretation' || reportType === 'all');
+    
+    if (willSearchCases) {
+      setIsSearchingCaseLaw(true);
+    }
 
     try {
       const response = await fetch(
@@ -86,9 +98,12 @@ export function ReportScreen({
             reportType,
             country,
             language,
+            enableCaseSearch: caseSearchEnabled,
           }),
         }
       );
+
+      setIsSearchingCaseLaw(false);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -197,15 +212,21 @@ export function ReportScreen({
       // Save to database
       await saveReport(newTimeline, newLegal, newInterpretation);
       
-      toast.success(t.report.toast.generated);
+      // Check if case law was included in the response
+      if (data.caseLawIncluded) {
+        toast.success('Report generated with case law');
+      } else {
+        toast.success(t.report.toast.generated);
+      }
     } catch (error) {
       console.error('Report generation error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to generate report');
     } finally {
       setIsGenerating(false);
       setGeneratingType(null);
+      setIsSearchingCaseLaw(false);
     }
-  }, [entries, hasEntries, timelineReport, legalReport, interpretationReport, saveReport, country, language]);
+  }, [entries, hasEntries, timelineReport, legalReport, interpretationReport, saveReport, country, language, getFlag]);
 
   const handleExportPdf = useCallback(() => {
     if (!timelineReport && !legalReport && !interpretationReport) {
@@ -539,9 +560,17 @@ export function ReportScreen({
             
             <div className="bg-card border border-border rounded-lg p-3 w-full overflow-hidden">
               {isGenerating && (generatingType === 'interpretation' || generatingType === 'all') ? (
-                <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  {t.report.interpretation.generating}
+                <div className="space-y-2">
+                  {isSearchingCaseLaw && (
+                    <div className="flex items-center gap-2 text-primary text-cooper-sm">
+                      <Search className="h-3.5 w-3.5 animate-pulse" />
+                      Searching for relevant case law...
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    {t.report.interpretation.generating}
+                  </div>
                 </div>
               ) : interpretationReport ? (
                 <div className="text-foreground w-full" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>

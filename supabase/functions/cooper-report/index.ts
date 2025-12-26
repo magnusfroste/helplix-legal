@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,6 +17,76 @@ interface ReportRequest {
   reportType: "timeline" | "legal" | "interpretation" | "both" | "all";
   country?: string;
   language?: string;
+  enableCaseSearch?: boolean;
+}
+
+// Check if Perplexity case search is enabled
+async function isPerplexityCaseSearchEnabled(): Promise<boolean> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    const { data, error } = await supabase
+      .from('feature_flags')
+      .select('enabled')
+      .eq('feature_key', 'perplexity_case_search')
+      .single();
+    
+    if (error) {
+      console.log('Could not check feature flag:', error.message);
+      return false;
+    }
+    
+    return data?.enabled ?? false;
+  } catch (error) {
+    console.error('Error checking feature flag:', error);
+    return false;
+  }
+}
+
+// Search for case law using Perplexity
+async function searchCaseLaw(country: string, legalContext: string): Promise<string | null> {
+  try {
+    const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY');
+    if (!PERPLEXITY_API_KEY) {
+      console.log('Perplexity API key not configured');
+      return null;
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    
+    console.log('Searching for case law via Perplexity for country:', country);
+    
+    const response = await fetch(`${supabaseUrl}/functions/v1/perplexity-legal-search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+      },
+      body: JSON.stringify({
+        country,
+        query: legalContext.slice(0, 500), // Limit query length
+        legalContext
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Perplexity search failed:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    if (data.success && data.caseLaw) {
+      console.log('Case law found, citations:', data.citations?.length || 0);
+      return data.caseLaw;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Case law search error:', error);
+    return null;
+  }
 }
 
 serve(async (req) => {
@@ -24,7 +95,7 @@ serve(async (req) => {
   }
 
   try {
-    const { entries, reportType, country, language } = await req.json() as ReportRequest;
+    const { entries, reportType, country, language, enableCaseSearch } = await req.json() as ReportRequest;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
@@ -35,7 +106,7 @@ serve(async (req) => {
       throw new Error("No log entries provided");
     }
 
-    console.log("Generating report:", reportType, "entries:", entries.length);
+    console.log("Generating report:", reportType, "entries:", entries.length, "country:", country);
 
     // Format the conversation for the AI
     const conversationText = entries.map(entry => {
@@ -187,6 +258,34 @@ Important guidelines:
 `;
     }
 
+    // Check if we should search for case law
+    let caseLawContext = '';
+    const shouldSearchCaseLaw = (reportType === 'interpretation' || reportType === 'all') && country;
+    
+    if (shouldSearchCaseLaw) {
+      // Check if feature is enabled
+      const caseSearchEnabled = enableCaseSearch ?? await isPerplexityCaseSearchEnabled();
+      
+      if (caseSearchEnabled) {
+        console.log('Case search enabled, searching for relevant case law...');
+        const caseLaw = await searchCaseLaw(country, conversationText);
+        
+        if (caseLaw) {
+          caseLawContext = `
+
+## RELEVANT CASE LAW FOUND (from web search):
+${caseLaw}
+
+IMPORTANT: Incorporate the above case law into the "Relevant Case Law and Precedents" section of your analysis. 
+Cite these cases with proper references and explain their relevance to the current situation.
+`;
+          console.log('Case law context added to prompt');
+        }
+      } else {
+        console.log('Case search feature is disabled');
+      }
+    }
+
     const fullSystemPrompt = `You are a legal documentation specialist and legal analyst creating formal reports from interview transcripts.
 
 ${systemPrompt}
@@ -203,6 +302,13 @@ ${systemPrompt}
 - CRITICAL: Include all requested section headers in the exact format specified
 - When generating "all" sections: include "## ${sectionHeaders.timeline}", "## ${sectionHeaders.legal}", AND "## ${sectionHeaders.interpretation}" headers`;
 
+    const userPrompt = `Here is the conversation transcript to analyze:
+
+${conversationText}
+${caseLawContext}
+
+Please generate the ${reportType === "both" ? "timeline and legal overview" : reportType} report.`;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -213,7 +319,7 @@ ${systemPrompt}
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: fullSystemPrompt },
-          { role: "user", content: `Here is the conversation transcript to analyze:\n\n${conversationText}\n\nPlease generate the ${reportType === "both" ? "timeline and legal overview" : reportType} report.` },
+          { role: "user", content: userPrompt },
         ],
       }),
     });
@@ -246,7 +352,7 @@ ${systemPrompt}
     console.log("Report generated, length:", report.length);
 
     return new Response(
-      JSON.stringify({ report }),
+      JSON.stringify({ report, caseLawIncluded: !!caseLawContext }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

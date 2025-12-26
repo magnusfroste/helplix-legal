@@ -37,8 +37,8 @@ const FEATURE_LABELS: Record<string, string> = {
 };
 
 const CONNECTION_STATUS: Record<string, { label: string; available: boolean }> = {
-  'perplexity': { label: 'Perplexity API', available: false }, // Will check dynamically
-  'elevenlabs': { label: 'ElevenLabs API', available: true }, // We have this
+  'perplexity': { label: 'Perplexity API', available: true }, // Connected
+  'elevenlabs': { label: 'ElevenLabs API', available: true }, // Connected
 };
 
 export default function Admin() {
