@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { COUNTRIES, type CountryCode } from '@/types/helplix';
 import { useToast } from '@/hooks/use-toast';
 import { translations } from '@/i18n/translations';
+import { useDetectedLanguage } from '@/hooks/useDetectedLanguage';
 import { z } from 'zod';
 
 type AuthMode = 'landing' | 'select-country' | 'login' | 'signup';
@@ -15,9 +16,10 @@ type AuthMode = 'landing' | 'select-country' | 'login' | 'signup';
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const detectedLanguage = useDetectedLanguage();
   
-  // Default to English (US)
-  const [displayLanguage, setDisplayLanguage] = useState<CountryCode>('US');
+  // Use detected browser language as default
+  const [displayLanguage, setDisplayLanguage] = useState<CountryCode>(detectedLanguage);
   const [mode, setMode] = useState<AuthMode>('landing');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
