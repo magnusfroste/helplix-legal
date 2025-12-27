@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { COUNTRIES } from '@/types/helplix';
 import { useConversation } from '@/hooks/useConversation';
 import { useSettings } from '@/hooks/useSettings';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 export default function Index() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function Index() {
   const { settings, setSettings, isInitialized } = useSettings({ 
     userCountry: auth.user?.country 
   });
+  const { getFlag } = useFeatureFlags();
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -68,7 +70,7 @@ export default function Index() {
             buttonSize={settings.buttonSize}
             audioLevel={conversation.audioLevel}
             country={settings.country}
-            showRealtimeTranscription={settings.showRealtimeTranscription && settings.sttEnabled}
+            showRealtimeTranscription={getFlag('realtime_transcription') && settings.sttEnabled}
             realtimeTranscriptionText={conversation.realtimeTranscriptionText || ''}
           />
         );
