@@ -194,6 +194,16 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     }
   }, [logEntries, chat, phaseTracking, settings.autoplaySpeech, settings.ttsEnabled, voice]);
 
+  const deleteConversation = useCallback(async () => {
+    try {
+      await logEntries.deleteCurrentSession();
+      chat.resetConversation();
+      phaseTracking.reset();
+    } catch {
+      console.error('Failed to delete conversation');
+    }
+  }, [logEntries, chat, phaseTracking]);
+
   return {
     // State (read-only)
     status,
@@ -215,6 +225,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     submitText,
     replayQuestion,
     startNewSession,
+    deleteConversation,
 
     // Pass-through for Report
     speak: voice.speak,

@@ -129,6 +129,16 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
     setIsFirstInteraction(true);
   }, [session, initialQuestion]);
 
+  // Delete current session and its log entries
+  const deleteCurrentSession = useCallback(async () => {
+    if (session.currentSessionId) {
+      await session.deleteSession(session.currentSessionId);
+      setLogEntries([]);
+      setCurrentQuestion(initialQuestion);
+      setIsFirstInteraction(true);
+    }
+  }, [session, initialQuestion]);
+
   // Sync language to session
   const updateSessionLanguage = useCallback((language: string) => {
     if (session.currentSessionId) {
@@ -149,6 +159,7 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
     addOptimisticEntry,
     removeOptimisticEntry,
     startNewSession,
+    deleteCurrentSession,
     updateSessionLanguage,
   };
 }

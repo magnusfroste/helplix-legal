@@ -1,11 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, RefreshCw, Globe, LogOut, Shield } from 'lucide-react';
+import { Save, RotateCcw, RefreshCw, Globe, LogOut, Shield, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { 
   DEFAULT_SETTINGS, 
@@ -22,9 +33,10 @@ interface SettingsScreenProps {
   onSettingsChange: (settings: CooperSettings) => void;
   onStartNewSession?: () => void;
   onLogout?: () => void;
+  onDeleteConversation?: () => void;
 }
 
-export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, onLogout }: SettingsScreenProps) {
+export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, onLogout, onDeleteConversation }: SettingsScreenProps) {
   const navigate = useNavigate();
   const t = useTranslation(settings.country);
   const [localSettings, setLocalSettings] = useState<CooperSettings>(settings);
@@ -212,6 +224,43 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             />
           </section>
 
+
+          {/* Delete Conversation */}
+          {onDeleteConversation && (
+            <section className="pt-4 border-t border-border">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {t.settings.deleteConversation.button}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t.settings.deleteConversation.title}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t.settings.deleteConversation.description}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t.settings.deleteConversation.cancel}</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        onDeleteConversation();
+                        toast.success(t.settings.toast.conversationDeleted);
+                      }}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {t.settings.deleteConversation.confirm}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </section>
+          )}
 
           {/* Reset to Start Screen */}
           <section className="pt-4 border-t border-border">
