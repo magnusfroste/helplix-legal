@@ -16,17 +16,24 @@ interface UseConversationOptions {
 export function useConversation({ settings, userId }: UseConversationOptions) {
   // Feature flags
   const { getFlag } = useFeatureFlags();
-  const { getPromptForCountry } = useJurisdictionPrompts();
+  const { getPromptForCountry, getIntensityForCountry } = useJurisdictionPrompts();
   const useRealtimeSTT = getFlag('realtime_transcription');
   const useStreamingTTS = getFlag('streaming_tts');
   
-  // Get system prompt from database based on country
+  // Get system prompt and intensity from database based on country
   const systemPrompt = useMemo(() => {
     if (settings.country) {
       return getPromptForCountry(settings.country);
     }
     return '';
   }, [settings.country, getPromptForCountry]);
+
+  const questionIntensity = useMemo(() => {
+    if (settings.country) {
+      return getIntensityForCountry(settings.country);
+    }
+    return 70; // Default
+  }, [settings.country, getIntensityForCountry]);
   
   // State for realtime transcript display
   const [realtimeTranscriptText, setRealtimeTranscriptText] = useState('');
@@ -48,10 +55,11 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     onRealtimeTranscript: (text) => setRealtimeTranscriptText(text),
   });
 
-  // Chat service - use jurisdiction prompt from database
+  // Chat service - use jurisdiction prompt and intensity from database
   const chat = useCooperChat({
     settings,
     systemPrompt, // Pass the jurisdiction-specific prompt
+    questionIntensity, // Pass the jurisdiction-specific intensity
     currentPhase: phaseTracking.currentPhase,
     informationGaps: phaseTracking.informationGaps,
     completeness: phaseTracking.completeness,

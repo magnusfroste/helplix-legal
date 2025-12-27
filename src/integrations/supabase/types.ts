@@ -49,6 +49,7 @@ export type Database = {
           country_code: string
           created_at: string
           id: string
+          question_intensity: number
           system_prompt: string
           updated_at: string
         }
@@ -56,6 +57,7 @@ export type Database = {
           country_code: string
           created_at?: string
           id?: string
+          question_intensity?: number
           system_prompt: string
           updated_at?: string
         }
@@ -63,6 +65,7 @@ export type Database = {
           country_code?: string
           created_at?: string
           id?: string
+          question_intensity?: number
           system_prompt?: string
           updated_at?: string
         }
