@@ -63,7 +63,7 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
       {/* Header */}
       <header className="w-full flex items-center justify-center px-2 py-2">
         <h1 className="text-cooper-2xl font-bold text-foreground tracking-tight">
-          Cooper
+          Helplix
         </h1>
       </header>
 
