@@ -161,10 +161,10 @@ export function ReportScreen({
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-8 text-center">
         <FileText className="h-16 w-16 text-muted-foreground/50 mb-4" />
-        <h2 className="text-cooper-xl font-semibold text-foreground mb-2">
+        <h2 className="text-helplix-xl font-semibold text-foreground mb-2">
           {t.report.noReport}
         </h2>
-        <p className="text-cooper-base text-muted-foreground">
+        <p className="text-helplix-base text-muted-foreground">
           Complete a conversation with Helplix to generate your case report.
         </p>
       </div>
@@ -175,16 +175,16 @@ export function ReportScreen({
     <div className="flex flex-col h-full min-h-0">
       <header className="px-3 py-2 border-b border-border">
         <div className="flex items-center justify-between">
-          <h1 className="text-cooper-lg font-bold text-foreground">
+          <h1 className="text-helplix-lg font-bold text-foreground">
             {t.report.title}
           </h1>
           {report && (
-            <span className="text-cooper-sm text-muted-foreground">
+            <span className="text-helplix-sm text-muted-foreground">
               {new Date(report.updated_at).toLocaleDateString('sv-SE')}
             </span>
           )}
         </div>
-        <p className="text-cooper-sm text-muted-foreground flex items-center gap-1">
+        <p className="text-helplix-sm text-muted-foreground flex items-center gap-1">
           <Clock className="h-3 w-3" />
           {entries.length} {t.report.entries}
         </p>
@@ -195,7 +195,7 @@ export function ReportScreen({
         <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/30 flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 min-w-0">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-            <span className="text-cooper-sm truncate">
+            <span className="text-helplix-sm truncate">
               +{entries.length - (report?.entries_count || 0)} {t.report.newEntries}
             </span>
           </div>
@@ -279,7 +279,7 @@ export function ReportScreen({
 
       {/* Saving indicator */}
       {isSaving && (
-        <div className="px-3 py-1.5 bg-muted/50 text-cooper-sm text-muted-foreground flex items-center gap-2">
+        <div className="px-3 py-1.5 bg-muted/50 text-helplix-sm text-muted-foreground flex items-center gap-2">
           <Loader2 className="h-3 w-3 animate-spin" />
           {t.report.saving}
         </div>
@@ -290,7 +290,7 @@ export function ReportScreen({
           {/* Timeline Section */}
           <section className="w-full">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-cooper-base font-semibold text-foreground">
+              <h2 className="text-helplix-base font-semibold text-foreground">
                 {t.report.timeline.title}
               </h2>
               {timelineReport && (
@@ -307,7 +307,7 @@ export function ReportScreen({
             </div>
             <div className="bg-card border border-border rounded-lg p-3 w-full overflow-hidden">
               {isGenerating && generatingType === 'timeline' ? (
-                <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
+                <div className="flex items-center gap-2 text-muted-foreground text-helplix-sm">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   {t.report.timeline.generating}
                 </div>
@@ -316,7 +316,7 @@ export function ReportScreen({
                   <MarkdownRenderer content={timelineReport} />
                 </div>
               ) : (
-                <p className="text-cooper-sm text-muted-foreground italic">
+                <p className="text-helplix-sm text-muted-foreground italic">
                   {t.report.timeline.placeholder}
                 </p>
               )}
@@ -326,7 +326,7 @@ export function ReportScreen({
           {/* Legal Overview Section */}
           <section className="w-full">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-cooper-base font-semibold text-foreground">
+              <h2 className="text-helplix-base font-semibold text-foreground">
                 {t.report.legal.title}
               </h2>
               {legalReport && (
@@ -343,7 +343,7 @@ export function ReportScreen({
             </div>
             <div className="bg-card border border-border rounded-lg p-3 w-full overflow-hidden">
               {isGenerating && generatingType === 'legal' ? (
-                <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
+                <div className="flex items-center gap-2 text-muted-foreground text-helplix-sm">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   {t.report.legal.generating}
                 </div>
@@ -352,7 +352,7 @@ export function ReportScreen({
                   <MarkdownRenderer content={legalReport} />
                 </div>
               ) : (
-                <p className="text-cooper-sm text-muted-foreground italic">
+                <p className="text-helplix-sm text-muted-foreground italic">
                   {t.report.legal.placeholder}
                 </p>
               )}
@@ -364,7 +364,7 @@ export function ReportScreen({
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Scale className="h-4 w-4 text-primary" />
-                <h2 className="text-cooper-base font-semibold text-foreground">
+                <h2 className="text-helplix-base font-semibold text-foreground">
                   {t.report.interpretation.title}
                 </h2>
               </div>
@@ -385,7 +385,7 @@ export function ReportScreen({
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-2">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <p className="text-cooper-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                <p className="text-helplix-xs text-amber-700 dark:text-amber-300 leading-relaxed">
                   {t.report.interpretation.disclaimer}
                 </p>
               </div>
@@ -395,12 +395,12 @@ export function ReportScreen({
               {isGenerating && (generatingType === 'interpretation' || generatingType === 'all') ? (
                 <div className="space-y-2">
                   {isSearchingCaseLaw && (
-                    <div className="flex items-center gap-2 text-primary text-cooper-sm">
+                    <div className="flex items-center gap-2 text-primary text-helplix-sm">
                       <Search className="h-3.5 w-3.5 animate-pulse" />
                       Searching for relevant case law...
                     </div>
                   )}
-                  <div className="flex items-center gap-2 text-muted-foreground text-cooper-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground text-helplix-sm">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     {t.report.interpretation.generating}
                   </div>
@@ -410,7 +410,7 @@ export function ReportScreen({
                   <MarkdownRenderer content={interpretationReport} />
                 </div>
               ) : (
-                <p className="text-cooper-sm text-muted-foreground italic">
+                <p className="text-helplix-sm text-muted-foreground italic">
                   {t.report.interpretation.placeholder}
                 </p>
               )}
@@ -442,7 +442,7 @@ function MarkdownRenderer({ content }: { content: string }) {
       elements.push(
         <ul key={`list-${listKey++}`} className="list-disc pl-4 space-y-1.5 my-2">
           {currentList.map((item, i) => (
-            <li key={i} className="text-cooper-sm break-words leading-relaxed">
+            <li key={i} className="text-helplix-sm break-words leading-relaxed">
               {renderInlineBold(item)}
             </li>
           ))}
@@ -458,21 +458,21 @@ function MarkdownRenderer({ content }: { content: string }) {
     if (trimmed.startsWith('## ')) {
       flushList();
       elements.push(
-        <h2 key={index} className="text-cooper-base font-semibold mt-3 mb-1.5 break-words">
+        <h2 key={index} className="text-helplix-base font-semibold mt-3 mb-1.5 break-words">
           {renderInlineBold(trimmed.slice(3))}
         </h2>
       );
     } else if (trimmed.startsWith('### ')) {
       flushList();
       elements.push(
-        <h3 key={index} className="text-cooper-sm font-semibold mt-2 mb-1 break-words">
+        <h3 key={index} className="text-helplix-sm font-semibold mt-2 mb-1 break-words">
           {renderInlineBold(trimmed.slice(4))}
         </h3>
       );
     } else if (trimmed.startsWith('**') && trimmed.endsWith('**') && !trimmed.slice(2, -2).includes('**')) {
       flushList();
       elements.push(
-        <p key={index} className="font-semibold text-cooper-sm mt-2 break-words">
+        <p key={index} className="font-semibold text-helplix-sm mt-2 break-words">
           {trimmed.slice(2, -2)}
         </p>
       );
@@ -483,7 +483,7 @@ function MarkdownRenderer({ content }: { content: string }) {
     } else if (trimmed) {
       flushList();
       elements.push(
-        <p key={index} className="text-cooper-sm my-1 break-words leading-relaxed">
+        <p key={index} className="text-helplix-sm my-1 break-words leading-relaxed">
           {renderInlineBold(trimmed)}
         </p>
       );

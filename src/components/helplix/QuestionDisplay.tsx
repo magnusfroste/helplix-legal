@@ -18,14 +18,14 @@ export const QuestionDisplay = memo(function QuestionDisplay({
     const length = question.length;
     
     if (isFirstInteraction) {
-      if (length > 200) return "text-cooper-lg";
-      if (length > 100) return "text-cooper-xl";
-      return "text-cooper-2xl";
+      if (length > 200) return "text-helplix-lg";
+      if (length > 100) return "text-helplix-xl";
+      return "text-helplix-2xl";
     }
     
-    if (length > 300) return "text-cooper-base";
-    if (length > 150) return "text-cooper-lg";
-    return "text-cooper-xl";
+    if (length > 300) return "text-helplix-base";
+    if (length > 150) return "text-helplix-lg";
+    return "text-helplix-xl";
   };
 
   return (

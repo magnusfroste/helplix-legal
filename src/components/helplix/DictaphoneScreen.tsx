@@ -62,7 +62,7 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
     <div className="flex flex-col items-center justify-between min-h-[calc(100vh-80px)] py-4 px-2">
       {/* Header */}
       <header className="w-full flex items-center justify-center px-2 py-2">
-        <h1 className="text-cooper-2xl font-bold text-foreground tracking-tight">
+        <h1 className="text-helplix-2xl font-bold text-foreground tracking-tight">
           Helplix
         </h1>
       </header>
