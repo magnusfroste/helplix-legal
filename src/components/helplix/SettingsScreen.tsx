@@ -262,20 +262,6 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             </section>
           )}
 
-          {/* Reset to Start Screen */}
-          <section className="pt-4 border-t border-border">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                onSettingsChange({ ...localSettings, country: null });
-                toast.info(t.settings.toast.returning);
-              }}
-              className="w-full text-muted-foreground hover:text-foreground"
-            >
-              <Globe className="h-4 w-4 mr-2" />
-              {t.settings.changeJurisdiction}
-            </Button>
-          </section>
 
           {/* Admin Panel Link - Only visible for admins */}
           {isAdmin && (
