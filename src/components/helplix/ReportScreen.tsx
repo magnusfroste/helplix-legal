@@ -78,7 +78,7 @@ export function ReportScreen({
     const content = `
       <html>
         <head>
-          <title>Cooper Legal Report</title>
+          <title>Helplix Legal Report</title>
           <style>
             body { font-family: Georgia, serif; padding: 40px; max-width: 800px; margin: 0 auto; line-height: 1.6; }
             h1 { color: #1a1a1a; border-bottom: 2px solid #333; padding-bottom: 10px; }
@@ -92,7 +92,7 @@ export function ReportScreen({
           </style>
         </head>
         <body>
-          <h1>Cooper Legal Documentation Report</h1>
+          <h1>Helplix Legal Documentation Report</h1>
           <p class="timestamp">Generated: ${new Date().toLocaleString()}</p>
           ${timelineReport ? `<div class="section">${formatMarkdownToHtml(timelineReport)}</div>` : ''}
           ${legalReport ? `<div class="section">${formatMarkdownToHtml(legalReport)}</div>` : ''}
@@ -120,7 +120,7 @@ export function ReportScreen({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Cooper Legal Report',
+          title: 'Helplix Legal Report',
           text: shareText,
         });
       } catch (error) {
@@ -165,7 +165,7 @@ export function ReportScreen({
           {t.report.noReport}
         </h2>
         <p className="text-cooper-base text-muted-foreground">
-          Complete a conversation with Cooper to generate your case report.
+          Complete a conversation with Helplix to generate your case report.
         </p>
       </div>
     );
