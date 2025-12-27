@@ -162,12 +162,20 @@ export interface Translations {
     logout: string;
     reset: string;
     save: string;
+    deleteConversation: {
+      button: string;
+      title: string;
+      description: string;
+      cancel: string;
+      confirm: string;
+    };
     
     toast: {
       saved: string;
       reset: string;
       newSession: string;
       returning: string;
+      conversationDeleted: string;
     };
   };
   
@@ -352,11 +360,19 @@ export const translations: Record<CountryCode, Translations> = {
       logout: 'Sair',
       reset: 'Redefinir',
       save: 'Salvar',
+      deleteConversation: {
+        button: 'Excluir conversa',
+        title: 'Excluir conversa?',
+        description: 'Isso excluirá permanentemente toda a conversa e os dados do registro. Esta ação não pode ser desfeita.',
+        cancel: 'Cancelar',
+        confirm: 'Excluir',
+      },
       toast: {
         saved: 'Configurações salvas',
         reset: 'Configurações redefinidas para padrão',
         newSession: 'Nova sessão iniciada com nova jurisdição',
         returning: 'Retornando à seleção de país...',
+        conversationDeleted: 'Conversa excluída',
       },
     },
     dictaphone: {
@@ -532,11 +548,19 @@ export const translations: Record<CountryCode, Translations> = {
       logout: 'Cerrar sesión',
       reset: 'Restablecer',
       save: 'Guardar',
+      deleteConversation: {
+        button: 'Eliminar conversación',
+        title: '¿Eliminar conversación?',
+        description: 'Esto eliminará permanentemente toda la conversación y los datos del registro. Esta acción no se puede deshacer.',
+        cancel: 'Cancelar',
+        confirm: 'Eliminar',
+      },
       toast: {
         saved: 'Configuración guardada',
         reset: 'Configuración restablecida a valores predeterminados',
         newSession: 'Nueva sesión iniciada con nueva jurisdicción',
         returning: 'Regresando a la selección de país...',
+        conversationDeleted: 'Conversación eliminada',
       },
     },
     dictaphone: {
@@ -712,11 +736,19 @@ export const translations: Record<CountryCode, Translations> = {
       logout: 'Cerrar sesión',
       reset: 'Restablecer',
       save: 'Guardar',
+      deleteConversation: {
+        button: 'Eliminar conversación',
+        title: '¿Eliminar conversación?',
+        description: 'Esto eliminará permanentemente toda la conversación y los datos del registro. Esta acción no se puede deshacer.',
+        cancel: 'Cancelar',
+        confirm: 'Eliminar',
+      },
       toast: {
         saved: 'Configuración guardada',
         reset: 'Configuración restablecida a valores predeterminados',
         newSession: 'Nueva sesión iniciada con nueva jurisdicción',
         returning: 'Regresando a la selección de país...',
+        conversationDeleted: 'Conversación eliminada',
       },
     },
     dictaphone: {
@@ -890,13 +922,21 @@ export const translations: Record<CountryCode, Translations> = {
       },
       changeJurisdiction: 'Byt jurisdiktion',
       logout: 'Logga ut',
-      reset: 'Återställ',
+      reset: 'Återställ inställningar',
       save: 'Spara',
+      deleteConversation: {
+        button: 'Radera konversation',
+        title: 'Radera konversation?',
+        description: 'Detta raderar permanent hela konversationen och all loggdata. Åtgärden kan inte ångras.',
+        cancel: 'Avbryt',
+        confirm: 'Radera',
+      },
       toast: {
         saved: 'Inställningar sparade',
         reset: 'Inställningar återställda till standard',
         newSession: 'Ny session startad med ny jurisdiktion',
         returning: 'Återgår till landsval...',
+        conversationDeleted: 'Konversation raderad',
       },
     },
     dictaphone: {
@@ -1072,11 +1112,19 @@ export const translations: Record<CountryCode, Translations> = {
       logout: 'Log out',
       reset: 'Reset',
       save: 'Save',
+      deleteConversation: {
+        button: 'Delete conversation',
+        title: 'Delete conversation?',
+        description: 'This will permanently delete the entire conversation and all log data. This action cannot be undone.',
+        cancel: 'Cancel',
+        confirm: 'Delete',
+      },
       toast: {
         saved: 'Settings saved',
         reset: 'Settings reset to defaults',
         newSession: 'New session started with new jurisdiction',
         returning: 'Returning to country selection...',
+        conversationDeleted: 'Conversation deleted',
       },
     },
     dictaphone: {
@@ -1252,11 +1300,19 @@ export const translations: Record<CountryCode, Translations> = {
       logout: 'Uitloggen',
       reset: 'Resetten',
       save: 'Opslaan',
+      deleteConversation: {
+        button: 'Gesprek verwijderen',
+        title: 'Gesprek verwijderen?',
+        description: 'Dit verwijdert permanent het hele gesprek en alle loggegevens. Deze actie kan niet ongedaan worden gemaakt.',
+        cancel: 'Annuleren',
+        confirm: 'Verwijderen',
+      },
       toast: {
         saved: 'Instellingen opgeslagen',
         reset: 'Instellingen gereset naar standaard',
         newSession: 'Nieuwe sessie gestart met nieuwe jurisdictie',
         returning: 'Terug naar landselectie...',
+        conversationDeleted: 'Gesprek verwijderd',
       },
     },
     dictaphone: {

@@ -96,6 +96,7 @@ export default function Index() {
             onSettingsChange={setSettings}
             onStartNewSession={conversation.startNewSession}
             onLogout={handleLogout}
+            onDeleteConversation={conversation.deleteConversation}
           />
         );
     }
