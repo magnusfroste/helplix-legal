@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge } from 'lucide-react';
+import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge, ListTree } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -10,12 +10,15 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Slider } from '@/components/ui/slider';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useFeatureFlags, FeatureFlag } from '@/hooks/useFeatureFlags';
 import { useJurisdictionPrompts } from '@/hooks/useJurisdictionPrompts';
+import { usePhaseInstructions, PHASES, Phase } from '@/hooks/usePhaseInstructions';
 import { supabase } from '@/integrations/supabase/client';
 import { COUNTRIES } from '@/types/helplix';
+
 interface User {
   id: string;
   country: string;
@@ -57,13 +60,17 @@ export default function Admin() {
   const { isAdmin, isLoading: adminLoading, error: adminError } = useAdminAuth();
   const { flags, isLoading: flagsLoading, updateFlag, refreshFlags } = useFeatureFlags();
   const { prompts, isLoading: promptsLoading, updatePrompt, updateIntensity } = useJurisdictionPrompts();
+  const { instructions, isLoading: instructionsLoading, updateInstruction, getInstruction } = usePhaseInstructions();
   
   // Local state for editing prompts
   const [editingPrompts, setEditingPrompts] = useState<Record<string, string>>({});
   const [editingIntensity, setEditingIntensity] = useState<Record<string, number>>({});
+  const [editingPhases, setEditingPhases] = useState<Record<string, string>>({});
   const [savingPrompt, setSavingPrompt] = useState<string | null>(null);
   const [savingIntensity, setSavingIntensity] = useState<string | null>(null);
+  const [savingPhase, setSavingPhase] = useState<string | null>(null);
   const [openPrompts, setOpenPrompts] = useState<Record<string, boolean>>({});
+  const [selectedCountryForPhases, setSelectedCountryForPhases] = useState<string>('SE');
 
   // Get current user ID from session
   useEffect(() => {
@@ -224,6 +231,46 @@ export default function Admin() {
     if (value < 30) return 'Låg (öppna frågor)';
     if (value < 70) return 'Medium (balanserade frågor)';
     return 'Hög (detaljerade frågor)';
+  };
+
+  // Phase instruction handlers
+  const getPhaseKey = (countryCode: string, phase: Phase) => `${countryCode}:${phase}`;
+
+  const handlePhaseEdit = (countryCode: string, phase: Phase, value: string) => {
+    const key = getPhaseKey(countryCode, phase);
+    setEditingPhases(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSavePhase = async (countryCode: string, phase: Phase) => {
+    const key = getPhaseKey(countryCode, phase);
+    const newInstruction = editingPhases[key];
+    if (!newInstruction) return;
+
+    setSavingPhase(key);
+    const success = await updateInstruction(countryCode, phase, newInstruction);
+    
+    if (success) {
+      toast.success(`Fas "${PHASES.find(p => p.key === phase)?.labelSv}" sparad`);
+      setEditingPhases(prev => {
+        const copy = { ...prev };
+        delete copy[key];
+        return copy;
+      });
+    } else {
+      toast.error('Kunde inte spara fasinstruktion');
+    }
+    setSavingPhase(null);
+  };
+
+  const getCurrentPhaseValue = (countryCode: string, phase: Phase): string => {
+    const key = getPhaseKey(countryCode, phase);
+    return editingPhases[key] ?? getInstruction(countryCode, phase);
+  };
+
+  const hasPhaseChanges = (countryCode: string, phase: Phase): boolean => {
+    const key = getPhaseKey(countryCode, phase);
+    return editingPhases[key] !== undefined && 
+           editingPhases[key] !== getInstruction(countryCode, phase);
   };
 
   const getConnectionStatus = (requiresConnection: string | null) => {
@@ -511,6 +558,114 @@ export default function Admin() {
                     </Collapsible>
                   );
                 })
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Phase Instructions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ListTree className="h-5 w-5" />
+                Fasinstruktioner per Jurisdiktion
+              </CardTitle>
+              <CardDescription>
+                Anpassa instruktioner för varje intervjufas (opening, timeline, details, etc.)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {instructionsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <>
+                  {/* Country selector tabs */}
+                  <Tabs value={selectedCountryForPhases} onValueChange={setSelectedCountryForPhases}>
+                    <TabsList className="w-full flex-wrap h-auto gap-1 p-1">
+                      {COUNTRIES.map(country => (
+                        <TabsTrigger 
+                          key={country.code} 
+                          value={country.code}
+                          className="flex items-center gap-1 text-xs px-2 py-1"
+                        >
+                          <span>{country.flag}</span>
+                          <span className="hidden sm:inline">{country.code}</span>
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                    
+                    {COUNTRIES.map(country => (
+                      <TabsContent key={country.code} value={country.code} className="space-y-3 mt-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="text-2xl">{country.flag}</span>
+                          <div>
+                            <p className="font-medium">{country.name}</p>
+                            <p className="text-xs text-muted-foreground">{country.language}</p>
+                          </div>
+                        </div>
+                        
+                        {PHASES.map(phase => {
+                          const currentValue = getCurrentPhaseValue(country.code, phase.key);
+                          const hasChanges = hasPhaseChanges(country.code, phase.key);
+                          const phaseKey = getPhaseKey(country.code, phase.key);
+                          const isSaving = savingPhase === phaseKey;
+                          
+                          return (
+                            <Collapsible key={phase.key}>
+                              <div className="rounded-lg border border-border bg-card overflow-hidden">
+                                <CollapsibleTrigger asChild>
+                                  <button className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="font-mono text-xs">
+                                        {phase.key}
+                                      </Badge>
+                                      <span className="text-sm font-medium">{phase.labelSv}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {hasChanges && (
+                                        <Badge variant="outline" className="text-amber-600 border-amber-600 text-xs">
+                                          Osparad
+                                        </Badge>
+                                      )}
+                                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                  </button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent>
+                                  <div className="px-3 pb-3 space-y-3">
+                                    <Textarea
+                                      value={currentValue}
+                                      onChange={(e) => handlePhaseEdit(country.code, phase.key, e.target.value)}
+                                      className="min-h-[120px] text-sm font-mono"
+                                      placeholder={`Instruktioner för ${phase.labelSv}...`}
+                                    />
+                                    {hasChanges && (
+                                      <div className="flex justify-end">
+                                        <Button
+                                          size="sm"
+                                          onClick={() => handleSavePhase(country.code, phase.key)}
+                                          disabled={isSaving}
+                                        >
+                                          {isSaving ? (
+                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                          ) : (
+                                            <Save className="h-4 w-4 mr-2" />
+                                          )}
+                                          Spara
+                                        </Button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </CollapsibleContent>
+                              </div>
+                            </Collapsible>
+                          );
+                        })}
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                </>
               )}
             </CardContent>
           </Card>

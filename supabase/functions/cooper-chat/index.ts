@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,83 +42,109 @@ function getGapsInstruction(gaps?: InformationGaps, completeness?: number): stri
   return instruction;
 }
 
-function getPhaseInstruction(phase: string): string {
-  switch (phase) {
-    case 'opening':
-      return `## CURRENT INTERVIEW PHASE: OPENING
-**Objective:** Let the user tell their story freely
+// Fallback phase instructions (used when database lookup fails)
+const FALLBACK_PHASE_INSTRUCTIONS: Record<string, string> = {
+  opening: `**Objective:** Let the user tell their story freely
 **Focus on:**
 - Ask open-ended questions like "Can you tell me what happened?"
 - Let the user speak freely without interruption
 - Listen for key themes and parties involved
 - Build trust and rapport
-- Get an overview of the situation`;
-
-    case 'timeline':
-      return `## CURRENT INTERVIEW PHASE: TIMELINE
-**Objective:** Build chronological understanding
+- Get an overview of the situation`,
+  timeline: `**Objective:** Build chronological understanding
 **Focus on:**
 - Ask "When did this start?" and "When did X happen?"
 - Request specific dates, times, or timeframes
 - Build a chronological sequence of events
 - Identify any deadlines or time-sensitive issues
-- Map the progression of the situation`;
-
-    case 'details':
-      return `## CURRENT INTERVIEW PHASE: DETAILS
-**Objective:** Deep dive into specifics
+- Map the progression of the situation`,
+  details: `**Objective:** Deep dive into specifics
 **Focus on:**
 - Ask "Who was involved?" and "Where did this happen?"
 - Request specific names, titles, and roles
 - Clarify locations and settings
 - Understand the "how" of each event
-- Explore motivations and context`;
-
-    case 'legal':
-      return `## CURRENT INTERVIEW PHASE: LEGAL ASPECTS
-**Objective:** Identify legal issues and frameworks
+- Explore motivations and context`,
+  legal: `**Objective:** Identify legal issues and frameworks
 **Focus on:**
 - Ask about contracts, agreements, or written terms
 - Identify legal relationships (employer-employee, landlord-tenant, etc.)
 - Explore obligations and rights
 - Look for potential violations or breaches
-- Understand relevant laws and regulations`;
-
-    case 'evidence':
-      return `## CURRENT INTERVIEW PHASE: EVIDENCE
-**Objective:** Gather documentation and witnesses
+- Understand relevant laws and regulations`,
+  evidence: `**Objective:** Gather documentation and witnesses
 **Focus on:**
 - Ask "Do you have any documents related to this?"
 - Request emails, messages, contracts, receipts
 - Identify potential witnesses
 - Look for photos, videos, or recordings
-- Find communication records`;
-
-    case 'impact':
-      return `## CURRENT INTERVIEW PHASE: IMPACT & CONSEQUENCES
-**Objective:** Assess damages and effects
+- Find communication records`,
+  impact: `**Objective:** Assess damages and effects
 **Focus on:**
 - Ask "How has this affected you financially?"
 - Explore emotional and psychological impact
 - Identify ongoing consequences
 - Quantify losses where possible
-- Understand future implications`;
-
-    case 'closing':
-      return `## CURRENT INTERVIEW PHASE: CLOSING
-**Objective:** Fill gaps and summarize
+- Understand future implications`,
+  closing: `**Objective:** Fill gaps and summarize
 **Focus on:**
 - Review any gaps in the story
 - Ask clarifying questions
 - Confirm key facts
 - Address any missing information
-- Prepare user for report generation`;
+- Prepare user for report generation`,
+};
 
-    default:
-      return `## CURRENT INTERVIEW PHASE: OPENING
-**Objective:** Gather initial information
-**Focus on:** Understanding the user's situation`;
+// Fetch phase instruction from database
+async function getPhaseInstructionFromDB(country: string, phase: string): Promise<string | null> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    const { data, error } = await supabase
+      .from('phase_instructions')
+      .select('instruction')
+      .eq('country_code', country)
+      .eq('phase', phase)
+      .single();
+    
+    if (error) {
+      console.log('Could not fetch phase instruction:', error.message);
+      return null;
+    }
+    
+    return data?.instruction || null;
+  } catch (error) {
+    console.error('Error fetching phase instruction:', error);
+    return null;
   }
+}
+
+// Get phase instruction with database lookup and fallback
+async function getPhaseInstruction(phase: string, country?: string): Promise<string> {
+  const phaseName = phase || 'opening';
+  const phaseLabels: Record<string, string> = {
+    opening: 'OPENING',
+    timeline: 'TIMELINE',
+    details: 'DETAILS',
+    legal: 'LEGAL ASPECTS',
+    evidence: 'EVIDENCE',
+    impact: 'IMPACT & CONSEQUENCES',
+    closing: 'CLOSING',
+  };
+  
+  // Try to get from database if country is provided
+  if (country) {
+    const dbInstruction = await getPhaseInstructionFromDB(country, phaseName);
+    if (dbInstruction) {
+      return `## CURRENT INTERVIEW PHASE: ${phaseLabels[phaseName] || phaseName.toUpperCase()}\n${dbInstruction}`;
+    }
+  }
+  
+  // Fallback to hardcoded instructions
+  const fallback = FALLBACK_PHASE_INSTRUCTIONS[phaseName] || FALLBACK_PHASE_INSTRUCTIONS.opening;
+  return `## CURRENT INTERVIEW PHASE: ${phaseLabels[phaseName] || phaseName.toUpperCase()}\n${fallback}`;
 }
 
 interface Message {
@@ -168,7 +195,8 @@ serve(async (req) => {
       ? `IMPORTANT: Always respond in ${userLanguage}. The user has chosen this language for communication.`
       : "Detect the user's preferred language from their responses and continue in that language.";
 
-    const phaseInstruction = getPhaseInstruction(currentPhase || 'opening');
+    // Fetch phase instruction from database (with fallback)
+    const phaseInstruction = await getPhaseInstruction(currentPhase || 'opening', country);
     
     const gapsInstruction = getGapsInstruction(informationGaps, completeness);
 

@@ -109,6 +109,33 @@ export type Database = {
           },
         ]
       }
+      phase_instructions: {
+        Row: {
+          country_code: string
+          created_at: string
+          id: string
+          instruction: string
+          phase: string
+          updated_at: string
+        }
+        Insert: {
+          country_code: string
+          created_at?: string
+          id?: string
+          instruction: string
+          phase: string
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string
+          created_at?: string
+          id?: string
+          instruction?: string
+          phase?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           country: string
