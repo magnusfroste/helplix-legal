@@ -244,23 +244,6 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             />
           </section>
 
-          {/* System Prompt */}
-          <section className="space-y-4">
-            <div>
-              <Label className="text-helplix-lg font-semibold">
-                {t.settings.systemPrompt.title}
-              </Label>
-              <p className="text-helplix-base text-muted-foreground">
-                {t.settings.systemPrompt.description}
-              </p>
-            </div>
-            <Textarea
-              value={localSettings.systemPrompt}
-              onChange={(e) => handleChange('systemPrompt', e.target.value)}
-              className="min-h-[200px] text-sm font-mono"
-              placeholder="Enter system prompt..."
-            />
-          </section>
 
           {/* Reset to Start Screen */}
           <section className="pt-4 border-t border-border">

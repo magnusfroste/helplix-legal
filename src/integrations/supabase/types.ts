@@ -44,6 +44,30 @@ export type Database = {
         }
         Relationships: []
       }
+      jurisdiction_prompts: {
+        Row: {
+          country_code: string
+          created_at: string
+          id: string
+          system_prompt: string
+          updated_at: string
+        }
+        Insert: {
+          country_code: string
+          created_at?: string
+          id?: string
+          system_prompt: string
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string
+          created_at?: string
+          id?: string
+          system_prompt?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       log_entries: {
         Row: {
           audio_url: string | null
