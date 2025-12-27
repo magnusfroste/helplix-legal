@@ -1,17 +1,20 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff } from 'lucide-react';
+import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useFeatureFlags, FeatureFlag } from '@/hooks/useFeatureFlags';
+import { useJurisdictionPrompts } from '@/hooks/useJurisdictionPrompts';
 import { supabase } from '@/integrations/supabase/client';
-
+import { COUNTRIES } from '@/types/helplix';
 interface User {
   id: string;
   country: string;
@@ -52,6 +55,12 @@ export default function Admin() {
 
   const { isAdmin, isLoading: adminLoading, error: adminError } = useAdminAuth();
   const { flags, isLoading: flagsLoading, updateFlag, refreshFlags } = useFeatureFlags();
+  const { prompts, isLoading: promptsLoading, updatePrompt } = useJurisdictionPrompts();
+  
+  // Local state for editing prompts
+  const [editingPrompts, setEditingPrompts] = useState<Record<string, string>>({});
+  const [savingPrompt, setSavingPrompt] = useState<string | null>(null);
+  const [openPrompts, setOpenPrompts] = useState<Record<string, boolean>>({});
 
   // Get current user ID from session
   useEffect(() => {
@@ -154,6 +163,34 @@ export default function Admin() {
     } else {
       toast.error('Kunde inte uppdatera inställning');
     }
+  };
+
+  const handlePromptEdit = (countryCode: string, value: string) => {
+    setEditingPrompts(prev => ({ ...prev, [countryCode]: value }));
+  };
+
+  const handleSavePrompt = async (countryCode: string) => {
+    const newPrompt = editingPrompts[countryCode];
+    if (!newPrompt) return;
+
+    setSavingPrompt(countryCode);
+    const success = await updatePrompt(countryCode, newPrompt);
+    
+    if (success) {
+      toast.success(`Systemprompt för ${COUNTRIES.find(c => c.code === countryCode)?.name || countryCode} sparad`);
+      setEditingPrompts(prev => {
+        const copy = { ...prev };
+        delete copy[countryCode];
+        return copy;
+      });
+    } else {
+      toast.error('Kunde inte spara systemprompt');
+    }
+    setSavingPrompt(null);
+  };
+
+  const togglePromptOpen = (countryCode: string) => {
+    setOpenPrompts(prev => ({ ...prev, [countryCode]: !prev[countryCode] }));
   };
 
   const getConnectionStatus = (requiresConnection: string | null) => {
@@ -294,6 +331,99 @@ export default function Admin() {
                         onCheckedChange={() => handleToggleFlag(flag)}
                       />
                     </div>
+                  );
+                })
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Jurisdiction System Prompts */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Systempromptar per Jurisdiktion
+              </CardTitle>
+              <CardDescription>
+                Anpassa AI-assistentens beteende för varje land
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {promptsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : prompts.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">
+                  Inga systempromptar hittades
+                </p>
+              ) : (
+                prompts.map((prompt) => {
+                  const country = COUNTRIES.find(c => c.code === prompt.country_code);
+                  const isOpen = openPrompts[prompt.country_code] || false;
+                  const currentValue = editingPrompts[prompt.country_code] ?? prompt.system_prompt;
+                  const hasChanges = editingPrompts[prompt.country_code] !== undefined && 
+                                     editingPrompts[prompt.country_code] !== prompt.system_prompt;
+                  const isSaving = savingPrompt === prompt.country_code;
+
+                  return (
+                    <Collapsible 
+                      key={prompt.id}
+                      open={isOpen}
+                      onOpenChange={() => togglePromptOpen(prompt.country_code)}
+                    >
+                      <div className="rounded-lg border border-border bg-card overflow-hidden">
+                        <CollapsibleTrigger asChild>
+                          <button className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">{country?.flag || '🌍'}</span>
+                              <div className="text-left">
+                                <p className="font-medium">{country?.name || prompt.country_code}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {country?.language || 'Unknown'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {hasChanges && (
+                                <Badge variant="outline" className="text-amber-600 border-amber-600">
+                                  Osparad
+                                </Badge>
+                              )}
+                              {isOpen ? (
+                                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </div>
+                          </button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="px-4 pb-4 space-y-3">
+                            <Textarea
+                              value={currentValue}
+                              onChange={(e) => handlePromptEdit(prompt.country_code, e.target.value)}
+                              className="min-h-[150px] text-sm font-mono"
+                              placeholder="Ange systemprompt..."
+                            />
+                            <div className="flex justify-end">
+                              <Button
+                                size="sm"
+                                onClick={() => handleSavePrompt(prompt.country_code)}
+                                disabled={!hasChanges || isSaving}
+                              >
+                                {isSaving ? (
+                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                ) : (
+                                  <Save className="h-4 w-4 mr-2" />
+                                )}
+                                Spara
+                              </Button>
+                            </div>
+                          </div>
+                        </CollapsibleContent>
+                      </div>
+                    </Collapsible>
                   );
                 })
               )}

@@ -13,6 +13,7 @@ interface Message {
 
 interface UseCooperChatOptions {
   settings: CooperSettings;
+  systemPrompt?: string; // Override settings.systemPrompt with jurisdiction-specific prompt
   currentPhase?: ConversationPhase;
   informationGaps?: InformationGaps;
   completeness?: number;
@@ -20,7 +21,7 @@ interface UseCooperChatOptions {
   onError?: (error: string) => void;
 }
 
-export function useCooperChat({ settings, currentPhase, informationGaps, completeness, onResponse, onError }: UseCooperChatOptions) {
+export function useCooperChat({ settings, systemPrompt, currentPhase, informationGaps, completeness, onResponse, onError }: UseCooperChatOptions) {
   const [isLoading, setIsLoading] = useState(false);
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const messagesRef = useRef<Message[]>([]);
@@ -61,7 +62,7 @@ export function useCooperChat({ settings, currentPhase, informationGaps, complet
           },
           body: JSON.stringify({
             messages: messagesRef.current,
-            systemPrompt: settings.systemPrompt,
+            systemPrompt: systemPrompt || settings.systemPrompt, // Use jurisdiction prompt if provided
             questionIntensity: Math.round(settings.questionIntensity / 10), // Convert 0-100 to 1-10
             userLanguage: detectedLanguage,
             country: settings.country,
@@ -96,7 +97,7 @@ export function useCooperChat({ settings, currentPhase, informationGaps, complet
     } finally {
       setIsLoading(false);
     }
-  }, [settings, detectedLanguage, onResponse, onError]);
+  }, [settings, systemPrompt, detectedLanguage, onResponse, onError]);
 
   const resetConversation = useCallback(() => {
     messagesRef.current = [];

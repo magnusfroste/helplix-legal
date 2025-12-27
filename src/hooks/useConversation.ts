@@ -5,6 +5,7 @@ import { useCooperChat } from './useCooperChat';
 import { usePhaseTracking } from './usePhaseTracking';
 import { useLogEntries } from './useLogEntries';
 import { useFeatureFlags } from './useFeatureFlags';
+import { useJurisdictionPrompts } from './useJurisdictionPrompts';
 import { toast } from 'sonner';
 
 interface UseConversationOptions {
@@ -15,8 +16,17 @@ interface UseConversationOptions {
 export function useConversation({ settings, userId }: UseConversationOptions) {
   // Feature flags
   const { getFlag } = useFeatureFlags();
+  const { getPromptForCountry } = useJurisdictionPrompts();
   const useRealtimeSTT = getFlag('realtime_transcription');
   const useStreamingTTS = getFlag('streaming_tts');
+  
+  // Get system prompt from database based on country
+  const systemPrompt = useMemo(() => {
+    if (settings.country) {
+      return getPromptForCountry(settings.country);
+    }
+    return '';
+  }, [settings.country, getPromptForCountry]);
   
   // State for realtime transcript display
   const [realtimeTranscriptText, setRealtimeTranscriptText] = useState('');
@@ -38,9 +48,10 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     onRealtimeTranscript: (text) => setRealtimeTranscriptText(text),
   });
 
-  // Chat service
+  // Chat service - use jurisdiction prompt from database
   const chat = useCooperChat({
     settings,
+    systemPrompt, // Pass the jurisdiction-specific prompt
     currentPhase: phaseTracking.currentPhase,
     informationGaps: phaseTracking.informationGaps,
     completeness: phaseTracking.completeness,
