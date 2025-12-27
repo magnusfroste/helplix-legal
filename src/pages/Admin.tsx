@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge, ListTree } from 'lucide-react';
+import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge, ListTree, BookOpen, Plus, Trash2, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,6 +17,7 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useFeatureFlags, FeatureFlag } from '@/hooks/useFeatureFlags';
 import { useJurisdictionPrompts } from '@/hooks/useJurisdictionPrompts';
 import { usePhaseInstructions, PHASES, Phase } from '@/hooks/usePhaseInstructions';
+import { useBehaviorGuidelines, BehaviorGuideline } from '@/hooks/useBehaviorGuidelines';
 import { supabase } from '@/integrations/supabase/client';
 import { COUNTRIES } from '@/types/helplix';
 
@@ -61,16 +63,31 @@ export default function Admin() {
   const { flags, isLoading: flagsLoading, updateFlag, refreshFlags } = useFeatureFlags();
   const { prompts, isLoading: promptsLoading, updatePrompt, updateIntensity } = useJurisdictionPrompts();
   const { instructions, isLoading: instructionsLoading, updateInstruction, getInstruction } = usePhaseInstructions();
+  const { 
+    guidelines, 
+    isLoading: guidelinesLoading, 
+    getGlobalGuidelines,
+    getGuidelinesForCountry,
+    updateGuideline, 
+    addGuideline,
+    deleteGuideline 
+  } = useBehaviorGuidelines();
   
   // Local state for editing prompts
   const [editingPrompts, setEditingPrompts] = useState<Record<string, string>>({});
   const [editingIntensity, setEditingIntensity] = useState<Record<string, number>>({});
   const [editingPhases, setEditingPhases] = useState<Record<string, string>>({});
+  const [editingGuidelines, setEditingGuidelines] = useState<Record<string, string>>({});
   const [savingPrompt, setSavingPrompt] = useState<string | null>(null);
   const [savingIntensity, setSavingIntensity] = useState<string | null>(null);
   const [savingPhase, setSavingPhase] = useState<string | null>(null);
+  const [savingGuideline, setSavingGuideline] = useState<string | null>(null);
   const [openPrompts, setOpenPrompts] = useState<Record<string, boolean>>({});
   const [selectedCountryForPhases, setSelectedCountryForPhases] = useState<string>('SE');
+  const [selectedGuidelineTab, setSelectedGuidelineTab] = useState<string>('global');
+  const [newGuidelineKey, setNewGuidelineKey] = useState('');
+  const [newGuidelineText, setNewGuidelineText] = useState('');
+  const [addingGuideline, setAddingGuideline] = useState(false);
 
   // Get current user ID from session
   useEffect(() => {
@@ -666,6 +683,302 @@ export default function Admin() {
                     ))}
                   </Tabs>
                 </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Behavior Guidelines */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Beteenderegler
+              </CardTitle>
+              <CardDescription>
+                Globala och jurisdiktions-specifika riktlinjer för AI-assistentens beteende
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {guidelinesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <Tabs value={selectedGuidelineTab} onValueChange={setSelectedGuidelineTab}>
+                  <TabsList className="w-full flex-wrap h-auto gap-1 p-1">
+                    <TabsTrigger value="global" className="flex items-center gap-1 text-xs px-2 py-1">
+                      <Globe className="h-3 w-3" />
+                      <span>Globala</span>
+                    </TabsTrigger>
+                    {COUNTRIES.map(country => (
+                      <TabsTrigger 
+                        key={country.code} 
+                        value={country.code}
+                        className="flex items-center gap-1 text-xs px-2 py-1"
+                      >
+                        <span>{country.flag}</span>
+                        <span className="hidden sm:inline">{country.code}</span>
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  
+                  {/* Global guidelines */}
+                  <TabsContent value="global" className="space-y-3 mt-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Globe className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium">Globala Beteenderegler</p>
+                        <p className="text-xs text-muted-foreground">Gäller för alla jurisdiktioner</p>
+                      </div>
+                    </div>
+                    
+                    {getGlobalGuidelines().map(guideline => {
+                      const currentValue = editingGuidelines[guideline.id] ?? guideline.guideline_text;
+                      const hasChanges = editingGuidelines[guideline.id] !== undefined && 
+                                        editingGuidelines[guideline.id] !== guideline.guideline_text;
+                      const isSaving = savingGuideline === guideline.id;
+                      
+                      return (
+                        <div key={guideline.id} className="rounded-lg border border-border bg-card p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Badge variant="outline" className="font-mono text-xs">
+                              {guideline.guideline_key}
+                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={guideline.is_enabled}
+                                onCheckedChange={async (checked) => {
+                                  const success = await updateGuideline(guideline.id, { is_enabled: checked });
+                                  if (success) {
+                                    toast.success(checked ? 'Regel aktiverad' : 'Regel inaktiverad');
+                                  }
+                                }}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive"
+                                onClick={async () => {
+                                  const success = await deleteGuideline(guideline.id);
+                                  if (success) {
+                                    toast.success('Regel borttagen');
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <Textarea
+                            value={currentValue}
+                            onChange={(e) => setEditingGuidelines(prev => ({ ...prev, [guideline.id]: e.target.value }))}
+                            className="min-h-[60px] text-sm"
+                            disabled={!guideline.is_enabled}
+                          />
+                          {hasChanges && (
+                            <div className="flex justify-end">
+                              <Button
+                                size="sm"
+                                onClick={async () => {
+                                  setSavingGuideline(guideline.id);
+                                  const success = await updateGuideline(guideline.id, { guideline_text: currentValue });
+                                  if (success) {
+                                    toast.success('Regel sparad');
+                                    setEditingGuidelines(prev => {
+                                      const copy = { ...prev };
+                                      delete copy[guideline.id];
+                                      return copy;
+                                    });
+                                  }
+                                  setSavingGuideline(null);
+                                }}
+                                disabled={isSaving}
+                              >
+                                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                                Spara
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    
+                    {/* Add new global guideline */}
+                    <div className="rounded-lg border border-dashed border-border p-3 space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">Lägg till ny global regel</p>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Nyckel (t.ex. patience)"
+                          value={newGuidelineKey}
+                          onChange={(e) => setNewGuidelineKey(e.target.value)}
+                          className="w-32"
+                        />
+                        <Input
+                          placeholder="Regeltext..."
+                          value={newGuidelineText}
+                          onChange={(e) => setNewGuidelineText(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button
+                          size="sm"
+                          disabled={!newGuidelineKey || !newGuidelineText || addingGuideline}
+                          onClick={async () => {
+                            setAddingGuideline(true);
+                            const maxOrder = Math.max(...getGlobalGuidelines().map(g => g.sort_order), 0);
+                            const success = await addGuideline({
+                              country_code: null,
+                              guideline_key: newGuidelineKey,
+                              guideline_text: newGuidelineText,
+                              is_enabled: true,
+                              sort_order: maxOrder + 1
+                            });
+                            if (success) {
+                              toast.success('Regel tillagd');
+                              setNewGuidelineKey('');
+                              setNewGuidelineText('');
+                            }
+                            setAddingGuideline(false);
+                          }}
+                        >
+                          {addingGuideline ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  {/* Per-country guidelines */}
+                  {COUNTRIES.map(country => (
+                    <TabsContent key={country.code} value={country.code} className="space-y-3 mt-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-2xl">{country.flag}</span>
+                        <div>
+                          <p className="font-medium">{country.name} Regler</p>
+                          <p className="text-xs text-muted-foreground">Överskriver eller kompletterar globala regler</p>
+                        </div>
+                      </div>
+                      
+                      {getGuidelinesForCountry(country.code).length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Inga specifika regler för {country.name}. Globala regler används.
+                        </p>
+                      ) : (
+                        getGuidelinesForCountry(country.code).map(guideline => {
+                          const currentValue = editingGuidelines[guideline.id] ?? guideline.guideline_text;
+                          const hasChanges = editingGuidelines[guideline.id] !== undefined && 
+                                            editingGuidelines[guideline.id] !== guideline.guideline_text;
+                          const isSaving = savingGuideline === guideline.id;
+                          
+                          return (
+                            <div key={guideline.id} className="rounded-lg border border-border bg-card p-3 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <Badge variant="outline" className="font-mono text-xs">
+                                  {guideline.guideline_key}
+                                </Badge>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={guideline.is_enabled}
+                                    onCheckedChange={async (checked) => {
+                                      const success = await updateGuideline(guideline.id, { is_enabled: checked });
+                                      if (success) {
+                                        toast.success(checked ? 'Regel aktiverad' : 'Regel inaktiverad');
+                                      }
+                                    }}
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-destructive"
+                                    onClick={async () => {
+                                      const success = await deleteGuideline(guideline.id);
+                                      if (success) {
+                                        toast.success('Regel borttagen');
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                              <Textarea
+                                value={currentValue}
+                                onChange={(e) => setEditingGuidelines(prev => ({ ...prev, [guideline.id]: e.target.value }))}
+                                className="min-h-[60px] text-sm"
+                                disabled={!guideline.is_enabled}
+                              />
+                              {hasChanges && (
+                                <div className="flex justify-end">
+                                  <Button
+                                    size="sm"
+                                    onClick={async () => {
+                                      setSavingGuideline(guideline.id);
+                                      const success = await updateGuideline(guideline.id, { guideline_text: currentValue });
+                                      if (success) {
+                                        toast.success('Regel sparad');
+                                        setEditingGuidelines(prev => {
+                                          const copy = { ...prev };
+                                          delete copy[guideline.id];
+                                          return copy;
+                                        });
+                                      }
+                                      setSavingGuideline(null);
+                                    }}
+                                    disabled={isSaving}
+                                  >
+                                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                                    Spara
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                      
+                      {/* Add new country-specific guideline */}
+                      <div className="rounded-lg border border-dashed border-border p-3 space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">Lägg till regel för {country.name}</p>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Nyckel"
+                            value={selectedGuidelineTab === country.code ? newGuidelineKey : ''}
+                            onChange={(e) => setNewGuidelineKey(e.target.value)}
+                            className="w-32"
+                          />
+                          <Input
+                            placeholder="Regeltext..."
+                            value={selectedGuidelineTab === country.code ? newGuidelineText : ''}
+                            onChange={(e) => setNewGuidelineText(e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button
+                            size="sm"
+                            disabled={!newGuidelineKey || !newGuidelineText || addingGuideline}
+                            onClick={async () => {
+                              setAddingGuideline(true);
+                              const countryGuidelines = getGuidelinesForCountry(country.code);
+                              const maxOrder = Math.max(...countryGuidelines.map(g => g.sort_order), 0);
+                              const success = await addGuideline({
+                                country_code: country.code,
+                                guideline_key: newGuidelineKey,
+                                guideline_text: newGuidelineText,
+                                is_enabled: true,
+                                sort_order: maxOrder + 1
+                              });
+                              if (success) {
+                                toast.success('Regel tillagd');
+                                setNewGuidelineKey('');
+                                setNewGuidelineText('');
+                              }
+                              setAddingGuideline(false);
+                            }}
+                          >
+                            {addingGuideline ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </div>
+                    </TabsContent>
+                  ))}
+                </Tabs>
               )}
             </CardContent>
           </Card>
