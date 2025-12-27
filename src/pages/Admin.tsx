@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge, ListTree, BookOpen, Plus, Trash2, Globe } from 'lucide-react';
+import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge, ListTree, BookOpen, Plus, Trash2, Globe, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -18,6 +18,7 @@ import { useFeatureFlags, FeatureFlag } from '@/hooks/useFeatureFlags';
 import { useJurisdictionPrompts } from '@/hooks/useJurisdictionPrompts';
 import { usePhaseInstructions, PHASES, Phase } from '@/hooks/usePhaseInstructions';
 import { useBehaviorGuidelines, BehaviorGuideline } from '@/hooks/useBehaviorGuidelines';
+import { useReportTemplates, REPORT_TYPES, ReportType } from '@/hooks/useReportTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { COUNTRIES } from '@/types/helplix';
 
@@ -72,19 +73,28 @@ export default function Admin() {
     addGuideline,
     deleteGuideline 
   } = useBehaviorGuidelines();
+  const { 
+    templates, 
+    isLoading: templatesLoading, 
+    getTemplate, 
+    updateTemplate 
+  } = useReportTemplates();
   
-  // Local state for editing prompts
+  // Local state for editing
   const [editingPrompts, setEditingPrompts] = useState<Record<string, string>>({});
   const [editingIntensity, setEditingIntensity] = useState<Record<string, number>>({});
   const [editingPhases, setEditingPhases] = useState<Record<string, string>>({});
   const [editingGuidelines, setEditingGuidelines] = useState<Record<string, string>>({});
+  const [editingTemplates, setEditingTemplates] = useState<Record<string, { text?: string; header?: string }>>({});
   const [savingPrompt, setSavingPrompt] = useState<string | null>(null);
   const [savingIntensity, setSavingIntensity] = useState<string | null>(null);
   const [savingPhase, setSavingPhase] = useState<string | null>(null);
   const [savingGuideline, setSavingGuideline] = useState<string | null>(null);
+  const [savingTemplate, setSavingTemplate] = useState<string | null>(null);
   const [openPrompts, setOpenPrompts] = useState<Record<string, boolean>>({});
   const [selectedCountryForPhases, setSelectedCountryForPhases] = useState<string>('SE');
   const [selectedGuidelineTab, setSelectedGuidelineTab] = useState<string>('global');
+  const [selectedTemplateCountry, setSelectedTemplateCountry] = useState<string>('SE');
   const [newGuidelineKey, setNewGuidelineKey] = useState('');
   const [newGuidelineText, setNewGuidelineText] = useState('');
   const [addingGuideline, setAddingGuideline] = useState(false);
@@ -976,6 +986,149 @@ export default function Admin() {
                           </Button>
                         </div>
                       </div>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Report Templates */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                Rapport-mallar per Jurisdiktion
+              </CardTitle>
+              <CardDescription>
+                Anpassa strukturen för tidslinje, juridisk översikt och tolkning
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {templatesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <Tabs value={selectedTemplateCountry} onValueChange={setSelectedTemplateCountry}>
+                  <TabsList className="w-full flex-wrap h-auto gap-1 p-1">
+                    {COUNTRIES.map(country => (
+                      <TabsTrigger 
+                        key={country.code} 
+                        value={country.code}
+                        className="flex items-center gap-1 text-xs px-2 py-1"
+                      >
+                        <span>{country.flag}</span>
+                        <span className="hidden sm:inline">{country.code}</span>
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  
+                  {COUNTRIES.map(country => (
+                    <TabsContent key={country.code} value={country.code} className="space-y-3 mt-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-2xl">{country.flag}</span>
+                        <div>
+                          <p className="font-medium">{country.name}</p>
+                          <p className="text-xs text-muted-foreground">{country.language}</p>
+                        </div>
+                      </div>
+                      
+                      {REPORT_TYPES.map(reportType => {
+                        const template = getTemplate(country.code, reportType.key);
+                        const templateKey = `${country.code}:${reportType.key}`;
+                        const editing = editingTemplates[templateKey];
+                        const currentText = editing?.text ?? template?.template_text ?? '';
+                        const currentHeader = editing?.header ?? template?.section_header ?? '';
+                        const hasChanges = editing !== undefined && (
+                          (editing.text !== undefined && editing.text !== template?.template_text) ||
+                          (editing.header !== undefined && editing.header !== template?.section_header)
+                        );
+                        const isSaving = savingTemplate === templateKey;
+                        
+                        return (
+                          <Collapsible key={reportType.key}>
+                            <div className="rounded-lg border border-border bg-card overflow-hidden">
+                              <CollapsibleTrigger asChild>
+                                <button className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="font-mono text-xs">
+                                      {reportType.key}
+                                    </Badge>
+                                    <span className="text-sm font-medium">{reportType.labelSv}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {hasChanges && (
+                                      <Badge variant="outline" className="text-amber-600 border-amber-600 text-xs">
+                                        Osparad
+                                      </Badge>
+                                    )}
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                </button>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent>
+                                <div className="px-3 pb-3 space-y-3">
+                                  <div>
+                                    <Label className="text-xs text-muted-foreground">Sektionsrubrik</Label>
+                                    <Input
+                                      value={currentHeader}
+                                      onChange={(e) => setEditingTemplates(prev => ({
+                                        ...prev,
+                                        [templateKey]: { ...prev[templateKey], header: e.target.value }
+                                      }))}
+                                      className="text-sm"
+                                      placeholder="Rubrik..."
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs text-muted-foreground">Mall-instruktioner</Label>
+                                    <Textarea
+                                      value={currentText}
+                                      onChange={(e) => setEditingTemplates(prev => ({
+                                        ...prev,
+                                        [templateKey]: { ...prev[templateKey], text: e.target.value }
+                                      }))}
+                                      className="min-h-[150px] text-sm font-mono"
+                                      placeholder="Mall-instruktioner..."
+                                    />
+                                  </div>
+                                  {hasChanges && (
+                                    <div className="flex justify-end">
+                                      <Button
+                                        size="sm"
+                                        onClick={async () => {
+                                          setSavingTemplate(templateKey);
+                                          const updates: { template_text?: string; section_header?: string } = {};
+                                          if (editing?.text !== undefined) updates.template_text = editing.text;
+                                          if (editing?.header !== undefined) updates.section_header = editing.header;
+                                          
+                                          const success = await updateTemplate(country.code, reportType.key, updates);
+                                          if (success) {
+                                            toast.success(`Mall "${reportType.labelSv}" sparad`);
+                                            setEditingTemplates(prev => {
+                                              const copy = { ...prev };
+                                              delete copy[templateKey];
+                                              return copy;
+                                            });
+                                          } else {
+                                            toast.error('Kunde inte spara mall');
+                                          }
+                                          setSavingTemplate(null);
+                                        }}
+                                        disabled={isSaving}
+                                      >
+                                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                                        Spara
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              </CollapsibleContent>
+                            </div>
+                          </Collapsible>
+                        );
+                      })}
                     </TabsContent>
                   ))}
                 </Tabs>

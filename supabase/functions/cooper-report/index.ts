@@ -20,6 +20,11 @@ interface ReportRequest {
   enableCaseSearch?: boolean;
 }
 
+interface ReportTemplate {
+  template_text: string;
+  section_header: string;
+}
+
 // Check if Perplexity case search is enabled
 async function isPerplexityCaseSearchEnabled(): Promise<boolean> {
   try {
@@ -45,6 +50,32 @@ async function isPerplexityCaseSearchEnabled(): Promise<boolean> {
   }
 }
 
+// Fetch report template from database
+async function getReportTemplate(country: string, reportType: string): Promise<ReportTemplate | null> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    const { data, error } = await supabase
+      .from('report_templates')
+      .select('template_text, section_header')
+      .eq('country_code', country)
+      .eq('report_type', reportType)
+      .single();
+    
+    if (error) {
+      console.log('Could not fetch report template:', error.message);
+      return null;
+    }
+    
+    return data as ReportTemplate;
+  } catch (error) {
+    console.error('Error fetching report template:', error);
+    return null;
+  }
+}
+
 // Search for case law using Perplexity
 async function searchCaseLaw(country: string, legalContext: string): Promise<string | null> {
   try {
@@ -66,7 +97,7 @@ async function searchCaseLaw(country: string, legalContext: string): Promise<str
       },
       body: JSON.stringify({
         country,
-        query: legalContext.slice(0, 500), // Limit query length
+        query: legalContext.slice(0, 500),
         legalContext
       }),
     });
@@ -130,10 +161,44 @@ serve(async (req) => {
     
     const languageInstruction = `Write the ENTIRE report in ${reportLanguage}. ALL headers, ALL content, ALL sections must be in ${reportLanguage}.`;
 
+    // Fetch templates from database if country is specified
+    let timelineTemplate: ReportTemplate | null = null;
+    let legalTemplate: ReportTemplate | null = null;
+    let interpretationTemplate: ReportTemplate | null = null;
+    
+    if (country) {
+      const templatePromises: Promise<ReportTemplate | null>[] = [];
+      
+      if (reportType === "timeline" || reportType === "both" || reportType === "all") {
+        templatePromises.push(getReportTemplate(country, 'timeline'));
+      } else {
+        templatePromises.push(Promise.resolve(null));
+      }
+      
+      if (reportType === "legal" || reportType === "both" || reportType === "all") {
+        templatePromises.push(getReportTemplate(country, 'legal'));
+      } else {
+        templatePromises.push(Promise.resolve(null));
+      }
+      
+      if (reportType === "interpretation" || reportType === "all") {
+        templatePromises.push(getReportTemplate(country, 'interpretation'));
+      } else {
+        templatePromises.push(Promise.resolve(null));
+      }
+      
+      [timelineTemplate, legalTemplate, interpretationTemplate] = await Promise.all(templatePromises);
+      console.log('Templates loaded:', { 
+        timeline: !!timelineTemplate, 
+        legal: !!legalTemplate, 
+        interpretation: !!interpretationTemplate 
+      });
+    }
+
     let systemPrompt = "";
     
-    // Define section headers based on language
-    const headers: Record<string, { timeline: string; legal: string; interpretation: string }> = {
+    // Fallback section headers
+    const defaultHeaders: Record<string, { timeline: string; legal: string; interpretation: string }> = {
       'Portuguese (Brazilian)': { timeline: 'Linha do Tempo Cronológica', legal: 'Visão Geral Jurídica', interpretation: 'Interpretação Jurídica' },
       'Spanish (Mexican)': { timeline: 'Línea de Tiempo Cronológica', legal: 'Resumen Legal', interpretation: 'Interpretación Legal' },
       'Spanish (Dominican)': { timeline: 'Línea de Tiempo Cronológica', legal: 'Resumen Legal', interpretation: 'Interpretación Legal' },
@@ -142,20 +207,30 @@ serve(async (req) => {
       'Dutch': { timeline: 'Chronologische Tijdlijn', legal: 'Juridisch Overzicht', interpretation: 'Juridische Interpretatie' },
     };
     
-    const sectionHeaders = headers[reportLanguage] || headers['English (American)'];
+    const fallbackHeaders = defaultHeaders[reportLanguage] || defaultHeaders['English (American)'];
+    
+    // Use database templates or fallback to hardcoded
+    const sectionHeaders = {
+      timeline: timelineTemplate?.section_header || fallbackHeaders.timeline,
+      legal: legalTemplate?.section_header || fallbackHeaders.legal,
+      interpretation: interpretationTemplate?.section_header || fallbackHeaders.interpretation,
+    };
     
     if (reportType === "timeline" || reportType === "both" || reportType === "all") {
-      systemPrompt += `
-## ${sectionHeaders.timeline}
-
-Create a clear, chronological timeline of events based on the conversation. 
+      const templateContent = timelineTemplate?.template_text || `Create a clear, chronological timeline of events based on the conversation. 
 
 Format:
 - Use clear date headers (if dates were mentioned) or relative time markers
 - List events in chronological order
 - Include key facts: who, what, when, where
 - Highlight important details that may be legally relevant
-- Be concise but complete
+- Be concise but complete`;
+
+      systemPrompt += `
+## ${sectionHeaders.timeline}
+
+${templateContent}
+
 - Start with the exact header: ## ${sectionHeaders.timeline}
 - Write EVERYTHING in ${reportLanguage}
 
@@ -163,20 +238,22 @@ Format:
     }
 
     if (reportType === "legal" || reportType === "both" || reportType === "all") {
-      systemPrompt += `
-## ${sectionHeaders.legal}
-
-Create a professional legal case summary based on the conversation.
-
-CRITICAL: Apply ${legalSystem} - NOT Swedish law or any other jurisdiction.
+      const templateContent = legalTemplate?.template_text || `Create a professional legal case summary based on the conversation.
 
 Include:
 1. **Summary**: Brief overview of the situation (2-3 sentences)
 2. **Parties Involved**: List all people/entities mentioned
 3. **Key Facts**: Bullet points of the most important facts
 4. **Potential Legal Issues**: Identify possible legal matters (contracts, damages, rights violations, etc.)
-5. **Relevant Legislation**: Mention potentially applicable laws from ${legalSystem}
-6. **Recommended Next Steps**: Suggest what the user should do next (consult a lawyer, gather documents, etc.)
+5. **Relevant Legislation**: Mention potentially applicable laws
+6. **Recommended Next Steps**: Suggest what the user should do next (consult a lawyer, gather documents, etc.)`;
+
+      systemPrompt += `
+## ${sectionHeaders.legal}
+
+${templateContent}
+
+CRITICAL: Apply ${legalSystem} - NOT Swedish law or any other jurisdiction.
 
 Important: 
 - Start this section with the exact header: ## ${sectionHeaders.legal}
