@@ -26,21 +26,30 @@ export const PushToTalkButton = memo(function PushToTalkButton({
   const isDisabled = disabled || isProcessing || isSpeaking;
 
   // Pre-warm AudioContext on first user interaction (iOS requirement)
-  const warmupAudio = useCallback(() => {
+  const warmupAudio = useCallback(async () => {
     if (audioContextRef.current) return;
     
     try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AudioContextClass();
       audioContextRef.current = ctx;
-      ctx.resume().then(() => {
-        // Create and play a silent buffer to unlock audio
-        const buffer = ctx.createBuffer(1, 1, 22050);
-        const source = ctx.createBufferSource();
-        source.buffer = buffer;
-        source.connect(ctx.destination);
-        source.start(0);
-        console.log('Audio context warmed up');
-      });
+      
+      await ctx.resume();
+      
+      // Create and play a silent buffer to unlock audio on iOS
+      const buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start(0);
+      
+      // Also create a silent audio element to unlock HTML5 audio on iOS
+      const silentAudio = new Audio();
+      silentAudio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYejBlxAAAAAAD/+1DEAAAB8AHgAAAAACIAPAAAAABMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7UMQhgAAAaQAAAAAAAA0gAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
+      silentAudio.volume = 0.01;
+      silentAudio.play().catch(() => {});
+      
+      console.log('Audio context warmed up for iOS');
     } catch (e) {
       console.log('Audio warmup failed:', e);
     }
