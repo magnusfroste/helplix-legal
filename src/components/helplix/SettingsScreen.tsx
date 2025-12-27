@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Save, RotateCcw, RefreshCw, Globe, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -53,12 +52,6 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
     setLocalSettings(DEFAULT_SETTINGS);
     setHasChanges(true);
     toast.info(t.settings.toast.reset);
-  };
-
-  const getIntensityLabel = (value: number) => {
-    if (value < 30) return t.settings.questionIntensity.low;
-    if (value < 70) return t.settings.questionIntensity.medium;
-    return t.settings.questionIntensity.high;
   };
 
   const currentCountry = COUNTRIES.find(c => c.code === localSettings.country);
@@ -130,31 +123,6 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             )}
           </section>
 
-          {/* Question Intensity */}
-          <section className="space-y-4">
-            <div>
-              <Label className="text-helplix-lg font-semibold">
-                {t.settings.questionIntensity.title}
-              </Label>
-              <p className="text-helplix-base text-muted-foreground mt-1">
-                {getIntensityLabel(localSettings.questionIntensity)}
-              </p>
-            </div>
-            
-            <div className="px-2">
-              <Slider
-                value={[localSettings.questionIntensity]}
-                onValueChange={([value]) => handleChange('questionIntensity', value)}
-                max={100}
-                step={10}
-                className="w-full"
-              />
-              <div className="flex justify-between text-sm text-muted-foreground mt-2">
-                <span>{t.settings.questionIntensity.fewer}</span>
-                <span>{t.settings.questionIntensity.more}</span>
-              </div>
-            </div>
-          </section>
 
           {/* Text Size */}
           <section className="space-y-4">

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useFeatureFlags, FeatureFlag } from '@/hooks/useFeatureFlags';
@@ -55,11 +56,13 @@ export default function Admin() {
 
   const { isAdmin, isLoading: adminLoading, error: adminError } = useAdminAuth();
   const { flags, isLoading: flagsLoading, updateFlag, refreshFlags } = useFeatureFlags();
-  const { prompts, isLoading: promptsLoading, updatePrompt } = useJurisdictionPrompts();
+  const { prompts, isLoading: promptsLoading, updatePrompt, updateIntensity } = useJurisdictionPrompts();
   
   // Local state for editing prompts
   const [editingPrompts, setEditingPrompts] = useState<Record<string, string>>({});
+  const [editingIntensity, setEditingIntensity] = useState<Record<string, number>>({});
   const [savingPrompt, setSavingPrompt] = useState<string | null>(null);
+  const [savingIntensity, setSavingIntensity] = useState<string | null>(null);
   const [openPrompts, setOpenPrompts] = useState<Record<string, boolean>>({});
 
   // Get current user ID from session
@@ -191,6 +194,36 @@ export default function Admin() {
 
   const togglePromptOpen = (countryCode: string) => {
     setOpenPrompts(prev => ({ ...prev, [countryCode]: !prev[countryCode] }));
+  };
+
+  const handleIntensityChange = (countryCode: string, value: number) => {
+    setEditingIntensity(prev => ({ ...prev, [countryCode]: value }));
+  };
+
+  const handleSaveIntensity = async (countryCode: string) => {
+    const newIntensity = editingIntensity[countryCode];
+    if (newIntensity === undefined) return;
+
+    setSavingIntensity(countryCode);
+    const success = await updateIntensity(countryCode, newIntensity);
+    
+    if (success) {
+      toast.success(`Frågeintensitet för ${COUNTRIES.find(c => c.code === countryCode)?.name || countryCode} sparad`);
+      setEditingIntensity(prev => {
+        const copy = { ...prev };
+        delete copy[countryCode];
+        return copy;
+      });
+    } else {
+      toast.error('Kunde inte spara frågeintensitet');
+    }
+    setSavingIntensity(null);
+  };
+
+  const getIntensityLabel = (value: number) => {
+    if (value < 30) return 'Låg (öppna frågor)';
+    if (value < 70) return 'Medium (balanserade frågor)';
+    return 'Hög (detaljerade frågor)';
   };
 
   const getConnectionStatus = (requiresConnection: string | null) => {
@@ -358,13 +391,17 @@ export default function Admin() {
                   Inga systempromptar hittades
                 </p>
               ) : (
-                prompts.map((prompt) => {
+              prompts.map((prompt) => {
                   const country = COUNTRIES.find(c => c.code === prompt.country_code);
                   const isOpen = openPrompts[prompt.country_code] || false;
-                  const currentValue = editingPrompts[prompt.country_code] ?? prompt.system_prompt;
-                  const hasChanges = editingPrompts[prompt.country_code] !== undefined && 
+                  const currentPromptValue = editingPrompts[prompt.country_code] ?? prompt.system_prompt;
+                  const currentIntensityValue = editingIntensity[prompt.country_code] ?? prompt.question_intensity;
+                  const hasPromptChanges = editingPrompts[prompt.country_code] !== undefined && 
                                      editingPrompts[prompt.country_code] !== prompt.system_prompt;
-                  const isSaving = savingPrompt === prompt.country_code;
+                  const hasIntensityChanges = editingIntensity[prompt.country_code] !== undefined && 
+                                     editingIntensity[prompt.country_code] !== prompt.question_intensity;
+                  const isSavingPromptNow = savingPrompt === prompt.country_code;
+                  const isSavingIntensityNow = savingIntensity === prompt.country_code;
 
                   return (
                     <Collapsible 
@@ -380,12 +417,12 @@ export default function Admin() {
                               <div className="text-left">
                                 <p className="font-medium">{country?.name || prompt.country_code}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  {country?.language || 'Unknown'}
+                                  {country?.language || 'Unknown'} • Intensitet: {prompt.question_intensity}%
                                 </p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              {hasChanges && (
+                              {(hasPromptChanges || hasIntensityChanges) && (
                                 <Badge variant="outline" className="text-amber-600 border-amber-600">
                                   Osparad
                                 </Badge>
@@ -399,26 +436,74 @@ export default function Admin() {
                           </button>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
-                          <div className="px-4 pb-4 space-y-3">
-                            <Textarea
-                              value={currentValue}
-                              onChange={(e) => handlePromptEdit(prompt.country_code, e.target.value)}
-                              className="min-h-[150px] text-sm font-mono"
-                              placeholder="Ange systemprompt..."
-                            />
-                            <div className="flex justify-end">
-                              <Button
-                                size="sm"
-                                onClick={() => handleSavePrompt(prompt.country_code)}
-                                disabled={!hasChanges || isSaving}
-                              >
-                                {isSaving ? (
-                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                ) : (
-                                  <Save className="h-4 w-4 mr-2" />
-                                )}
-                                Spara
-                              </Button>
+                          <div className="px-4 pb-4 space-y-6">
+                            {/* Question Intensity */}
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Gauge className="h-4 w-4 text-muted-foreground" />
+                                <Label className="font-medium">Frågeintensitet</Label>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {getIntensityLabel(currentIntensityValue)}
+                              </p>
+                              <Slider
+                                value={[currentIntensityValue]}
+                                onValueChange={([value]) => handleIntensityChange(prompt.country_code, value)}
+                                max={100}
+                                step={10}
+                                className="w-full"
+                              />
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>Färre frågor</span>
+                                <span>Fler frågor</span>
+                              </div>
+                              {hasIntensityChanges && (
+                                <div className="flex justify-end">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleSaveIntensity(prompt.country_code)}
+                                    disabled={isSavingIntensityNow}
+                                  >
+                                    {isSavingIntensityNow ? (
+                                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    ) : (
+                                      <Save className="h-4 w-4 mr-2" />
+                                    )}
+                                    Spara intensitet
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* System Prompt */}
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-muted-foreground" />
+                                <Label className="font-medium">Systemprompt</Label>
+                              </div>
+                              <Textarea
+                                value={currentPromptValue}
+                                onChange={(e) => handlePromptEdit(prompt.country_code, e.target.value)}
+                                className="min-h-[150px] text-sm font-mono"
+                                placeholder="Ange systemprompt..."
+                              />
+                              {hasPromptChanges && (
+                                <div className="flex justify-end">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleSavePrompt(prompt.country_code)}
+                                    disabled={isSavingPromptNow}
+                                  >
+                                    {isSavingPromptNow ? (
+                                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    ) : (
+                                      <Save className="h-4 w-4 mr-2" />
+                                    )}
+                                    Spara prompt
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </CollapsibleContent>
