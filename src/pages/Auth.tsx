@@ -150,7 +150,9 @@ export default function Auth() {
   };
 
   const handleGetStarted = () => {
-    setMode('select-country');
+    // Use already selected display language as country
+    setSelectedCountry(displayLanguage);
+    setMode('signup');
   };
 
   const handleGoToLogin = () => {
