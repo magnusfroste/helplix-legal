@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, RefreshCw, Globe, LogOut, Shield, Trash2 } from 'lucide-react';
+import { Save, RotateCcw, RefreshCw, LogOut, Shield, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
