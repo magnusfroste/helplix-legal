@@ -87,7 +87,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
   return (
     <div className="flex flex-col h-[calc(100vh-140px)]">
       <header className="px-4 py-4 border-b border-border">
-        <h1 className="text-cooper-2xl font-bold text-foreground">
+        <h1 className="text-helplix-2xl font-bold text-foreground">
           {t.settings.title}
         </h1>
       </header>
@@ -97,10 +97,10 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           {/* Country Selection */}
           <section className="space-y-4">
             <div>
-              <Label className="text-cooper-lg font-semibold">
+              <Label className="text-helplix-lg font-semibold">
                 {t.settings.country.title}
               </Label>
-              <p className="text-cooper-base text-muted-foreground mt-1">
+              <p className="text-helplix-base text-muted-foreground mt-1">
                 {currentCountry ? `${currentCountry.flag} ${currentCountry.name}` : t.settings.country.select}
               </p>
             </div>
@@ -133,10 +133,10 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           {/* Question Intensity */}
           <section className="space-y-4">
             <div>
-              <Label className="text-cooper-lg font-semibold">
+              <Label className="text-helplix-lg font-semibold">
                 {t.settings.questionIntensity.title}
               </Label>
-              <p className="text-cooper-base text-muted-foreground mt-1">
+              <p className="text-helplix-base text-muted-foreground mt-1">
                 {getIntensityLabel(localSettings.questionIntensity)}
               </p>
             </div>
@@ -158,7 +158,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
 
           {/* Text Size */}
           <section className="space-y-4">
-            <Label className="text-cooper-lg font-semibold">
+            <Label className="text-helplix-lg font-semibold">
               {t.settings.textSize.title}
             </Label>
             <div className="flex gap-2">
@@ -177,7 +177,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
 
           {/* Button Size */}
           <section className="space-y-4">
-            <Label className="text-cooper-lg font-semibold">
+            <Label className="text-helplix-lg font-semibold">
               {t.settings.buttonSize.title}
             </Label>
             <div className="flex gap-2">
@@ -197,10 +197,10 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           {/* Audio Enabled Toggle */}
           <section className="flex items-center justify-between">
             <div>
-              <Label className="text-cooper-lg font-semibold">
+              <Label className="text-helplix-lg font-semibold">
                 {t.settings.tts.title}
               </Label>
-              <p className="text-cooper-base text-muted-foreground">
+              <p className="text-helplix-base text-muted-foreground">
                 {t.settings.tts.description}
               </p>
             </div>
@@ -213,10 +213,10 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           {/* Speech-to-Text Toggle */}
           <section className="flex items-center justify-between">
             <div>
-              <Label className="text-cooper-lg font-semibold">
+              <Label className="text-helplix-lg font-semibold">
                 {t.settings.stt.title}
               </Label>
-              <p className="text-cooper-base text-muted-foreground">
+              <p className="text-helplix-base text-muted-foreground">
                 {t.settings.stt.description}
               </p>
             </div>
@@ -229,10 +229,10 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           {/* Real-time Transcription Display */}
           <section className="flex items-center justify-between">
             <div>
-              <Label className="text-cooper-lg font-semibold">
+              <Label className="text-helplix-lg font-semibold">
                 {t.settings.realtimeTranscription?.title || 'Show Real-time Transcription'}
               </Label>
-              <p className="text-cooper-base text-muted-foreground">
+              <p className="text-helplix-base text-muted-foreground">
                 {t.settings.realtimeTranscription?.description || 'Display your speech as text in real-time while recording'}
               </p>
             </div>
@@ -246,10 +246,10 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           {/* Autoplay Speech */}
           <section className="flex items-center justify-between">
             <div>
-              <Label className="text-cooper-lg font-semibold">
+              <Label className="text-helplix-lg font-semibold">
                 {t.settings.autoplay.title}
               </Label>
-              <p className="text-cooper-base text-muted-foreground">
+              <p className="text-helplix-base text-muted-foreground">
                 {t.settings.autoplay.description}
               </p>
             </div>
@@ -263,10 +263,10 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           {/* System Prompt */}
           <section className="space-y-4">
             <div>
-              <Label className="text-cooper-lg font-semibold">
+              <Label className="text-helplix-lg font-semibold">
                 {t.settings.systemPrompt.title}
               </Label>
-              <p className="text-cooper-base text-muted-foreground">
+              <p className="text-helplix-base text-muted-foreground">
                 {t.settings.systemPrompt.description}
               </p>
             </div>

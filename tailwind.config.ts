@@ -66,6 +66,8 @@ export default {
         full: "9999px",
       },
       fontSize: {
+        "helplix-xs": ["0.875rem", { lineHeight: "1.5" }],
+        "helplix-sm": ["1rem", { lineHeight: "1.5" }],
         "helplix-base": ["1.125rem", { lineHeight: "1.6" }],
         "helplix-lg": ["1.375rem", { lineHeight: "1.5" }],
         "helplix-xl": ["1.75rem", { lineHeight: "1.4" }],
