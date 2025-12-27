@@ -121,6 +121,68 @@ async function getPhaseInstructionFromDB(country: string, phase: string): Promis
   }
 }
 
+// Fetch behavior guidelines from database
+async function getBehaviorGuidelines(country?: string): Promise<string> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    // Get global guidelines (country_code is null)
+    const { data: globalData, error: globalError } = await supabase
+      .from('behavior_guidelines')
+      .select('guideline_key, guideline_text')
+      .is('country_code', null)
+      .eq('is_enabled', true)
+      .order('sort_order');
+    
+    if (globalError) {
+      console.log('Could not fetch global guidelines:', globalError.message);
+    }
+    
+    // Get country-specific guidelines if country is provided
+    let countryData: any[] = [];
+    if (country) {
+      const { data, error } = await supabase
+        .from('behavior_guidelines')
+        .select('guideline_key, guideline_text')
+        .eq('country_code', country)
+        .eq('is_enabled', true)
+        .order('sort_order');
+      
+      if (error) {
+        console.log('Could not fetch country guidelines:', error.message);
+      } else {
+        countryData = data || [];
+      }
+    }
+    
+    // Merge guidelines - country-specific override global ones with same key
+    const guidelinesMap = new Map<string, string>();
+    
+    // Add global guidelines first
+    (globalData || []).forEach((g: any) => {
+      guidelinesMap.set(g.guideline_key, g.guideline_text);
+    });
+    
+    // Override with country-specific
+    countryData.forEach((g: any) => {
+      guidelinesMap.set(g.guideline_key, g.guideline_text);
+    });
+    
+    // Convert to bullet points
+    const guidelines = Array.from(guidelinesMap.values());
+    if (guidelines.length === 0) {
+      return '';
+    }
+    
+    return guidelines.map(g => `- ${g}`).join('\n');
+  } catch (error) {
+    console.error('Error fetching behavior guidelines:', error);
+    return '';
+  }
+}
+
 // Get phase instruction with database lookup and fallback
 async function getPhaseInstruction(phase: string, country?: string): Promise<string> {
   const phaseName = phase || 'opening';
@@ -195,20 +257,28 @@ serve(async (req) => {
       ? `IMPORTANT: Always respond in ${userLanguage}. The user has chosen this language for communication.`
       : "Detect the user's preferred language from their responses and continue in that language.";
 
-    // Fetch phase instruction from database (with fallback)
-    const phaseInstruction = await getPhaseInstruction(currentPhase || 'opening', country);
+    // Fetch phase instruction and behavior guidelines from database
+    const [phaseInstruction, behaviorGuidelines] = await Promise.all([
+      getPhaseInstruction(currentPhase || 'opening', country),
+      getBehaviorGuidelines(country)
+    ]);
     
     const gapsInstruction = getGapsInstruction(informationGaps, completeness);
 
-    const fullSystemPrompt = `${systemPrompt}
-
-## Your Behavior Guidelines:
+    // Build behavior guidelines section
+    const guidelinesSection = behaviorGuidelines 
+      ? `## Your Behavior Guidelines:\n- ${intensityInstruction}\n- ${languageInstruction}\n${behaviorGuidelines}`
+      : `## Your Behavior Guidelines:
 - ${intensityInstruction}
 - ${languageInstruction}
 - Always be empathetic and patient - remember the user may be elderly.
 - Keep your responses concise but warm.
 - After receiving information, acknowledge it briefly and then ask your next question.
-- Never provide legal advice - only gather information for documentation.
+- Never provide legal advice - only gather information for documentation.`;
+
+    const fullSystemPrompt = `${systemPrompt}
+
+${guidelinesSection}
 
 ${phaseInstruction}
 

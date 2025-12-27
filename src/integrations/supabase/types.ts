@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      behavior_guidelines: {
+        Row: {
+          country_code: string | null
+          created_at: string
+          guideline_key: string
+          guideline_text: string
+          id: string
+          is_enabled: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string
+          guideline_key: string
+          guideline_text: string
+          id?: string
+          is_enabled?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string
+          guideline_key?: string
+          guideline_text?: string
+          id?: string
+          is_enabled?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feature_flags: {
         Row: {
           created_at: string | null
