@@ -187,6 +187,36 @@ export type Database = {
         }
         Relationships: []
       }
+      report_templates: {
+        Row: {
+          country_code: string
+          created_at: string
+          id: string
+          report_type: string
+          section_header: string
+          template_text: string
+          updated_at: string
+        }
+        Insert: {
+          country_code: string
+          created_at?: string
+          id?: string
+          report_type: string
+          section_header: string
+          template_text: string
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string
+          created_at?: string
+          id?: string
+          report_type?: string
+          section_header?: string
+          template_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           created_at: string
