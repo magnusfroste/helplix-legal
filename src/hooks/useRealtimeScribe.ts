@@ -9,6 +9,16 @@ interface UseRealtimeScribeOptions {
   onError?: (error: string) => void;
 }
 
+// Check if we're on iOS/Safari
+const isIOS = () => {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
+
+const isSafari = () => {
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+};
+
 export function useRealtimeScribe(options: UseRealtimeScribeOptions = {}) {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -19,7 +29,7 @@ export function useRealtimeScribe(options: UseRealtimeScribeOptions = {}) {
   const wsRef = useRef<WebSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const workletNodeRef = useRef<AudioWorkletNode | ScriptProcessorNode | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
@@ -31,9 +41,9 @@ export function useRealtimeScribe(options: UseRealtimeScribeOptions = {}) {
       animationFrameRef.current = null;
     }
     
-    if (processorRef.current) {
-      processorRef.current.disconnect();
-      processorRef.current = null;
+    if (workletNodeRef.current) {
+      workletNodeRef.current.disconnect();
+      workletNodeRef.current = null;
     }
     
     if (analyserRef.current) {
@@ -67,6 +77,27 @@ export function useRealtimeScribe(options: UseRealtimeScribeOptions = {}) {
   useEffect(() => {
     return cleanup;
   }, [cleanup]);
+
+  // Resample audio from source rate to target rate (16000)
+  const resampleAudio = useCallback((inputData: Float32Array, inputSampleRate: number, outputSampleRate: number): Float32Array => {
+    if (inputSampleRate === outputSampleRate) {
+      return inputData;
+    }
+    
+    const ratio = inputSampleRate / outputSampleRate;
+    const outputLength = Math.round(inputData.length / ratio);
+    const output = new Float32Array(outputLength);
+    
+    for (let i = 0; i < outputLength; i++) {
+      const srcIndex = i * ratio;
+      const srcIndexFloor = Math.floor(srcIndex);
+      const srcIndexCeil = Math.min(srcIndexFloor + 1, inputData.length - 1);
+      const t = srcIndex - srcIndexFloor;
+      output[i] = inputData[srcIndexFloor] * (1 - t) + inputData[srcIndexCeil] * t;
+    }
+    
+    return output;
+  }, []);
 
   const connect = useCallback(async () => {
     if (isConnected || isConnecting) {
@@ -116,22 +147,29 @@ export function useRealtimeScribe(options: UseRealtimeScribeOptions = {}) {
         console.log('WebSocket connected, starting audio capture...');
         
         try {
-          // Get microphone access
-          const stream = await navigator.mediaDevices.getUserMedia({
+          // Get microphone access - don't force sample rate on iOS
+          const constraints: MediaStreamConstraints = {
             audio: {
-              sampleRate: 16000,
               channelCount: 1,
               echoCancellation: true,
               noiseSuppression: true,
               autoGainControl: true,
+              // Only set sampleRate on non-iOS platforms
+              ...((!isIOS() && !isSafari()) && { sampleRate: 16000 }),
             }
-          });
+          };
+          
+          const stream = await navigator.mediaDevices.getUserMedia(constraints);
           streamRef.current = stream;
 
-          // Create audio context
-          const audioContext = new AudioContext({ sampleRate: 16000 });
+          // Create audio context - let iOS choose its native sample rate
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          const audioContext = new AudioContextClass();
           await audioContext.resume();
           audioContextRef.current = audioContext;
+          
+          const actualSampleRate = audioContext.sampleRate;
+          console.log('Audio context sample rate:', actualSampleRate);
 
           // Create audio source
           const source = audioContext.createMediaStreamSource(stream);
@@ -155,18 +193,23 @@ export function useRealtimeScribe(options: UseRealtimeScribeOptions = {}) {
           };
           animationFrameRef.current = requestAnimationFrame(updateLevel);
 
-          // Create processor for audio streaming
-          const processor = audioContext.createScriptProcessor(4096, 1, 1);
-          processorRef.current = processor;
+          // Use ScriptProcessorNode (deprecated but more compatible with iOS)
+          // Buffer size of 4096 works better on iOS
+          const bufferSize = isIOS() || isSafari() ? 4096 : 2048;
+          const processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+          workletNodeRef.current = processor;
           
           processor.onaudioprocess = (event) => {
             if (ws.readyState === WebSocket.OPEN) {
               const inputData = event.inputBuffer.getChannelData(0);
               
+              // Resample if needed (iOS often uses 48000 Hz)
+              const resampledData = resampleAudio(inputData, actualSampleRate, 16000);
+              
               // Convert Float32 to Int16 PCM
-              const pcmData = new Int16Array(inputData.length);
-              for (let i = 0; i < inputData.length; i++) {
-                const s = Math.max(-1, Math.min(1, inputData[i]));
+              const pcmData = new Int16Array(resampledData.length);
+              for (let i = 0; i < resampledData.length; i++) {
+                const s = Math.max(-1, Math.min(1, resampledData[i]));
                 pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
               }
               
@@ -188,6 +231,7 @@ export function useRealtimeScribe(options: UseRealtimeScribeOptions = {}) {
           };
 
           source.connect(processor);
+          // On iOS/Safari, connect to destination to keep the audio pipeline alive
           processor.connect(audioContext.destination);
 
           setIsConnected(true);
@@ -240,7 +284,7 @@ export function useRealtimeScribe(options: UseRealtimeScribeOptions = {}) {
       options.onError?.(error instanceof Error ? error.message : 'Anslutningsfel');
       cleanup();
     }
-  }, [isConnected, isConnecting, cleanup, options]);
+  }, [isConnected, isConnecting, cleanup, options, resampleAudio]);
 
   const disconnect = useCallback(() => {
     console.log('Disconnecting realtime scribe...');

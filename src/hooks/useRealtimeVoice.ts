@@ -377,6 +377,12 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
   const speak = useCallback(async (text: string): Promise<void> => {
     if (!text) return;
     
+    // Check if we're on iOS/Safari - streaming doesn't work well there
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isSafariBrowser = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const shouldUseStreaming = useStreamingTTS && !isIOSDevice && !isSafariBrowser;
+    
     try {
       setIsSpeaking(true);
       
@@ -386,9 +392,9 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
         audioRef.current = null;
       }
 
-      // Choose TTS endpoint based on flag
-      const endpoint = useStreamingTTS ? 'elevenlabs-tts-stream' : 'elevenlabs-tts';
-      console.log(`Speaking (${useStreamingTTS ? 'streaming' : 'batch'}):`, text.substring(0, 50) + '...');
+      // Choose TTS endpoint based on flag and platform
+      const endpoint = shouldUseStreaming ? 'elevenlabs-tts-stream' : 'elevenlabs-tts';
+      console.log(`Speaking (${shouldUseStreaming ? 'streaming' : 'batch'}, iOS: ${isIOSDevice}, Safari: ${isSafariBrowser}):`, text.substring(0, 50) + '...');
       
       const response = await fetch(
         `${SUPABASE_URL}/functions/v1/${endpoint}`,
@@ -415,8 +421,8 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
         throw new Error(errorMessage);
       }
 
-      // Streaming mode: read chunks and start playback early
-      if (useStreamingTTS) {
+      // Streaming mode: read chunks and start playback early (non-iOS only)
+      if (shouldUseStreaming) {
         if (!response.body) {
           throw new Error('No response body');
         }
@@ -490,12 +496,15 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
           }
         }
       } else {
-        // Batch mode: wait for full response
+        // Batch mode: wait for full response (required for iOS/Safari)
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
+        
+        // iOS requires user interaction to play audio - preload first
+        audio.preload = 'auto';
         
         audio.onended = () => {
           setIsSpeaking(false);
@@ -510,8 +519,18 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
           audioRef.current = null;
         };
         
-        await audio.play();
-        console.log('Audio playback started (batch mode)');
+        // Wait for audio to be ready before playing (important for iOS)
+        audio.oncanplaythrough = async () => {
+          try {
+            await audio.play();
+            console.log('Audio playback started (batch mode)');
+          } catch (playError) {
+            console.error('Play error:', playError);
+            setIsSpeaking(false);
+          }
+        };
+        
+        audio.load();
       }
       
     } catch (error) {
