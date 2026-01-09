@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge, ListTree, BookOpen, Plus, Trash2, Globe, ClipboardList, Bot, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge, ListTree, BookOpen, Plus, Trash2, Globe, ClipboardList, Bot, Eye, EyeOff, Zap, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -113,6 +113,8 @@ export default function Admin() {
   const [aiActive, setAiActive] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [aiConfigInitialized, setAiConfigInitialized] = useState(false);
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [connectionTestResult, setConnectionTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   // Sync AI config state from hook
   useEffect(() => {
@@ -518,6 +520,70 @@ export default function Admin() {
                           )}
                           Spara ändringar
                         </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Test Connection Button */}
+                  <div className="flex items-center gap-3 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={async () => {
+                        if (!aiEndpoint || !aiApiKey || !aiModel) {
+                          toast.error('Fyll i alla fält innan du testar anslutningen');
+                          return;
+                        }
+                        
+                        setTestingConnection(true);
+                        setConnectionTestResult(null);
+                        
+                        try {
+                          const { data, error } = await supabase.functions.invoke('test-ai-connection', {
+                            body: {
+                              endpoint_url: aiEndpoint,
+                              api_key: aiApiKey,
+                              model_name: aiModel,
+                            }
+                          });
+                          
+                          if (error) throw error;
+                          
+                          if (data?.success) {
+                            setConnectionTestResult({ success: true, message: data.message || 'Anslutningen fungerar!' });
+                            toast.success('AI-anslutning lyckades!');
+                          } else {
+                            setConnectionTestResult({ success: false, message: data?.error || 'Okänt fel' });
+                            toast.error(data?.error || 'Kunde inte ansluta');
+                          }
+                        } catch (err) {
+                          console.error('Connection test error:', err);
+                          const message = err instanceof Error ? err.message : 'Kunde inte testa anslutningen';
+                          setConnectionTestResult({ success: false, message });
+                          toast.error(message);
+                        } finally {
+                          setTestingConnection(false);
+                        }
+                      }}
+                      disabled={testingConnection || !aiEndpoint || !aiApiKey || !aiModel}
+                    >
+                      {testingConnection ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <Zap className="h-4 w-4 mr-2" />
+                      )}
+                      Testa anslutning
+                    </Button>
+                    
+                    {connectionTestResult && (
+                      <div className={`flex items-center gap-2 text-sm ${
+                        connectionTestResult.success ? 'text-green-600' : 'text-destructive'
+                      }`}>
+                        {connectionTestResult.success ? (
+                          <CheckCircle className="h-4 w-4" />
+                        ) : (
+                          <XCircle className="h-4 w-4" />
+                        )}
+                        <span className="line-clamp-1">{connectionTestResult.message}</span>
                       </div>
                     )}
                   </div>
