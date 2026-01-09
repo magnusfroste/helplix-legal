@@ -283,6 +283,16 @@ interface ChatRequest {
   completeness?: number; // 0-100 percentage
 }
 
+// Country to language mapping (fallback if userLanguage not provided)
+const COUNTRY_LANGUAGE_MAP: Record<string, string> = {
+  'BR': 'Portuguese (Brazilian)',
+  'MX': 'Spanish (Mexican)',
+  'DO': 'Spanish (Dominican)',
+  'SE': 'Swedish',
+  'US': 'English (American)',
+  'NL': 'Dutch',
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -307,9 +317,13 @@ serve(async (req) => {
       ? "Ask balanced questions - not too long, not too short. Focus on gathering key information."
       : "Ask open-ended questions that allow the user to share more context in their own words.";
 
-    const languageInstruction = userLanguage 
-      ? `IMPORTANT: Always respond in ${userLanguage}. The user has chosen this language for communication.`
-      : "Detect the user's preferred language from their responses and continue in that language.";
+    // Determine effective language - use userLanguage if provided, otherwise derive from country
+    const effectiveLanguage = userLanguage || (country ? COUNTRY_LANGUAGE_MAP[country] : null);
+    
+    // Strong language instruction to ensure consistency even with short answers
+    const languageInstruction = effectiveLanguage 
+      ? `CRITICAL LANGUAGE REQUIREMENT: You MUST respond ONLY in ${effectiveLanguage}. This is mandatory - the user has selected this language. Do not switch to English or any other language under any circumstances. Even for short responses, confirmations, or when the user gives brief answers like "yes" or "no", you MUST continue in ${effectiveLanguage}.`
+      : "Detect the user's preferred language from their responses and continue consistently in that language.";
 
     // Fetch phase instruction and behavior guidelines from database
     const [phaseInstruction, behaviorGuidelines] = await Promise.all([

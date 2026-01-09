@@ -1,7 +1,15 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import type { CooperSettings } from '@/types/helplix';
+import { COUNTRIES } from '@/types/helplix';
 import type { ConversationPhase } from '@/types/phases';
 import type { InformationGaps } from '@/types/information-tracking';
+
+// Get language from country code
+const getLanguageFromCountry = (countryCode: string | null): string | null => {
+  if (!countryCode) return null;
+  const country = COUNTRIES.find(c => c.code === countryCode);
+  return country?.language || null;
+};
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -24,8 +32,10 @@ interface UseCooperChatOptions {
 
 export function useCooperChat({ settings, systemPrompt, questionIntensity, currentPhase, informationGaps, completeness, onResponse, onError }: UseCooperChatOptions) {
   const [isLoading, setIsLoading] = useState(false);
-  const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const messagesRef = useRef<Message[]>([]);
+
+  // Get language directly from country - no text-based detection needed
+  const userLanguage = useMemo(() => getLanguageFromCountry(settings.country), [settings.country]);
 
   const sendMessage = useCallback(async (userMessage: string, phase?: ConversationPhase): Promise<string> => {
     const activePhase = phase || currentPhase || 'opening';
@@ -38,20 +48,6 @@ export function useCooperChat({ settings, systemPrompt, questionIntensity, curre
         { role: 'user', content: userMessage }
       ];
 
-      // Detect language from first user response if not set
-      // Simple heuristic: check for common language indicators
-      if (!detectedLanguage && messagesRef.current.length <= 2) {
-        const lowerMessage = userMessage.toLowerCase();
-        if (lowerMessage.includes('português') || lowerMessage.includes('portugues') || lowerMessage.includes('brazilian')) {
-          setDetectedLanguage('Portuguese (Brazilian)');
-        } else if (lowerMessage.includes('english')) {
-          setDetectedLanguage('English');
-        } else if (lowerMessage.includes('español') || lowerMessage.includes('spanish')) {
-          setDetectedLanguage('Spanish');
-        }
-        // Otherwise let the AI figure it out from context
-      }
-
       const response = await fetch(
         `${SUPABASE_URL}/functions/v1/cooper-chat`,
         {
@@ -63,9 +59,9 @@ export function useCooperChat({ settings, systemPrompt, questionIntensity, curre
           },
           body: JSON.stringify({
             messages: messagesRef.current,
-            systemPrompt: systemPrompt || settings.systemPrompt, // Use jurisdiction prompt if provided
-            questionIntensity: Math.round((questionIntensity ?? settings.questionIntensity) / 10), // Convert 0-100 to 1-10
-            userLanguage: detectedLanguage,
+            systemPrompt: systemPrompt || settings.systemPrompt,
+            questionIntensity: Math.round((questionIntensity ?? settings.questionIntensity) / 10),
+            userLanguage, // Always derived from country
             country: settings.country,
             currentPhase: activePhase,
             informationGaps,
@@ -98,11 +94,10 @@ export function useCooperChat({ settings, systemPrompt, questionIntensity, curre
     } finally {
       setIsLoading(false);
     }
-  }, [settings, systemPrompt, questionIntensity, detectedLanguage, onResponse, onError]);
+  }, [settings, systemPrompt, questionIntensity, userLanguage, currentPhase, informationGaps, completeness, onResponse, onError]);
 
   const resetConversation = useCallback(() => {
     messagesRef.current = [];
-    setDetectedLanguage(null);
   }, []);
 
   const getMessageHistory = useCallback(() => {
@@ -111,7 +106,7 @@ export function useCooperChat({ settings, systemPrompt, questionIntensity, curre
 
   return {
     isLoading,
-    detectedLanguage,
+    userLanguage,
     sendMessage,
     resetConversation,
     getMessageHistory,
