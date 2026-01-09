@@ -79,10 +79,10 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
 
   // Sync language to session
   useEffect(() => {
-    if (chat.detectedLanguage) {
-      logEntries.updateSessionLanguage(chat.detectedLanguage);
+    if (chat.userLanguage) {
+      logEntries.updateSessionLanguage(chat.userLanguage);
     }
-  }, [chat.detectedLanguage, logEntries.updateSessionLanguage]);
+  }, [chat.userLanguage, logEntries.updateSessionLanguage]);
 
   // Core action: process user response
   const processResponse = useCallback(async (text: string) => {
