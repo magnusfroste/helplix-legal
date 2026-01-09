@@ -146,6 +146,17 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
     }
   }, [session]);
 
+  // Import entries from file
+  const importEntries = useCallback((entries: LogEntry[]) => {
+    setLogEntries(entries);
+    // Set last question as current if exists
+    const lastQuestion = [...entries].reverse().find(e => e.type === 'question');
+    if (lastQuestion) {
+      setCurrentQuestion(lastQuestion.content);
+      setIsFirstInteraction(false);
+    }
+  }, []);
+
   return {
     // State
     logEntries,
@@ -161,5 +172,6 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
     startNewSession,
     deleteCurrentSession,
     updateSessionLanguage,
+    importEntries,
   };
 }

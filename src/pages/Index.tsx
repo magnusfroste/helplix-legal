@@ -75,7 +75,13 @@ export default function Index() {
           />
         );
       case 'log':
-        return <LogScreen entries={conversation.logEntries} country={settings.country} />;
+        return (
+          <LogScreen 
+            entries={conversation.logEntries} 
+            country={settings.country}
+            onImportEntries={conversation.importLogEntries}
+          />
+        );
       case 'report':
         return (
           <ReportScreen 

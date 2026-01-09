@@ -226,6 +226,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     replayQuestion,
     startNewSession,
     deleteConversation,
+    importLogEntries: logEntries.importEntries,
 
     // Pass-through for Report
     speak: voice.speak,
