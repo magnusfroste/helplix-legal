@@ -96,6 +96,7 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
           onStartRecording={onStartRecording}
           onStopRecording={onStopRecording}
           size={buttonSize}
+          country={country}
         />
         
         {/* Action buttons row - all on same line */}

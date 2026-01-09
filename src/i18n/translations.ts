@@ -184,6 +184,11 @@ export interface Translations {
     cooper: string;
     replay: string;
     type: string;
+    tapToSpeak: string;
+    tapToSend: string;
+    processing: string;
+    thinking: string;
+    speaking: string;
   };
   
   // Text Input Dialog
@@ -379,6 +384,11 @@ export const translations: Record<CountryCode, Translations> = {
       cooper: 'Helplix',
       replay: 'Repetir',
       type: 'Digitar',
+      tapToSpeak: 'Toque para falar',
+      tapToSend: 'Toque para enviar',
+      processing: 'Processando...',
+      thinking: 'Pensando...',
+      speaking: 'Helplix está falando',
     },
     textInput: {
       title: 'Digite a resposta',
@@ -567,6 +577,11 @@ export const translations: Record<CountryCode, Translations> = {
       cooper: 'Helplix',
       replay: 'Repetir',
       type: 'Escribir',
+      tapToSpeak: 'Toque para hablar',
+      tapToSend: 'Toque para enviar',
+      processing: 'Procesando...',
+      thinking: 'Pensando...',
+      speaking: 'Helplix está hablando',
     },
     textInput: {
       title: 'Escribir respuesta',
@@ -755,6 +770,11 @@ export const translations: Record<CountryCode, Translations> = {
       cooper: 'Helplix',
       replay: 'Repetir',
       type: 'Escribir',
+      tapToSpeak: 'Toque para hablar',
+      tapToSend: 'Toque para enviar',
+      processing: 'Procesando...',
+      thinking: 'Pensando...',
+      speaking: 'Helplix está hablando',
     },
     textInput: {
       title: 'Escribir respuesta',
@@ -943,6 +963,11 @@ export const translations: Record<CountryCode, Translations> = {
       cooper: 'Helplix',
       replay: 'Spela upp',
       type: 'Skriv',
+      tapToSpeak: 'Tryck för att tala',
+      tapToSend: 'Tryck för att skicka',
+      processing: 'Bearbetar...',
+      thinking: 'Tänker...',
+      speaking: 'Helplix talar',
     },
     textInput: {
       title: 'Skriv svar',
@@ -1131,6 +1156,11 @@ export const translations: Record<CountryCode, Translations> = {
       cooper: 'Helplix',
       replay: 'Replay',
       type: 'Type',
+      tapToSpeak: 'Tap to speak',
+      tapToSend: 'Tap to send',
+      processing: 'Processing...',
+      thinking: 'Thinking...',
+      speaking: 'Helplix is speaking',
     },
     textInput: {
       title: 'Type response',
@@ -1319,6 +1349,11 @@ export const translations: Record<CountryCode, Translations> = {
       cooper: 'Helplix',
       replay: 'Herhalen',
       type: 'Typen',
+      tapToSpeak: 'Tik om te spreken',
+      tapToSend: 'Tik om te verzenden',
+      processing: 'Verwerken...',
+      thinking: 'Denken...',
+      speaking: 'Helplix is aan het spreken',
     },
     textInput: {
       title: 'Antwoord typen',

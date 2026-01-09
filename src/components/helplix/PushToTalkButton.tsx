@@ -1,7 +1,8 @@
 import { memo, useRef, useCallback } from 'react';
 import { Mic, Square, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { ConversationStatus } from '@/types/helplix';
+import type { ConversationStatus, CountryCode } from '@/types/helplix';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface PushToTalkButtonProps {
   status: ConversationStatus;
@@ -9,6 +10,7 @@ interface PushToTalkButtonProps {
   onStopRecording: () => void;
   disabled?: boolean;
   size?: 'small' | 'large';
+  country?: CountryCode | null;
 }
 
 export const PushToTalkButton = memo(function PushToTalkButton({
@@ -17,7 +19,9 @@ export const PushToTalkButton = memo(function PushToTalkButton({
   onStopRecording,
   disabled = false,
   size = 'large',
+  country = null,
 }: PushToTalkButtonProps) {
+  const t = useTranslation(country);
   const audioContextRef = useRef<AudioContext | null>(null);
   
   const isRecording = status === 'listening';
@@ -104,15 +108,15 @@ export const PushToTalkButton = memo(function PushToTalkButton({
   const getLabel = () => {
     switch (status) {
       case 'listening':
-        return 'Tap to send';
+        return t.dictaphone.tapToSend;
       case 'processing':
-        return 'Processing...';
+        return t.dictaphone.processing;
       case 'thinking':
-        return 'Thinking...';
+        return t.dictaphone.thinking;
       case 'speaking':
-        return 'Helplix is speaking';
+        return t.dictaphone.speaking;
       default:
-        return 'Tap to speak';
+        return t.dictaphone.tapToSpeak;
     }
   };
 
@@ -156,7 +160,7 @@ export const PushToTalkButton = memo(function PushToTalkButton({
             WebkitUserSelect: 'none',
             userSelect: 'none',
           }}
-          aria-label={isRecording ? "Tap to stop recording" : "Tap to start recording"}
+          aria-label={isRecording ? t.dictaphone.tapToSend : t.dictaphone.tapToSpeak}
         >
           {getIcon()}
         </button>

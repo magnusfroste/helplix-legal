@@ -27,6 +27,7 @@ import {
 } from '@/types/helplix';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 interface SettingsScreenProps {
   settings: CooperSettings;
@@ -43,8 +44,13 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
   const [hasChanges, setHasChanges] = useState(false);
   const [countryChanged, setCountryChanged] = useState(false);
   
-  // Check admin status
+  // Check admin status and feature flags
   const { isAdmin } = useAdminAuth();
+  const { getFlag } = useFeatureFlags();
+  
+  // Feature flag checks
+  const isRealtimeTranscriptionEnabled = getFlag('realtime_transcription');
+  const isStreamingTtsEnabled = getFlag('streaming_tts');
 
   const handleChange = <K extends keyof CooperSettings>(
     key: K,
@@ -206,6 +212,24 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             />
           </section>
 
+          {/* Realtime Transcription - only show if feature flag is enabled */}
+          {isRealtimeTranscriptionEnabled && (
+            <section className="flex items-center justify-between">
+              <div>
+                <Label className="text-helplix-lg font-semibold">
+                  {t.settings.realtimeTranscription.title}
+                </Label>
+                <p className="text-helplix-base text-muted-foreground">
+                  {t.settings.realtimeTranscription.description}
+                </p>
+              </div>
+              <Switch
+                checked={localSettings.showRealtimeTranscription ?? false}
+                onCheckedChange={(checked) => handleChange('showRealtimeTranscription', checked)}
+                disabled={!localSettings.sttEnabled}
+              />
+            </section>
+          )}
 
           {/* Autoplay Speech */}
           <section className="flex items-center justify-between">
