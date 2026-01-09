@@ -50,7 +50,8 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
   
   // Feature flag checks
   const isRealtimeTranscriptionEnabled = getFlag('realtime_transcription');
-  const isStreamingTtsEnabled = getFlag('streaming_tts');
+  const isTtsEnabled = getFlag('tts_enabled');
+  const isSttEnabled = getFlag('stt_enabled');
 
   const handleChange = <K extends keyof CooperSettings>(
     key: K,
@@ -180,40 +181,44 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             </div>
           </section>
 
-          {/* Audio Enabled Toggle */}
-          <section className="flex items-center justify-between">
-            <div>
-              <Label className="text-helplix-lg font-semibold">
-                {t.settings.tts.title}
-              </Label>
-              <p className="text-helplix-base text-muted-foreground">
-                {t.settings.tts.description}
-              </p>
-            </div>
-            <Switch
-              checked={localSettings.ttsEnabled}
-              onCheckedChange={(checked) => handleChange('ttsEnabled', checked)}
-            />
-          </section>
+          {/* Audio Enabled Toggle - only show if TTS feature is enabled */}
+          {isTtsEnabled && (
+            <section className="flex items-center justify-between">
+              <div>
+                <Label className="text-helplix-lg font-semibold">
+                  {t.settings.tts.title}
+                </Label>
+                <p className="text-helplix-base text-muted-foreground">
+                  {t.settings.tts.description}
+                </p>
+              </div>
+              <Switch
+                checked={localSettings.ttsEnabled}
+                onCheckedChange={(checked) => handleChange('ttsEnabled', checked)}
+              />
+            </section>
+          )}
 
-          {/* Speech-to-Text Toggle */}
-          <section className="flex items-center justify-between">
-            <div>
-              <Label className="text-helplix-lg font-semibold">
-                {t.settings.stt.title}
-              </Label>
-              <p className="text-helplix-base text-muted-foreground">
-                {t.settings.stt.description}
-              </p>
-            </div>
-            <Switch
-              checked={localSettings.sttEnabled}
-              onCheckedChange={(checked) => handleChange('sttEnabled', checked)}
-            />
-          </section>
+          {/* Speech-to-Text Toggle - only show if STT feature is enabled */}
+          {isSttEnabled && (
+            <section className="flex items-center justify-between">
+              <div>
+                <Label className="text-helplix-lg font-semibold">
+                  {t.settings.stt.title}
+                </Label>
+                <p className="text-helplix-base text-muted-foreground">
+                  {t.settings.stt.description}
+                </p>
+              </div>
+              <Switch
+                checked={localSettings.sttEnabled}
+                onCheckedChange={(checked) => handleChange('sttEnabled', checked)}
+              />
+            </section>
+          )}
 
-          {/* Realtime Transcription - only show if feature flag is enabled */}
-          {isRealtimeTranscriptionEnabled && (
+          {/* Realtime Transcription - only show if feature flag is enabled AND STT is enabled */}
+          {isRealtimeTranscriptionEnabled && isSttEnabled && (
             <section className="flex items-center justify-between">
               <div>
                 <Label className="text-helplix-lg font-semibold">
@@ -231,22 +236,24 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             </section>
           )}
 
-          {/* Autoplay Speech */}
-          <section className="flex items-center justify-between">
-            <div>
-              <Label className="text-helplix-lg font-semibold">
-                {t.settings.autoplay.title}
-              </Label>
-              <p className="text-helplix-base text-muted-foreground">
-                {t.settings.autoplay.description}
-              </p>
-            </div>
-            <Switch
-              checked={localSettings.autoplaySpeech}
-              onCheckedChange={(checked) => handleChange('autoplaySpeech', checked)}
-              disabled={!localSettings.ttsEnabled}
-            />
-          </section>
+          {/* Autoplay Speech - only show if TTS feature is enabled */}
+          {isTtsEnabled && (
+            <section className="flex items-center justify-between">
+              <div>
+                <Label className="text-helplix-lg font-semibold">
+                  {t.settings.autoplay.title}
+                </Label>
+                <p className="text-helplix-base text-muted-foreground">
+                  {t.settings.autoplay.description}
+                </p>
+              </div>
+              <Switch
+                checked={localSettings.autoplaySpeech}
+                onCheckedChange={(checked) => handleChange('autoplaySpeech', checked)}
+                disabled={!localSettings.ttsEnabled}
+              />
+            </section>
+          )}
 
 
           {/* Delete Conversation */}
