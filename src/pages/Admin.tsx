@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge, ListTree, BookOpen, Plus, Trash2, Globe, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge, ListTree, BookOpen, Plus, Trash2, Globe, ClipboardList, Bot, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -19,6 +19,7 @@ import { useJurisdictionPrompts } from '@/hooks/useJurisdictionPrompts';
 import { usePhaseInstructions, PHASES, Phase } from '@/hooks/usePhaseInstructions';
 import { useBehaviorGuidelines, BehaviorGuideline } from '@/hooks/useBehaviorGuidelines';
 import { useReportTemplates, REPORT_TYPES, ReportType } from '@/hooks/useReportTemplates';
+import { useAIConfig } from '@/hooks/useAIConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { COUNTRIES } from '@/types/helplix';
 
@@ -79,6 +80,12 @@ export default function Admin() {
     getTemplate, 
     updateTemplate 
   } = useReportTemplates();
+  const { 
+    config: aiConfig, 
+    isLoading: aiConfigLoading, 
+    isSaving: aiConfigSaving, 
+    updateConfig: updateAIConfig 
+  } = useAIConfig();
   
   // Local state for editing
   const [editingPrompts, setEditingPrompts] = useState<Record<string, string>>({});
@@ -98,6 +105,25 @@ export default function Admin() {
   const [newGuidelineKey, setNewGuidelineKey] = useState('');
   const [newGuidelineText, setNewGuidelineText] = useState('');
   const [addingGuideline, setAddingGuideline] = useState(false);
+  
+  // AI Config local state
+  const [aiEndpoint, setAiEndpoint] = useState('');
+  const [aiApiKey, setAiApiKey] = useState('');
+  const [aiModel, setAiModel] = useState('');
+  const [aiActive, setAiActive] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [aiConfigInitialized, setAiConfigInitialized] = useState(false);
+
+  // Sync AI config state from hook
+  useEffect(() => {
+    if (aiConfig && !aiConfigInitialized) {
+      setAiEndpoint(aiConfig.endpoint_url);
+      setAiApiKey(aiConfig.api_key);
+      setAiModel(aiConfig.model_name);
+      setAiActive(aiConfig.is_active);
+      setAiConfigInitialized(true);
+    }
+  }, [aiConfig, aiConfigInitialized]);
 
   // Get current user ID from session
   useEffect(() => {
@@ -372,7 +398,139 @@ export default function Admin() {
       <ScrollArea className="h-[calc(100vh-60px)]">
         <div className="p-4 space-y-6 max-w-2xl mx-auto">
           
-          {/* Feature Flags */}
+          {/* AI Configuration */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="h-5 w-5" />
+                AI-konfiguration
+              </CardTitle>
+              <CardDescription>
+                Konfigurera AI-endpoint för chat och rapportgenerering
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {aiConfigLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-md ${aiActive ? 'bg-green-500/10' : 'bg-muted'}`}>
+                        {aiActive ? (
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <Bot className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div>
+                        <Label className="text-base font-medium">Använd egen AI-endpoint</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {aiActive ? 'Egen endpoint aktiv' : 'Använder Lovable AI (gemini-2.5-flash)'}
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={aiActive}
+                      onCheckedChange={setAiActive}
+                    />
+                  </div>
+
+                  <div className="space-y-4 pt-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="ai-endpoint">Endpoint URL</Label>
+                      <Input
+                        id="ai-endpoint"
+                        type="url"
+                        value={aiEndpoint}
+                        onChange={(e) => setAiEndpoint(e.target.value)}
+                        placeholder="https://api.openai.com/v1/chat/completions"
+                        className="font-mono text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="ai-api-key">API-nyckel</Label>
+                      <div className="relative">
+                        <Input
+                          id="ai-api-key"
+                          type={showApiKey ? 'text' : 'password'}
+                          value={aiApiKey}
+                          onChange={(e) => setAiApiKey(e.target.value)}
+                          placeholder="sk-..."
+                          className="font-mono text-sm pr-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3"
+                          onClick={() => setShowApiKey(!showApiKey)}
+                        >
+                          {showApiKey ? (
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="ai-model">Modellnamn</Label>
+                      <Input
+                        id="ai-model"
+                        type="text"
+                        value={aiModel}
+                        onChange={(e) => setAiModel(e.target.value)}
+                        placeholder="gpt-4o"
+                        className="font-mono text-sm"
+                      />
+                    </div>
+
+                    {(aiEndpoint !== (aiConfig?.endpoint_url || '') ||
+                      aiApiKey !== (aiConfig?.api_key || '') ||
+                      aiModel !== (aiConfig?.model_name || '') ||
+                      aiActive !== (aiConfig?.is_active || false)) && (
+                      <div className="flex justify-end pt-2">
+                        <Button
+                          onClick={async () => {
+                            const success = await updateAIConfig({
+                              endpoint_url: aiEndpoint,
+                              api_key: aiApiKey,
+                              model_name: aiModel,
+                              is_active: aiActive,
+                            });
+                            if (success) {
+                              toast.success('AI-konfiguration sparad');
+                            } else {
+                              toast.error('Kunde inte spara AI-konfiguration');
+                            }
+                          }}
+                          disabled={aiConfigSaving}
+                        >
+                          {aiConfigSaving ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : (
+                            <Save className="h-4 w-4 mr-2" />
+                          )}
+                          Spara ändringar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-start gap-2 p-3 rounded-md bg-muted/50 text-sm text-muted-foreground">
+                    <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                    <p>Om inaktiverad används Lovable AI (gemini-2.5-flash) som standard.</p>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+          
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

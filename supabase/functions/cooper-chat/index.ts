@@ -6,6 +6,58 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+interface AIEndpointConfig {
+  url: string;
+  apiKey: string;
+  model: string;
+}
+
+// Fetch AI endpoint configuration from database
+async function getAIEndpoint(): Promise<AIEndpointConfig> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  
+  // Default to Lovable AI
+  const defaultConfig: AIEndpointConfig = {
+    url: "https://ai.gateway.lovable.dev/v1/chat/completions",
+    apiKey: LOVABLE_API_KEY || "",
+    model: "google/gemini-2.5-flash",
+  };
+
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    const { data, error } = await supabase
+      .from('ai_config')
+      .select('endpoint_url, api_key, model_name, is_active')
+      .eq('config_key', 'primary')
+      .eq('is_active', true)
+      .single();
+    
+    if (error || !data) {
+      console.log('No active AI config found, using Lovable AI');
+      return defaultConfig;
+    }
+    
+    // Validate that we have required fields
+    if (!data.endpoint_url || !data.api_key) {
+      console.log('AI config missing required fields, using Lovable AI');
+      return defaultConfig;
+    }
+    
+    console.log('Using custom AI endpoint:', data.endpoint_url, 'model:', data.model_name);
+    return {
+      url: data.endpoint_url,
+      apiKey: data.api_key,
+      model: data.model_name || 'gpt-4o',
+    };
+  } catch (error) {
+    console.error('Error fetching AI config:', error);
+    return defaultConfig;
+  }
+}
+
 function getGapsInstruction(gaps?: InformationGaps, completeness?: number): string {
   if (!gaps || completeness === undefined) {
     return "";
@@ -238,10 +290,12 @@ serve(async (req) => {
 
   try {
     const { messages, systemPrompt, questionIntensity, userLanguage, country, currentPhase, informationGaps, completeness } = await req.json() as ChatRequest;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    
+    // Get AI endpoint configuration (custom or Lovable AI)
+    const aiConfig = await getAIEndpoint();
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!aiConfig.apiKey) {
+      throw new Error("No AI API key configured");
     }
 
     console.log("Helplix chat request - messages:", messages.length, "intensity:", questionIntensity, "country:", country, "phase:", currentPhase, "completeness:", completeness);
@@ -289,14 +343,14 @@ ${gapsInstruction}
 - Don't add unnecessary preamble.
 - If summarizing what you heard, keep it to one sentence before asking the next question.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(aiConfig.url, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${aiConfig.apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: aiConfig.model,
         messages: [
           { role: "system", content: fullSystemPrompt },
           ...messages,

@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_config: {
+        Row: {
+          api_key: string
+          config_key: string
+          created_at: string
+          endpoint_url: string
+          id: string
+          is_active: boolean
+          model_name: string
+          updated_at: string
+        }
+        Insert: {
+          api_key: string
+          config_key: string
+          created_at?: string
+          endpoint_url: string
+          id?: string
+          is_active?: boolean
+          model_name?: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string
+          config_key?: string
+          created_at?: string
+          endpoint_url?: string
+          id?: string
+          is_active?: boolean
+          model_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       behavior_guidelines: {
         Row: {
           country_code: string | null
