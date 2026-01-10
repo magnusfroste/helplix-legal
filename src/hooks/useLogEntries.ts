@@ -50,28 +50,37 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
     }
   }, [initialQuestion, settings.country, isFirstInteraction, logEntries.length]);
 
-  // Load most recent session on mount if user has sessions
+  // Load most recent ACTIVE session on mount (not completed or archived)
   useEffect(() => {
-    const loadLastSession = async () => {
+    const loadLastActiveSession = async () => {
       if (userId && session.sessions.length > 0 && !session.currentSessionId) {
-        console.log('Loading last session, found', session.sessions.length, 'sessions');
-        const lastSession = session.sessions[0]; // Already sorted by updated_at desc
-        session.setCurrentSessionId(lastSession.id);
+        console.log('Loading last active session, found', session.sessions.length, 'sessions');
         
-        const entries = await session.loadLogEntries(lastSession.id);
-        console.log('Loaded', entries.length, 'log entries from session', lastSession.id);
-        if (entries.length > 0) {
-          setLogEntries(entries);
-          // Set the last question from AI as current question
-          const lastAIQuestion = [...entries].reverse().find(e => e.type === 'question');
-          if (lastAIQuestion) {
-            setCurrentQuestion(lastAIQuestion.content);
-            setIsFirstInteraction(false);
+        // Find the most recent active session
+        const activeSession = session.getActiveSession();
+        
+        if (activeSession) {
+          session.setCurrentSessionId(activeSession.id);
+          
+          const entries = await session.loadLogEntries(activeSession.id);
+          console.log('Loaded', entries.length, 'log entries from session', activeSession.id);
+          if (entries.length > 0) {
+            setLogEntries(entries);
+            // Set the last question from AI as current question
+            const lastAIQuestion = [...entries].reverse().find(e => e.type === 'question');
+            if (lastAIQuestion) {
+              setCurrentQuestion(lastAIQuestion.content);
+              setIsFirstInteraction(false);
+            }
           }
+        } else {
+          // No active session found, create a new one
+          console.log('No active session found, creating new one');
+          await session.createSession();
         }
       }
     };
-    loadLastSession();
+    loadLastActiveSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, session.sessions.length, session.currentSessionId]);
 
@@ -137,7 +146,7 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
     setLogEntries(prev => prev.filter(e => e.id !== id));
   }, []);
 
-  // Start a new session
+  // Start a new session (simple create without completing current)
   const startNewSession = useCallback(async () => {
     await session.createSession();
     setLogEntries([]);
@@ -146,10 +155,26 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
     classification.reset(); // Reset classification tracking for new session
   }, [session, initialQuestion, classification]);
 
+  // Complete current session and start a new one
+  const completeCurrentAndStartNew = useCallback(async () => {
+    // If there's a current session with content, mark it as completed
+    if (session.currentSessionId && logEntries.length > 0) {
+      await session.completeSession(session.currentSessionId);
+    }
+    // Create a new session
+    await session.createSession();
+    setLogEntries([]);
+    setCurrentQuestion(initialQuestion);
+    setIsFirstInteraction(true);
+    classification.reset();
+  }, [session, logEntries.length, initialQuestion, classification]);
+
   // Delete current session and its log entries
   const deleteCurrentSession = useCallback(async () => {
     if (session.currentSessionId) {
       await session.deleteSession(session.currentSessionId);
+      // Create a new session immediately
+      await session.createSession();
       setLogEntries([]);
       setCurrentQuestion(initialQuestion);
       setIsFirstInteraction(true);
@@ -223,6 +248,7 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
     addOptimisticEntry,
     removeOptimisticEntry,
     startNewSession,
+    completeCurrentAndStartNew,
     deleteCurrentSession,
     updateSessionLanguage,
     importEntries,

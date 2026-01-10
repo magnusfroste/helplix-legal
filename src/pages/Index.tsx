@@ -74,11 +74,13 @@ export default function Index() {
             onStopRecording={conversation.stopRecording}
             onTextSubmit={conversation.submitText}
             onReplay={conversation.replayQuestion}
+            onNewCase={conversation.completeAndStartNew}
             buttonSize={settings.buttonSize}
             audioLevel={conversation.audioLevel}
             country={settings.country}
             showRealtimeTranscription={getFlag('realtime_transcription') && settings.sttEnabled}
             realtimeTranscriptionText={conversation.realtimeTranscriptionText || ''}
+            hasContent={conversation.logEntries.length > 0}
           />
         );
       case 'history':

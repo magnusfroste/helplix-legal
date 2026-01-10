@@ -185,6 +185,7 @@ export interface Translations {
     cooper: string;
     replay: string;
     type: string;
+    newCase: string;
     tapToSpeak: string;
     tapToSend: string;
     processing: string;
@@ -416,6 +417,7 @@ export const translations: Record<CountryCode, Translations> = {
       cooper: 'Helplix',
       replay: 'Repetir',
       type: 'Digitar',
+      newCase: 'Novo caso',
       tapToSpeak: 'Toque para falar',
       tapToSend: 'Toque para enviar',
       processing: 'Processando...',
@@ -636,6 +638,7 @@ export const translations: Record<CountryCode, Translations> = {
       cooper: 'Helplix',
       replay: 'Repetir',
       type: 'Escribir',
+      newCase: 'Nuevo caso',
       tapToSpeak: 'Toque para hablar',
       tapToSend: 'Toque para enviar',
       processing: 'Procesando...',
@@ -856,6 +859,7 @@ export const translations: Record<CountryCode, Translations> = {
       cooper: 'Helplix',
       replay: 'Repetir',
       type: 'Escribir',
+      newCase: 'Nuevo caso',
       tapToSpeak: 'Toque para hablar',
       tapToSend: 'Toque para enviar',
       processing: 'Procesando...',
@@ -1076,6 +1080,7 @@ export const translations: Record<CountryCode, Translations> = {
       cooper: 'Helplix',
       replay: 'Spela upp',
       type: 'Skriv',
+      newCase: 'Nytt ärende',
       tapToSpeak: 'Tryck för att tala',
       tapToSend: 'Tryck för att skicka',
       processing: 'Bearbetar...',
@@ -1296,6 +1301,7 @@ export const translations: Record<CountryCode, Translations> = {
       cooper: 'Helplix',
       replay: 'Replay',
       type: 'Type',
+      newCase: 'New case',
       tapToSpeak: 'Tap to speak',
       tapToSend: 'Tap to send',
       processing: 'Processing...',
@@ -1516,6 +1522,7 @@ export const translations: Record<CountryCode, Translations> = {
       cooper: 'Helplix',
       replay: 'Herhalen',
       type: 'Typen',
+      newCase: 'Nieuwe zaak',
       tapToSpeak: 'Tik om te spreken',
       tapToSend: 'Tik om te verzenden',
       processing: 'Verwerken...',

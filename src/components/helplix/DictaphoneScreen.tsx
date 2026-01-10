@@ -1,5 +1,5 @@
 import { useState, useCallback, memo } from 'react';
-import { RotateCcw, Keyboard } from 'lucide-react';
+import { RotateCcw, Keyboard, Plus } from 'lucide-react';
 import { PushToTalkButton } from './PushToTalkButton';
 import { QuestionDisplay } from './QuestionDisplay';
 import { TextInputDialog } from './TextInputDialog';
@@ -17,11 +17,13 @@ interface DictaphoneScreenProps {
   onStopRecording: () => void;
   onTextSubmit: (text: string) => void;
   onReplay?: () => void;
+  onNewCase?: () => void;
   buttonSize?: CooperSettings['buttonSize'];
   audioLevel?: number;
   country: CountryCode | null;
   showRealtimeTranscription?: boolean;
   realtimeTranscriptionText?: string;
+  hasContent?: boolean;
 }
 
 export const DictaphoneScreen = memo(function DictaphoneScreen({
@@ -32,11 +34,13 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
   onStopRecording,
   onTextSubmit,
   onReplay,
+  onNewCase,
   buttonSize = 'large',
   audioLevel = 0,
   country,
   showRealtimeTranscription = false,
   realtimeTranscriptionText = '',
+  hasContent = false,
 }: DictaphoneScreenProps) {
   const t = useTranslation(country);
   const [showTextInput, setShowTextInput] = useState(false);
@@ -60,11 +64,33 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
 
   return (
     <div className="flex flex-col items-center justify-between min-h-[calc(100vh-80px)] py-4 px-2">
-      {/* Header */}
-      <header className="w-full flex items-center justify-center px-2 py-2">
+      {/* Header with New Case button */}
+      <header className="w-full flex items-center justify-between px-2 py-2">
+        <div className="w-16" /> {/* Spacer for centering */}
         <h1 className="text-helplix-2xl font-bold text-foreground tracking-tight">
           Helplix
         </h1>
+        {onNewCase && hasContent && (
+          <button
+            type="button"
+            onClick={onNewCase}
+            disabled={isBusy}
+            className={cn(
+              "flex items-center gap-1 px-2 py-1 rounded-full",
+              "bg-primary text-primary-foreground",
+              "hover:bg-primary/90 active:scale-95",
+              "transition-all duration-200",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "touch-manipulation select-none text-xs font-medium"
+            )}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+            aria-label={t.dictaphone.newCase}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>{t.dictaphone.newCase}</span>
+          </button>
+        )}
+        {(!onNewCase || !hasContent) && <div className="w-16" />} {/* Spacer when no button */}
       </header>
 
       {/* Question Display - maximize space */}

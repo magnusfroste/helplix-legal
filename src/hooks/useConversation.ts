@@ -194,6 +194,21 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     }
   }, [logEntries, chat, phaseTracking, settings.autoplaySpeech, settings.ttsEnabled, voice]);
 
+  // Complete current session and start new one
+  const completeAndStartNew = useCallback(async () => {
+    try {
+      await logEntries.completeCurrentAndStartNew();
+      chat.resetConversation();
+      phaseTracking.reset();
+      
+      if (settings.autoplaySpeech && settings.ttsEnabled) {
+        voice.speak(logEntries.currentQuestion).catch(console.error);
+      }
+    } catch {
+      console.error('Failed to complete and start new session');
+    }
+  }, [logEntries, chat, phaseTracking, settings.autoplaySpeech, settings.ttsEnabled, voice]);
+
   const deleteConversation = useCallback(async () => {
     try {
       await logEntries.deleteCurrentSession();
@@ -227,6 +242,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     submitText,
     replayQuestion,
     startNewSession,
+    completeAndStartNew,
     deleteConversation,
     importLogEntries: logEntries.importEntries,
     resumeSession: logEntries.resumeSession,
