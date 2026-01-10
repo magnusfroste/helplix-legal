@@ -1,9 +1,9 @@
-import { Mic, FileText, ClipboardList, Settings } from 'lucide-react';
+import { Mic, FileText, ClipboardList, Settings, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { CountryCode } from '@/types/helplix';
 
-export type NavigationTab = 'dictaphone' | 'log' | 'report' | 'settings';
+export type NavigationTab = 'dictaphone' | 'history' | 'log' | 'report' | 'settings';
 
 interface BottomNavigationProps {
   activeTab: NavigationTab;
@@ -13,6 +13,7 @@ interface BottomNavigationProps {
 
 const tabs: { id: NavigationTab; icon: React.ElementType }[] = [
   { id: 'dictaphone', icon: Mic },
+  { id: 'history', icon: History },
   { id: 'log', icon: ClipboardList },
   { id: 'report', icon: FileText },
   { id: 'settings', icon: Settings },
@@ -24,6 +25,7 @@ export function BottomNavigation({ activeTab, onTabChange, country }: BottomNavi
   const getLabel = (tabId: NavigationTab): string => {
     switch (tabId) {
       case 'dictaphone': return t.nav.talk;
+      case 'history': return t.nav.history || 'Cases';
       case 'log': return t.nav.log;
       case 'report': return t.nav.report;
       case 'settings': return t.nav.settings;

@@ -218,6 +218,8 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     qualityMetrics: phaseTracking.qualityMetrics,
     lastAssessment: phaseTracking.lastAssessment,
     realtimeTranscriptionText: voice.partialTranscript || realtimeTranscriptText,
+    sessions: logEntries.sessions,
+    isLoadingSessions: logEntries.isLoadingSessions,
 
     // Actions
     startRecording,
@@ -227,6 +229,9 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     startNewSession,
     deleteConversation,
     importLogEntries: logEntries.importEntries,
+    resumeSession: logEntries.resumeSession,
+    archiveSession: logEntries.archiveSession,
+    deleteSession: logEntries.deleteSession,
 
     // Pass-through for Report
     speak: voice.speak,

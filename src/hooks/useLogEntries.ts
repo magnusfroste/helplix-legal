@@ -157,12 +157,47 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
     }
   }, []);
 
+  // Resume a session by loading its entries
+  const resumeSession = useCallback(async (sessionId: string) => {
+    const entries = await session.resumeSession(sessionId);
+    if (entries.length > 0) {
+      setLogEntries(entries);
+      const lastAIQuestion = [...entries].reverse().find(e => e.type === 'question');
+      if (lastAIQuestion) {
+        setCurrentQuestion(lastAIQuestion.content);
+        setIsFirstInteraction(false);
+      }
+    } else {
+      setLogEntries([]);
+      setCurrentQuestion(initialQuestion);
+      setIsFirstInteraction(true);
+    }
+  }, [session, initialQuestion]);
+
+  // Archive a session
+  const archiveSession = useCallback(async (sessionId: string) => {
+    await session.archiveSession(sessionId);
+  }, [session]);
+
+  // Delete a specific session (not just current)
+  const deleteSession = useCallback(async (sessionId: string) => {
+    await session.deleteSession(sessionId);
+    // If we deleted the current session, reset state
+    if (session.currentSessionId === sessionId) {
+      setLogEntries([]);
+      setCurrentQuestion(initialQuestion);
+      setIsFirstInteraction(true);
+    }
+  }, [session, initialQuestion]);
+
   return {
     // State
     logEntries,
     currentQuestion,
     isFirstInteraction,
     currentSessionId: session.currentSessionId,
+    sessions: session.getSessionsWithMetadata(),
+    isLoadingSessions: session.isLoading,
     
     // Actions
     addQuestionAndAnswer,
@@ -173,5 +208,8 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
     deleteCurrentSession,
     updateSessionLanguage,
     importEntries,
+    resumeSession,
+    archiveSession,
+    deleteSession,
   };
 }

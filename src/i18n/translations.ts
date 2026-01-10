@@ -7,6 +7,7 @@ export interface Translations {
     log: string;
     report: string;
     settings: string;
+    history: string;
   };
   
   // Auth / Landing
@@ -217,6 +218,36 @@ export interface Translations {
   success: {
     newSession: string;
   };
+  
+  // Common
+  common: {
+    cancel: string;
+  };
+  
+  // Session History
+  history: {
+    title: string;
+    noSessions: string;
+    resume: string;
+    archive: string;
+    delete: string;
+    deleteConfirmTitle: string;
+    deleteConfirmDescription: string;
+    status: {
+      active: string;
+      completed: string;
+      archived: string;
+    };
+    caseTypes: {
+      general: string;
+      travel_damage: string;
+      consumer: string;
+      insurance: string;
+      housing: string;
+      employment: string;
+      personal_injury: string;
+    };
+  };
 }
 
 export const translations: Record<CountryCode, Translations> = {
@@ -226,6 +257,7 @@ export const translations: Record<CountryCode, Translations> = {
       log: 'Registro',
       report: 'Relatório',
       settings: 'Configurações',
+      history: 'Casos',
     },
     auth: {
       tagline: 'Seu assistente de documentação jurídica',
@@ -411,6 +443,32 @@ export const translations: Record<CountryCode, Translations> = {
     success: {
       newSession: 'Nova sessão iniciada',
     },
+    common: {
+      cancel: 'Cancelar',
+    },
+    history: {
+      title: 'Meus Casos',
+      noSessions: 'Nenhum caso anterior',
+      resume: 'Retomar',
+      archive: 'Arquivar',
+      delete: 'Excluir',
+      deleteConfirmTitle: 'Excluir caso?',
+      deleteConfirmDescription: 'Esta ação não pode ser desfeita. Todos os dados deste caso serão excluídos permanentemente.',
+      status: {
+        active: 'Ativo',
+        completed: 'Concluído',
+        archived: 'Arquivado',
+      },
+      caseTypes: {
+        general: 'Geral',
+        travel_damage: 'Dano de viagem',
+        consumer: 'Consumidor',
+        insurance: 'Seguro',
+        housing: 'Moradia',
+        employment: 'Trabalho',
+        personal_injury: 'Lesão pessoal',
+      },
+    },
   },
   
   MX: {
@@ -419,6 +477,7 @@ export const translations: Record<CountryCode, Translations> = {
       log: 'Registro',
       report: 'Informe',
       settings: 'Configuración',
+      history: 'Casos',
     },
     auth: {
       tagline: 'Tu asistente de documentación legal',
@@ -603,6 +662,32 @@ export const translations: Record<CountryCode, Translations> = {
     },
     success: {
       newSession: 'Nueva sesión iniciada',
+    },
+    common: {
+      cancel: 'Cancelar',
+    },
+    history: {
+      title: 'Mis Casos',
+      noSessions: 'Sin casos anteriores',
+      resume: 'Reanudar',
+      archive: 'Archivar',
+      delete: 'Eliminar',
+      deleteConfirmTitle: '¿Eliminar caso?',
+      deleteConfirmDescription: 'Esta acción no se puede deshacer. Todos los datos de este caso serán eliminados permanentemente.',
+      status: {
+        active: 'Activo',
+        completed: 'Completado',
+        archived: 'Archivado',
+      },
+      caseTypes: {
+        general: 'General',
+        travel_damage: 'Daño de viaje',
+        consumer: 'Consumidor',
+        insurance: 'Seguro',
+        housing: 'Vivienda',
+        employment: 'Empleo',
+        personal_injury: 'Lesión personal',
+      },
     },
   },
   
@@ -612,6 +697,7 @@ export const translations: Record<CountryCode, Translations> = {
       log: 'Registro',
       report: 'Informe',
       settings: 'Configuración',
+      history: 'Casos',
     },
     auth: {
       tagline: 'Tu asistente de documentación legal',
@@ -797,6 +883,32 @@ export const translations: Record<CountryCode, Translations> = {
     success: {
       newSession: 'Nueva sesión iniciada',
     },
+    common: {
+      cancel: 'Cancelar',
+    },
+    history: {
+      title: 'Mis Casos',
+      noSessions: 'Sin casos anteriores',
+      resume: 'Reanudar',
+      archive: 'Archivar',
+      delete: 'Eliminar',
+      deleteConfirmTitle: '¿Eliminar caso?',
+      deleteConfirmDescription: 'Esta acción no se puede deshacer. Todos los datos de este caso serán eliminados permanentemente.',
+      status: {
+        active: 'Activo',
+        completed: 'Completado',
+        archived: 'Archivado',
+      },
+      caseTypes: {
+        general: 'General',
+        travel_damage: 'Daño de viaje',
+        consumer: 'Consumidor',
+        insurance: 'Seguro',
+        housing: 'Vivienda',
+        employment: 'Empleo',
+        personal_injury: 'Lesión personal',
+      },
+    },
   },
   
   SE: {
@@ -805,6 +917,7 @@ export const translations: Record<CountryCode, Translations> = {
       log: 'Logg',
       report: 'Rapport',
       settings: 'Inställningar',
+      history: 'Ärenden',
     },
     auth: {
       tagline: 'Din juridiska dokumentationsassistent',
@@ -990,6 +1103,32 @@ export const translations: Record<CountryCode, Translations> = {
     success: {
       newSession: 'Ny session startad',
     },
+    common: {
+      cancel: 'Avbryt',
+    },
+    history: {
+      title: 'Mina ärenden',
+      noSessions: 'Inga tidigare ärenden',
+      resume: 'Återuppta',
+      archive: 'Arkivera',
+      delete: 'Radera',
+      deleteConfirmTitle: 'Radera ärende?',
+      deleteConfirmDescription: 'Denna åtgärd kan inte ångras. All data för detta ärende kommer att raderas permanent.',
+      status: {
+        active: 'Pågående',
+        completed: 'Avslutad',
+        archived: 'Arkiverad',
+      },
+      caseTypes: {
+        general: 'Allmänt',
+        travel_damage: 'Reseskada',
+        consumer: 'Konsument',
+        insurance: 'Försäkring',
+        housing: 'Bostad',
+        employment: 'Arbetsrätt',
+        personal_injury: 'Personskada',
+      },
+    },
   },
   
   US: {
@@ -998,6 +1137,7 @@ export const translations: Record<CountryCode, Translations> = {
       log: 'Log',
       report: 'Report',
       settings: 'Settings',
+      history: 'Cases',
     },
     auth: {
       tagline: 'Your legal documentation assistant',
@@ -1183,6 +1323,32 @@ export const translations: Record<CountryCode, Translations> = {
     success: {
       newSession: 'New session started',
     },
+    common: {
+      cancel: 'Cancel',
+    },
+    history: {
+      title: 'My Cases',
+      noSessions: 'No previous cases',
+      resume: 'Resume',
+      archive: 'Archive',
+      delete: 'Delete',
+      deleteConfirmTitle: 'Delete case?',
+      deleteConfirmDescription: 'This action cannot be undone. All data for this case will be permanently deleted.',
+      status: {
+        active: 'Active',
+        completed: 'Completed',
+        archived: 'Archived',
+      },
+      caseTypes: {
+        general: 'General',
+        travel_damage: 'Travel damage',
+        consumer: 'Consumer',
+        insurance: 'Insurance',
+        housing: 'Housing',
+        employment: 'Employment',
+        personal_injury: 'Personal injury',
+      },
+    },
   },
   
   NL: {
@@ -1191,6 +1357,7 @@ export const translations: Record<CountryCode, Translations> = {
       log: 'Logboek',
       report: 'Rapport',
       settings: 'Instellingen',
+      history: 'Zaken',
     },
     auth: {
       tagline: 'Uw juridische documentatie-assistent',
@@ -1375,6 +1542,32 @@ export const translations: Record<CountryCode, Translations> = {
     },
     success: {
       newSession: 'Nieuwe sessie gestart',
+    },
+    common: {
+      cancel: 'Annuleren',
+    },
+    history: {
+      title: 'Mijn Zaken',
+      noSessions: 'Geen eerdere zaken',
+      resume: 'Hervatten',
+      archive: 'Archiveren',
+      delete: 'Verwijderen',
+      deleteConfirmTitle: 'Zaak verwijderen?',
+      deleteConfirmDescription: 'Deze actie kan niet ongedaan worden gemaakt. Alle gegevens voor deze zaak worden permanent verwijderd.',
+      status: {
+        active: 'Actief',
+        completed: 'Voltooid',
+        archived: 'Gearchiveerd',
+      },
+      caseTypes: {
+        general: 'Algemeen',
+        travel_damage: 'Reisschade',
+        consumer: 'Consument',
+        insurance: 'Verzekering',
+        housing: 'Huisvesting',
+        employment: 'Arbeidsrecht',
+        personal_injury: 'Letselschade',
+      },
     },
   },
 };
