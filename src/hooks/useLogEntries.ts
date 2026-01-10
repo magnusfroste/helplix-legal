@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import type { LogEntry, CooperSettings } from '@/types/helplix';
 import { COUNTRIES } from '@/types/helplix';
 import { useSession } from './useSession';
+import { useSessionClassification } from './useSessionClassification';
 
 function getInitialQuestion(settings: CooperSettings): string {
   if (settings.country) {
@@ -26,11 +27,20 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(initialQuestion);
   const [isFirstInteraction, setIsFirstInteraction] = useState(true);
+  const [sessionLanguage, setSessionLanguage] = useState<string | undefined>();
   
   // Session persistence
   const session = useSession({
     userId,
     onError,
+  });
+
+  // Session classification (AI-driven)
+  const classification = useSessionClassification({
+    onClassified: () => {
+      // Refresh sessions list when classification completes
+      session.loadSessions();
+    },
   });
 
   // Update current question when country/initialQuestion changes
@@ -91,11 +101,17 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
     ]);
 
     if (savedQuestion && savedAnswer) {
-      setLogEntries(prev => [...prev, savedQuestion, savedAnswer]);
+      const newEntries = [...logEntries, savedQuestion, savedAnswer];
+      setLogEntries(newEntries);
+      
+      // Trigger classification after enough entries (runs in background)
+      if (classification.shouldClassify(sessionId, newEntries.length)) {
+        classification.classifySession(sessionId, newEntries, sessionLanguage);
+      }
     }
 
     return { savedQuestion, savedAnswer };
-  }, [session, userId, onError]);
+  }, [session, userId, onError, logEntries, classification, sessionLanguage]);
 
   // Update the current question
   const updateCurrentQuestion = useCallback((question: string) => {
@@ -127,7 +143,8 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
     setLogEntries([]);
     setCurrentQuestion(initialQuestion);
     setIsFirstInteraction(true);
-  }, [session, initialQuestion]);
+    classification.reset(); // Reset classification tracking for new session
+  }, [session, initialQuestion, classification]);
 
   // Delete current session and its log entries
   const deleteCurrentSession = useCallback(async () => {
@@ -141,6 +158,7 @@ export function useLogEntries({ settings, userId, onError }: UseLogEntriesOption
 
   // Sync language to session
   const updateSessionLanguage = useCallback((language: string) => {
+    setSessionLanguage(language);
     if (session.currentSessionId) {
       session.updateSession(session.currentSessionId, { language });
     }
