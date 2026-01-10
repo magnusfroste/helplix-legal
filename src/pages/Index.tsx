@@ -124,6 +124,8 @@ export default function Index() {
             onStartNewSession={conversation.startNewSession}
             onLogout={handleLogout}
             onDeleteConversation={conversation.deleteConversation}
+            onCompleteCase={conversation.completeAndStartNew}
+            hasContent={conversation.logEntries.length > 0}
           />
         );
     }

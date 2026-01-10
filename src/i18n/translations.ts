@@ -163,6 +163,13 @@ export interface Translations {
     logout: string;
     reset: string;
     save: string;
+    completeCase: {
+      button: string;
+      title: string;
+      description: string;
+      cancel: string;
+      confirm: string;
+    };
     deleteConversation: {
       button: string;
       title: string;
@@ -177,6 +184,7 @@ export interface Translations {
       newSession: string;
       returning: string;
       conversationDeleted: string;
+      caseCompleted: string;
     };
   };
   
@@ -398,6 +406,13 @@ export const translations: Record<CountryCode, Translations> = {
       logout: 'Sair',
       reset: 'Redefinir',
       save: 'Salvar',
+      completeCase: {
+        button: 'Concluir caso e iniciar novo',
+        title: 'Concluir caso atual?',
+        description: 'O caso atual será salvo como concluído e você poderá acessá-lo no histórico. Uma nova sessão será iniciada.',
+        cancel: 'Cancelar',
+        confirm: 'Concluir',
+      },
       deleteConversation: {
         button: 'Excluir caso atual',
         title: 'Excluir caso atual?',
@@ -411,6 +426,7 @@ export const translations: Record<CountryCode, Translations> = {
         newSession: 'Nova sessão iniciada com nova jurisdição',
         returning: 'Retornando à seleção de país...',
         conversationDeleted: 'Conversa excluída',
+        caseCompleted: 'Caso concluído e salvo',
       },
     },
     dictaphone: {
@@ -619,6 +635,13 @@ export const translations: Record<CountryCode, Translations> = {
       logout: 'Cerrar sesión',
       reset: 'Restablecer',
       save: 'Guardar',
+      completeCase: {
+        button: 'Completar caso e iniciar nuevo',
+        title: '¿Completar caso actual?',
+        description: 'El caso actual se guardará como completado y podrás acceder a él en el historial. Se iniciará una nueva sesión.',
+        cancel: 'Cancelar',
+        confirm: 'Completar',
+      },
       deleteConversation: {
         button: 'Eliminar conversación',
         title: '¿Eliminar conversación?',
@@ -632,6 +655,7 @@ export const translations: Record<CountryCode, Translations> = {
         newSession: 'Nueva sesión iniciada con nueva jurisdicción',
         returning: 'Regresando a la selección de país...',
         conversationDeleted: 'Conversación eliminada',
+        caseCompleted: 'Caso completado y guardado',
       },
     },
     dictaphone: {
@@ -840,6 +864,13 @@ export const translations: Record<CountryCode, Translations> = {
       logout: 'Cerrar sesión',
       reset: 'Restablecer',
       save: 'Guardar',
+      completeCase: {
+        button: 'Completar caso e iniciar nuevo',
+        title: '¿Completar caso actual?',
+        description: 'El caso actual se guardará como completado y podrás acceder a él en el historial. Se iniciará una nueva sesión.',
+        cancel: 'Cancelar',
+        confirm: 'Completar',
+      },
       deleteConversation: {
         button: 'Eliminar caso actual',
         title: '¿Eliminar caso actual?',
@@ -853,6 +884,7 @@ export const translations: Record<CountryCode, Translations> = {
         newSession: 'Nueva sesión iniciada con nueva jurisdicción',
         returning: 'Regresando a la selección de país...',
         conversationDeleted: 'Conversación eliminada',
+        caseCompleted: 'Caso completado y guardado',
       },
     },
     dictaphone: {
@@ -1061,6 +1093,13 @@ export const translations: Record<CountryCode, Translations> = {
       logout: 'Logga ut',
       reset: 'Återställ inställningar',
       save: 'Spara',
+      completeCase: {
+        button: 'Avsluta ärende och starta nytt',
+        title: 'Avsluta pågående ärende?',
+        description: 'Det aktuella ärendet sparas som avslutat och du kan komma åt det i historiken. En ny session startas.',
+        cancel: 'Avbryt',
+        confirm: 'Avsluta',
+      },
       deleteConversation: {
         button: 'Radera aktivt ärende',
         title: 'Radera aktivt ärende?',
@@ -1073,7 +1112,8 @@ export const translations: Record<CountryCode, Translations> = {
         reset: 'Inställningar återställda till standard',
         newSession: 'Ny session startad med ny jurisdiktion',
         returning: 'Återgår till landsval...',
-        conversationDeleted: 'Konversation raderad',
+        conversationDeleted: 'Ärende raderat',
+        caseCompleted: 'Ärende avslutat och sparat',
       },
     },
     dictaphone: {
@@ -1282,6 +1322,13 @@ export const translations: Record<CountryCode, Translations> = {
       logout: 'Log out',
       reset: 'Reset',
       save: 'Save',
+      completeCase: {
+        button: 'Complete case and start new',
+        title: 'Complete current case?',
+        description: 'The current case will be saved as completed and you can access it in the history. A new session will start.',
+        cancel: 'Cancel',
+        confirm: 'Complete',
+      },
       deleteConversation: {
         button: 'Delete current case',
         title: 'Delete current case?',
@@ -1295,6 +1342,7 @@ export const translations: Record<CountryCode, Translations> = {
         newSession: 'New session started with new jurisdiction',
         returning: 'Returning to country selection...',
         conversationDeleted: 'Conversation deleted',
+        caseCompleted: 'Case completed and saved',
       },
     },
     dictaphone: {
@@ -1503,6 +1551,13 @@ export const translations: Record<CountryCode, Translations> = {
       logout: 'Uitloggen',
       reset: 'Resetten',
       save: 'Opslaan',
+      completeCase: {
+        button: 'Zaak afronden en nieuwe starten',
+        title: 'Huidige zaak afronden?',
+        description: 'De huidige zaak wordt opgeslagen als afgerond en is toegankelijk in de geschiedenis. Een nieuwe sessie wordt gestart.',
+        cancel: 'Annuleren',
+        confirm: 'Afronden',
+      },
       deleteConversation: {
         button: 'Huidige zaak verwijderen',
         title: 'Huidige zaak verwijderen?',
@@ -1516,6 +1571,7 @@ export const translations: Record<CountryCode, Translations> = {
         newSession: 'Nieuwe sessie gestart met nieuwe jurisdictie',
         returning: 'Terug naar landselectie...',
         conversationDeleted: 'Gesprek verwijderd',
+        caseCompleted: 'Zaak afgerond en opgeslagen',
       },
     },
     dictaphone: {

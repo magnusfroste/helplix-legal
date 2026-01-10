@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, RefreshCw, LogOut, Shield, Trash2 } from 'lucide-react';
+import { Save, RotateCcw, RefreshCw, LogOut, Shield, Trash2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -35,9 +35,11 @@ interface SettingsScreenProps {
   onStartNewSession?: () => void;
   onLogout?: () => void;
   onDeleteConversation?: () => void;
+  onCompleteCase?: () => void;
+  hasContent?: boolean;
 }
 
-export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, onLogout, onDeleteConversation }: SettingsScreenProps) {
+export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, onLogout, onDeleteConversation, onCompleteCase, hasContent = false }: SettingsScreenProps) {
   const navigate = useNavigate();
   const t = useTranslation(settings.country);
   const [localSettings, setLocalSettings] = useState<CooperSettings>(settings);
@@ -255,10 +257,48 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             </section>
           )}
 
+          {/* Case Management Section */}
+          <section className="pt-4 border-t border-border space-y-3">
+            <Label className="text-helplix-lg font-semibold block mb-3">
+              Ärendehantering
+            </Label>
+            
+            {/* Complete Case - Primary action */}
+            {onCompleteCase && hasContent && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="default"
+                    className="w-full"
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    {t.settings.completeCase.button}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t.settings.completeCase.title}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t.settings.completeCase.description}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t.settings.completeCase.cancel}</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        onCompleteCase();
+                        toast.success(t.settings.toast.caseCompleted);
+                      }}
+                    >
+                      {t.settings.completeCase.confirm}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
 
-          {/* Delete Conversation */}
-          {onDeleteConversation && (
-            <section className="pt-4 border-t border-border">
+            {/* Delete Conversation - Destructive action */}
+            {onDeleteConversation && hasContent && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
@@ -290,8 +330,15 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            </section>
-          )}
+            )}
+
+            {/* Show message when no content */}
+            {!hasContent && (
+              <p className="text-helplix-sm text-muted-foreground text-center py-2">
+                Inget pågående ärende
+              </p>
+            )}
+          </section>
 
 
           {/* Admin Panel Link - Only visible for admins */}
