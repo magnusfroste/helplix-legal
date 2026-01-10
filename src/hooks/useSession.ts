@@ -200,6 +200,27 @@ export function useSession({ userId, onError }: UseSessionOptions = {}) {
     }
   }, [loadSessions, onError]);
 
+  // Complete a session (mark as completed)
+  const completeSession = useCallback(async (sessionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('sessions')
+        .update({ status: 'completed' as SessionStatus })
+        .eq('id', sessionId);
+
+      if (error) throw error;
+      await loadSessions();
+    } catch (error) {
+      console.error('Failed to complete session:', error);
+      onError?.('Failed to complete session');
+    }
+  }, [loadSessions, onError]);
+
+  // Get the most recent active session (not completed or archived)
+  const getActiveSession = useCallback(() => {
+    return sessions.find(s => s.status === 'active' || s.status === null);
+  }, [sessions]);
+
   // Resume a session - returns the log entries
   const resumeSession = useCallback(async (sessionId: string): Promise<LogEntry[]> => {
     try {
@@ -258,7 +279,9 @@ export function useSession({ userId, onError }: UseSessionOptions = {}) {
     deleteSession,
     loadSessions,
     archiveSession,
+    completeSession,
     resumeSession,
     getSessionsWithMetadata,
+    getActiveSession,
   };
 }
