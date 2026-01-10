@@ -40,6 +40,12 @@ export default function Index() {
     navigate('/auth', { replace: true });
   };
 
+  // Handle resuming a session and switching to dictaphone - must be before early return
+  const handleResumeSession = useCallback(async (sessionId: string) => {
+    await conversation.resumeSession(sessionId);
+    setActiveTab('dictaphone');
+  }, [conversation.resumeSession]);
+
   // Show skeleton while initializing
   if (auth.isLoading || !isInitialized) {
     return (
@@ -55,12 +61,6 @@ export default function Index() {
       </div>
     );
   }
-
-  // Handle resuming a session and switching to dictaphone
-  const handleResumeSession = useCallback(async (sessionId: string) => {
-    await conversation.resumeSession(sessionId);
-    setActiveTab('dictaphone');
-  }, [conversation]);
 
   const renderScreen = () => {
     switch (activeTab) {
