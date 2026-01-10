@@ -120,6 +120,10 @@ export interface Translations {
       select: string;
       startNew: string;
     };
+    caseManagement: {
+      title: string;
+      noActiveCase: string;
+    };
     questionIntensity: {
       title: string;
       fewer: string;
@@ -363,6 +367,10 @@ export const translations: Record<CountryCode, Translations> = {
         select: 'Selecione um país',
         startNew: 'Iniciar nova sessão com',
       },
+      caseManagement: {
+        title: 'Gerenciamento de Caso',
+        noActiveCase: 'Nenhum caso ativo',
+      },
       questionIntensity: {
         title: 'Intensidade das Perguntas',
         fewer: 'Menos',
@@ -591,6 +599,10 @@ export const translations: Record<CountryCode, Translations> = {
         title: 'País / Sistema Legal',
         select: 'Seleccione un país',
         startNew: 'Iniciar nueva sesión con',
+      },
+      caseManagement: {
+        title: 'Gestión de Caso',
+        noActiveCase: 'Sin caso activo',
       },
       questionIntensity: {
         title: 'Intensidad de Preguntas',
@@ -821,6 +833,10 @@ export const translations: Record<CountryCode, Translations> = {
         select: 'Seleccione un país',
         startNew: 'Iniciar nueva sesión con',
       },
+      caseManagement: {
+        title: 'Gestión de Caso',
+        noActiveCase: 'Sin caso activo',
+      },
       questionIntensity: {
         title: 'Intensidad de Preguntas',
         fewer: 'Menos',
@@ -1049,6 +1065,10 @@ export const translations: Record<CountryCode, Translations> = {
         title: 'Land / Rättssystem',
         select: 'Välj ett land',
         startNew: 'Starta ny session med',
+      },
+      caseManagement: {
+        title: 'Ärendehantering',
+        noActiveCase: 'Inget pågående ärende',
       },
       questionIntensity: {
         title: 'Frågeintensitet',
@@ -1279,6 +1299,10 @@ export const translations: Record<CountryCode, Translations> = {
         select: 'Select a country',
         startNew: 'Start new session with',
       },
+      caseManagement: {
+        title: 'Case Management',
+        noActiveCase: 'No active case',
+      },
       questionIntensity: {
         title: 'Question Intensity',
         fewer: 'Fewer',
@@ -1507,6 +1531,10 @@ export const translations: Record<CountryCode, Translations> = {
         title: 'Land / Rechtssysteem',
         select: 'Selecteer een land',
         startNew: 'Start nieuwe sessie met',
+      },
+      caseManagement: {
+        title: 'Zaakbeheer',
+        noActiveCase: 'Geen actieve zaak',
       },
       questionIntensity: {
         title: 'Vraagintensiteit',
