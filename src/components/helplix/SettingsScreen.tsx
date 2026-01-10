@@ -260,7 +260,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           {/* Case Management Section */}
           <section className="pt-4 border-t border-border space-y-3">
             <Label className="text-helplix-lg font-semibold block mb-3">
-              Ärendehantering
+              {t.settings.caseManagement.title}
             </Label>
             
             {/* Complete Case - Primary action */}
@@ -335,7 +335,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             {/* Show message when no content */}
             {!hasContent && (
               <p className="text-helplix-sm text-muted-foreground text-center py-2">
-                Inget pågående ärende
+                {t.settings.caseManagement.noActiveCase}
               </p>
             )}
           </section>
