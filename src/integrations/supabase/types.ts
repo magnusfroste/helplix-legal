@@ -296,25 +296,34 @@ export type Database = {
       }
       sessions: {
         Row: {
+          case_type: string | null
           created_at: string
           id: string
           language: string | null
+          status: string | null
+          summary: string | null
           title: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          case_type?: string | null
           created_at?: string
           id?: string
           language?: string | null
+          status?: string | null
+          summary?: string | null
           title?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          case_type?: string | null
           created_at?: string
           id?: string
           language?: string | null
+          status?: string | null
+          summary?: string | null
           title?: string | null
           updated_at?: string
           user_id?: string | null

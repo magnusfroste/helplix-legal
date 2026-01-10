@@ -1,11 +1,15 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { LogEntry } from '@/types/helplix';
+import type { SessionWithMetadata, CaseType, SessionStatus } from '@/types/session';
 
 interface Session {
   id: string;
   title: string | null;
   language: string | null;
+  case_type: string | null;
+  status: string | null;
+  summary: string | null;
   created_at: string;
   updated_at: string;
   user_id: string | null;
@@ -180,6 +184,57 @@ export function useSession({ userId, onError }: UseSessionOptions = {}) {
     }
   }, [currentSessionId, loadSessions, onError]);
 
+  // Archive a session
+  const archiveSession = useCallback(async (sessionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('sessions')
+        .update({ status: 'archived' as SessionStatus })
+        .eq('id', sessionId);
+
+      if (error) throw error;
+      await loadSessions();
+    } catch (error) {
+      console.error('Failed to archive session:', error);
+      onError?.('Failed to archive session');
+    }
+  }, [loadSessions, onError]);
+
+  // Resume a session - returns the log entries
+  const resumeSession = useCallback(async (sessionId: string): Promise<LogEntry[]> => {
+    try {
+      // Set status to active when resuming
+      await supabase
+        .from('sessions')
+        .update({ status: 'active' as SessionStatus })
+        .eq('id', sessionId);
+      
+      setCurrentSessionId(sessionId);
+      const entries = await loadLogEntries(sessionId);
+      await loadSessions();
+      return entries;
+    } catch (error) {
+      console.error('Failed to resume session:', error);
+      onError?.('Failed to resume session');
+      return [];
+    }
+  }, [loadLogEntries, loadSessions, onError]);
+
+  // Get all sessions as SessionWithMetadata
+  const getSessionsWithMetadata = useCallback((): SessionWithMetadata[] => {
+    return sessions.map(s => ({
+      id: s.id,
+      title: s.title,
+      case_type: (s.case_type as CaseType) || 'general',
+      status: (s.status as SessionStatus) || 'active',
+      summary: s.summary || null,
+      language: s.language,
+      created_at: s.created_at,
+      updated_at: s.updated_at,
+      user_id: s.user_id,
+    }));
+  }, [sessions]);
+
   // Load sessions when userId changes
   useEffect(() => {
     if (userId) {
@@ -202,5 +257,8 @@ export function useSession({ userId, onError }: UseSessionOptions = {}) {
     updateSession,
     deleteSession,
     loadSessions,
+    archiveSession,
+    resumeSession,
+    getSessionsWithMetadata,
   };
 }

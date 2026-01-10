@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BottomNavigation, type NavigationTab } from '@/components/helplix/BottomNavigation';
 import { DictaphoneScreen } from '@/components/helplix/DictaphoneScreen';
 import { LogScreen } from '@/components/helplix/LogScreen';
 import { ReportScreen } from '@/components/helplix/ReportScreen';
 import { SettingsScreen } from '@/components/helplix/SettingsScreen';
+import { SessionHistoryScreen } from '@/components/helplix/SessionHistoryScreen';
 import { DictaphoneSkeleton, LogSkeleton, ReportSkeleton } from '@/components/helplix/skeletons';
 import { useAuth } from '@/hooks/useAuth';
 import { COUNTRIES } from '@/types/helplix';
@@ -55,6 +56,12 @@ export default function Index() {
     );
   }
 
+  // Handle resuming a session and switching to dictaphone
+  const handleResumeSession = useCallback(async (sessionId: string) => {
+    await conversation.resumeSession(sessionId);
+    setActiveTab('dictaphone');
+  }, [conversation]);
+
   const renderScreen = () => {
     switch (activeTab) {
       case 'dictaphone':
@@ -72,6 +79,18 @@ export default function Index() {
             country={settings.country}
             showRealtimeTranscription={getFlag('realtime_transcription') && settings.sttEnabled}
             realtimeTranscriptionText={conversation.realtimeTranscriptionText || ''}
+          />
+        );
+      case 'history':
+        return (
+          <SessionHistoryScreen
+            sessions={conversation.sessions}
+            currentSessionId={conversation.currentSessionId}
+            country={settings.country}
+            onResumeSession={handleResumeSession}
+            onArchiveSession={conversation.archiveSession}
+            onDeleteSession={conversation.deleteSession}
+            isLoading={conversation.isLoadingSessions}
           />
         );
       case 'log':
