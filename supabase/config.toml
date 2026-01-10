@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.manage-role]
 verify_jwt = false
+
+[functions.classify-session]
+verify_jwt = false
