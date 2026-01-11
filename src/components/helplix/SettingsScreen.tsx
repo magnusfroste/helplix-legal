@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, RefreshCw, LogOut, Shield, Trash2, CheckCircle2 } from 'lucide-react';
+import { Save, RotateCcw, RefreshCw, LogOut, Shield, Trash2, CheckCircle2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -340,6 +340,18 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             )}
           </section>
 
+
+          {/* Install App Link */}
+          <section className="pt-4 border-t border-border">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/install')}
+              className="w-full"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Installera appen
+            </Button>
+          </section>
 
           {/* Admin Panel Link - Only visible for admins */}
           {isAdmin && (
