@@ -21,16 +21,26 @@ export function InstallBanner({ country }: InstallBannerProps) {
     const isIosStandalone = (window.navigator as any).standalone === true;
     const isPwaInstalled = isStandalone || isIosStandalone;
 
-    // Check if user has dismissed the banner before
-    const wasDismissed = localStorage.getItem('pwa-banner-dismissed') === 'true';
+    // Check if user has dismissed the banner and when
+    const dismissedAt = localStorage.getItem('pwa-banner-dismissed-at');
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    
+    let shouldShowBanner = true;
+    if (dismissedAt) {
+      const dismissedTime = parseInt(dismissedAt, 10);
+      const timeSinceDismissed = Date.now() - dismissedTime;
+      // Show again if 7 days have passed
+      shouldShowBanner = timeSinceDismissed >= SEVEN_DAYS_MS;
+    }
 
-    // Show banner if not installed and not dismissed
-    setIsVisible(!isPwaInstalled && !wasDismissed);
+    // Show banner if not installed and either never dismissed or 7 days passed
+    setIsVisible(!isPwaInstalled && shouldShowBanner);
   }, []);
 
   const handleDismiss = () => {
     setIsAnimatingOut(true);
-    localStorage.setItem('pwa-banner-dismissed', 'true');
+    // Store timestamp instead of boolean
+    localStorage.setItem('pwa-banner-dismissed-at', Date.now().toString());
     // Wait for animation to complete before hiding
     setTimeout(() => {
       setIsVisible(false);
