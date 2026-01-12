@@ -134,7 +134,7 @@ export default function Index() {
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
-      <InstallBanner country={settings.country} />
+      {activeTab === 'dictaphone' && <InstallBanner country={settings.country} />}
       <main className="flex-1 max-w-lg mx-auto w-full overflow-hidden pb-20">
         {renderScreen()}
       </main>
