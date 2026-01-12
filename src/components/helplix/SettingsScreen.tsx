@@ -349,7 +349,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
               className="w-full"
             >
               <Download className="h-4 w-4 mr-2" />
-              Installera appen
+              {t.install.settingsButton}
             </Button>
           </section>
 
