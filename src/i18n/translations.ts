@@ -271,6 +271,8 @@ export interface Translations {
     installButton: string;
     settingsButton: string;
     backButton: string;
+    bannerText: string;
+    bannerButton: string;
     ios: {
       title: string;
       step1: string;
@@ -538,6 +540,8 @@ export const translations: Record<CountryCode, Translations> = {
       installButton: 'Instalar app',
       settingsButton: 'Instalar app',
       backButton: 'Voltar para o app',
+      bannerText: 'Instale o app para melhor experiência',
+      bannerButton: 'Instalar',
       ios: {
         title: 'Instalar no iPhone/iPad',
         step1: 'Toque no botão Compartilhar no Safari',
@@ -804,6 +808,8 @@ export const translations: Record<CountryCode, Translations> = {
       installButton: 'Instalar app',
       settingsButton: 'Instalar app',
       backButton: 'Volver a la app',
+      bannerText: 'Instala la app para mejor experiencia',
+      bannerButton: 'Instalar',
       ios: {
         title: 'Instalar en iPhone/iPad',
         step1: 'Toca el botón Compartir en Safari',
@@ -1070,6 +1076,8 @@ export const translations: Record<CountryCode, Translations> = {
       installButton: 'Instalar app',
       settingsButton: 'Instalar app',
       backButton: 'Volver a la app',
+      bannerText: 'Instala la app para mejor experiencia',
+      bannerButton: 'Instalar',
       ios: {
         title: 'Instalar en iPhone/iPad',
         step1: 'Toca el botón Compartir en Safari',
@@ -1336,6 +1344,8 @@ export const translations: Record<CountryCode, Translations> = {
       installButton: 'Installera appen',
       settingsButton: 'Installera appen',
       backButton: 'Tillbaka till appen',
+      bannerText: 'Installera appen för bästa upplevelse',
+      bannerButton: 'Installera',
       ios: {
         title: 'Installera på iPhone/iPad',
         step1: 'Tryck på Dela-knappen i Safari',
@@ -1602,6 +1612,8 @@ export const translations: Record<CountryCode, Translations> = {
       installButton: 'Install app',
       settingsButton: 'Install app',
       backButton: 'Back to app',
+      bannerText: 'Install the app for the best experience',
+      bannerButton: 'Install',
       ios: {
         title: 'Install on iPhone/iPad',
         step1: 'Tap the Share button in Safari',
@@ -1868,6 +1880,8 @@ export const translations: Record<CountryCode, Translations> = {
       installButton: 'App installeren',
       settingsButton: 'App installeren',
       backButton: 'Terug naar app',
+      bannerText: 'Installeer de app voor de beste ervaring',
+      bannerButton: 'Installeren',
       ios: {
         title: 'Installeren op iPhone/iPad',
         step1: 'Tik op de Deel-knop in Safari',

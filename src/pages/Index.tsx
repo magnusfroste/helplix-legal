@@ -6,6 +6,7 @@ import { LogScreen } from '@/components/helplix/LogScreen';
 import { ReportScreen } from '@/components/helplix/ReportScreen';
 import { SettingsScreen } from '@/components/helplix/SettingsScreen';
 import { SessionHistoryScreen } from '@/components/helplix/SessionHistoryScreen';
+import { InstallBanner } from '@/components/helplix/InstallBanner';
 import { DictaphoneSkeleton, LogSkeleton, ReportSkeleton } from '@/components/helplix/skeletons';
 import { useAuth } from '@/hooks/useAuth';
 import { COUNTRIES } from '@/types/helplix';
@@ -133,6 +134,7 @@ export default function Index() {
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
+      <InstallBanner country={settings.country} />
       <main className="flex-1 max-w-lg mx-auto w-full overflow-hidden pb-20">
         {renderScreen()}
       </main>
