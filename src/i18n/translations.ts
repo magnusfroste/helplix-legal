@@ -261,6 +261,41 @@ export interface Translations {
       personal_injury: string;
     };
   };
+  
+  // Install Screen
+  install: {
+    title: string;
+    tagline: string;
+    installed: string;
+    installedDescription: string;
+    installButton: string;
+    settingsButton: string;
+    backButton: string;
+    ios: {
+      title: string;
+      step1: string;
+      step2: string;
+      step3: string;
+    };
+    android: {
+      title: string;
+      step1: string;
+      step2: string;
+      step3: string;
+    };
+    desktop: {
+      title: string;
+      step1: string;
+      step2: string;
+    };
+    benefits: {
+      title: string;
+      homescreen: string;
+      offline: string;
+      fullscreen: string;
+      updates: string;
+    };
+  };
 }
 
 export const translations: Record<CountryCode, Translations> = {
@@ -493,6 +528,39 @@ export const translations: Record<CountryCode, Translations> = {
         housing: 'Moradia',
         employment: 'Trabalho',
         personal_injury: 'Lesão pessoal',
+      },
+    },
+    install: {
+      title: 'Instalar Helplix',
+      tagline: 'Get Informed',
+      installed: 'App instalado!',
+      installedDescription: 'Você encontra o Helplix na sua tela inicial',
+      installButton: 'Instalar app',
+      settingsButton: 'Instalar app',
+      backButton: 'Voltar para o app',
+      ios: {
+        title: 'Instalar no iPhone/iPad',
+        step1: 'Toque no botão Compartilhar no Safari',
+        step2: 'Role para baixo e selecione "Adicionar à Tela de Início"',
+        step3: 'Toque em "Adicionar" no canto superior direito',
+      },
+      android: {
+        title: 'Instalar no Android',
+        step1: 'Abra o menu (⋮) no Chrome',
+        step2: 'Selecione "Instalar app" ou "Adicionar à tela inicial"',
+        step3: 'Confirme a instalação',
+      },
+      desktop: {
+        title: 'Instalar no computador',
+        step1: 'Clique no ícone de instalação na barra de endereço (se disponível)',
+        step2: 'Ou abra o menu e selecione "Instalar Helplix"',
+      },
+      benefits: {
+        title: 'Benefícios',
+        homescreen: 'Acesso rápido da tela inicial',
+        offline: 'Funciona offline',
+        fullscreen: 'Modo tela cheia sem navegador',
+        updates: 'Atualizações automáticas',
       },
     },
   },
@@ -728,6 +796,39 @@ export const translations: Record<CountryCode, Translations> = {
         personal_injury: 'Lesión personal',
       },
     },
+    install: {
+      title: 'Instalar Helplix',
+      tagline: 'Get Informed',
+      installed: '¡App instalada!',
+      installedDescription: 'Encuentra Helplix en tu pantalla de inicio',
+      installButton: 'Instalar app',
+      settingsButton: 'Instalar app',
+      backButton: 'Volver a la app',
+      ios: {
+        title: 'Instalar en iPhone/iPad',
+        step1: 'Toca el botón Compartir en Safari',
+        step2: 'Desplázate y selecciona "Agregar a pantalla de inicio"',
+        step3: 'Toca "Agregar" en la esquina superior derecha',
+      },
+      android: {
+        title: 'Instalar en Android',
+        step1: 'Abre el menú (⋮) en Chrome',
+        step2: 'Selecciona "Instalar app" o "Agregar a pantalla de inicio"',
+        step3: 'Confirma la instalación',
+      },
+      desktop: {
+        title: 'Instalar en computadora',
+        step1: 'Haz clic en el ícono de instalación en la barra de direcciones (si está disponible)',
+        step2: 'O abre el menú y selecciona "Instalar Helplix"',
+      },
+      benefits: {
+        title: 'Beneficios',
+        homescreen: 'Acceso rápido desde la pantalla de inicio',
+        offline: 'Funciona sin conexión',
+        fullscreen: 'Modo de pantalla completa sin navegador',
+        updates: 'Actualizaciones automáticas',
+      },
+    },
   },
   
   DO: {
@@ -959,6 +1060,39 @@ export const translations: Record<CountryCode, Translations> = {
         housing: 'Vivienda',
         employment: 'Empleo',
         personal_injury: 'Lesión personal',
+      },
+    },
+    install: {
+      title: 'Instalar Helplix',
+      tagline: 'Get Informed',
+      installed: '¡App instalada!',
+      installedDescription: 'Encuentra Helplix en tu pantalla de inicio',
+      installButton: 'Instalar app',
+      settingsButton: 'Instalar app',
+      backButton: 'Volver a la app',
+      ios: {
+        title: 'Instalar en iPhone/iPad',
+        step1: 'Toca el botón Compartir en Safari',
+        step2: 'Desplázate y selecciona "Agregar a pantalla de inicio"',
+        step3: 'Toca "Agregar" en la esquina superior derecha',
+      },
+      android: {
+        title: 'Instalar en Android',
+        step1: 'Abre el menú (⋮) en Chrome',
+        step2: 'Selecciona "Instalar app" o "Agregar a pantalla de inicio"',
+        step3: 'Confirma la instalación',
+      },
+      desktop: {
+        title: 'Instalar en computadora',
+        step1: 'Haz clic en el ícono de instalación en la barra de direcciones (si está disponible)',
+        step2: 'O abre el menú y selecciona "Instalar Helplix"',
+      },
+      benefits: {
+        title: 'Beneficios',
+        homescreen: 'Acceso rápido desde la pantalla de inicio',
+        offline: 'Funciona sin conexión',
+        fullscreen: 'Modo de pantalla completa sin navegador',
+        updates: 'Actualizaciones automáticas',
       },
     },
   },
@@ -1194,6 +1328,39 @@ export const translations: Record<CountryCode, Translations> = {
         personal_injury: 'Personskada',
       },
     },
+    install: {
+      title: 'Installera Helplix',
+      tagline: 'Get Informed',
+      installed: 'Appen är installerad!',
+      installedDescription: 'Du hittar Helplix på din hemskärm',
+      installButton: 'Installera appen',
+      settingsButton: 'Installera appen',
+      backButton: 'Tillbaka till appen',
+      ios: {
+        title: 'Installera på iPhone/iPad',
+        step1: 'Tryck på Dela-knappen i Safari',
+        step2: 'Scrolla ner och välj "Lägg till på hemskärmen"',
+        step3: 'Tryck "Lägg till" uppe till höger',
+      },
+      android: {
+        title: 'Installera på Android',
+        step1: 'Öppna menyn (⋮) i Chrome',
+        step2: 'Välj "Installera app" eller "Lägg till på startskärmen"',
+        step3: 'Bekräfta installationen',
+      },
+      desktop: {
+        title: 'Installera på dator',
+        step1: 'Klicka på installera-ikonen i adressfältet (om tillgänglig)',
+        step2: 'Eller öppna menyn och välj "Installera Helplix"',
+      },
+      benefits: {
+        title: 'Fördelar',
+        homescreen: 'Snabb åtkomst från hemskärmen',
+        offline: 'Fungerar offline',
+        fullscreen: 'Helskärmsläge utan webbläsare',
+        updates: 'Automatiska uppdateringar',
+      },
+    },
   },
   
   US: {
@@ -1427,6 +1594,39 @@ export const translations: Record<CountryCode, Translations> = {
         personal_injury: 'Personal injury',
       },
     },
+    install: {
+      title: 'Install Helplix',
+      tagline: 'Get Informed',
+      installed: 'App installed!',
+      installedDescription: 'You can find Helplix on your home screen',
+      installButton: 'Install app',
+      settingsButton: 'Install app',
+      backButton: 'Back to app',
+      ios: {
+        title: 'Install on iPhone/iPad',
+        step1: 'Tap the Share button in Safari',
+        step2: 'Scroll down and select "Add to Home Screen"',
+        step3: 'Tap "Add" in the top right corner',
+      },
+      android: {
+        title: 'Install on Android',
+        step1: 'Open the menu (⋮) in Chrome',
+        step2: 'Select "Install app" or "Add to Home screen"',
+        step3: 'Confirm the installation',
+      },
+      desktop: {
+        title: 'Install on computer',
+        step1: 'Click the install icon in the address bar (if available)',
+        step2: 'Or open the menu and select "Install Helplix"',
+      },
+      benefits: {
+        title: 'Benefits',
+        homescreen: 'Quick access from home screen',
+        offline: 'Works offline',
+        fullscreen: 'Full screen mode without browser',
+        updates: 'Automatic updates',
+      },
+    },
   },
   
   NL: {
@@ -1658,6 +1858,39 @@ export const translations: Record<CountryCode, Translations> = {
         housing: 'Huisvesting',
         employment: 'Arbeidsrecht',
         personal_injury: 'Letselschade',
+      },
+    },
+    install: {
+      title: 'Installeer Helplix',
+      tagline: 'Get Informed',
+      installed: 'App geïnstalleerd!',
+      installedDescription: 'U vindt Helplix op uw startscherm',
+      installButton: 'App installeren',
+      settingsButton: 'App installeren',
+      backButton: 'Terug naar app',
+      ios: {
+        title: 'Installeren op iPhone/iPad',
+        step1: 'Tik op de Deel-knop in Safari',
+        step2: 'Scroll naar beneden en selecteer "Zet op beginscherm"',
+        step3: 'Tik op "Voeg toe" rechtsboven',
+      },
+      android: {
+        title: 'Installeren op Android',
+        step1: 'Open het menu (⋮) in Chrome',
+        step2: 'Selecteer "App installeren" of "Toevoegen aan startscherm"',
+        step3: 'Bevestig de installatie',
+      },
+      desktop: {
+        title: 'Installeren op computer',
+        step1: 'Klik op het installatie-icoon in de adresbalk (indien beschikbaar)',
+        step2: 'Of open het menu en selecteer "Helplix installeren"',
+      },
+      benefits: {
+        title: 'Voordelen',
+        homescreen: 'Snelle toegang vanaf startscherm',
+        offline: 'Werkt offline',
+        fullscreen: 'Volledig scherm zonder browser',
+        updates: 'Automatische updates',
       },
     },
   },
