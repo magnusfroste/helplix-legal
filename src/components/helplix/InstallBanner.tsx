@@ -13,7 +13,7 @@ export function InstallBanner({ country }: InstallBannerProps) {
   const navigate = useNavigate();
   const t = useTranslation(country);
   const [isVisible, setIsVisible] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
   useEffect(() => {
     // Check if already installed as PWA
@@ -26,12 +26,15 @@ export function InstallBanner({ country }: InstallBannerProps) {
 
     // Show banner if not installed and not dismissed
     setIsVisible(!isPwaInstalled && !wasDismissed);
-    setIsDismissed(wasDismissed);
   }, []);
 
   const handleDismiss = () => {
-    setIsVisible(false);
+    setIsAnimatingOut(true);
     localStorage.setItem('pwa-banner-dismissed', 'true');
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+      setIsVisible(false);
+    }, 200);
   };
 
   const handleInstallClick = () => {
@@ -43,7 +46,11 @@ export function InstallBanner({ country }: InstallBannerProps) {
   }
 
   return (
-    <div className="bg-primary/10 border-b border-primary/20 px-3 py-2">
+    <div 
+      className={`bg-primary/10 border-b border-primary/20 px-3 py-2 overflow-hidden transition-all duration-200 ${
+        isAnimatingOut ? 'animate-accordion-up' : 'animate-accordion-down'
+      }`}
+    >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <Download className="h-4 w-4 text-primary flex-shrink-0" />
