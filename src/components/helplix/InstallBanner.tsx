@@ -35,6 +35,15 @@ export function InstallBanner({ country }: InstallBannerProps) {
 
     // Show banner if not installed and either never dismissed or 7 days passed
     setIsVisible(!isPwaInstalled && shouldShowBanner);
+
+    // Clear dismissed timestamp when app is installed
+    const handleAppInstalled = () => {
+      localStorage.removeItem('pwa-banner-dismissed-at');
+      setIsVisible(false);
+    };
+
+    window.addEventListener('appinstalled', handleAppInstalled);
+    return () => window.removeEventListener('appinstalled', handleAppInstalled);
   }, []);
 
   const handleDismiss = () => {
