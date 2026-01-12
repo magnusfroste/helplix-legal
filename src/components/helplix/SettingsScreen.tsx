@@ -45,6 +45,7 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
   const [localSettings, setLocalSettings] = useState<CooperSettings>(settings);
   const [hasChanges, setHasChanges] = useState(false);
   const [countryChanged, setCountryChanged] = useState(false);
+  const [isPwaInstalled, setIsPwaInstalled] = useState(false);
   
   // Check admin status and feature flags
   const { isAdmin } = useAdminAuth();
@@ -54,6 +55,22 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
   const isRealtimeTranscriptionEnabled = getFlag('realtime_transcription');
   const isTtsEnabled = getFlag('tts_enabled');
   const isSttEnabled = getFlag('stt_enabled');
+
+  // Check if app is installed as PWA
+  useEffect(() => {
+    const checkPwaInstalled = () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      const isIosStandalone = (window.navigator as any).standalone === true;
+      setIsPwaInstalled(isStandalone || isIosStandalone);
+    };
+    
+    checkPwaInstalled();
+    
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    mediaQuery.addEventListener('change', checkPwaInstalled);
+    
+    return () => mediaQuery.removeEventListener('change', checkPwaInstalled);
+  }, []);
 
   const handleChange = <K extends keyof CooperSettings>(
     key: K,
@@ -341,17 +358,19 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
           </section>
 
 
-          {/* Install App Link */}
-          <section className="pt-4 border-t border-border">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/install')}
-              className="w-full"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              {t.install.settingsButton}
-            </Button>
-          </section>
+          {/* Install App Link - Only show if not already installed */}
+          {!isPwaInstalled && (
+            <section className="pt-4 border-t border-border">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/install')}
+                className="w-full"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {t.install.settingsButton}
+              </Button>
+            </section>
+          )}
 
           {/* Admin Panel Link - Only visible for admins */}
           {isAdmin && (
