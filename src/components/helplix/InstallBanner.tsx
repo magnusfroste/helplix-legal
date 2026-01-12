@@ -73,8 +73,12 @@ export function InstallBanner({ country }: InstallBannerProps) {
             variant="ghost"
             size="sm"
             onClick={handleInstallClick}
-            className="h-7 px-2 text-helplix-sm text-primary hover:text-primary"
+            className="h-7 px-2 text-helplix-sm text-primary hover:text-primary relative"
           >
+            <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            </span>
             {t.install.bannerButton}
           </Button>
           <Button
