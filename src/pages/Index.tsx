@@ -82,6 +82,7 @@ export default function Index() {
             showRealtimeTranscription={getFlag('realtime_transcription') && settings.sttEnabled}
             realtimeTranscriptionText={conversation.realtimeTranscriptionText || ''}
             hasContent={conversation.logEntries.length > 0}
+            showAiBadge={getFlag('show_ai_badge')}
           />
         );
       case 'history':

@@ -25,6 +25,7 @@ interface DictaphoneScreenProps {
   showRealtimeTranscription?: boolean;
   realtimeTranscriptionText?: string;
   hasContent?: boolean;
+  showAiBadge?: boolean;
 }
 
 export const DictaphoneScreen = memo(function DictaphoneScreen({
@@ -42,6 +43,7 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
   showRealtimeTranscription = false,
   realtimeTranscriptionText = '',
   hasContent = false,
+  showAiBadge = false,
 }: DictaphoneScreenProps) {
   const t = useTranslation(country);
   const { config } = useAIConfig();
@@ -71,8 +73,8 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
 
   return (
     <div className="flex flex-col items-center justify-between min-h-[calc(100vh-80px)] py-4 px-2 relative">
-      {/* AI Model Badge - subtle bottom corner */}
-      {config?.is_active && (
+      {/* AI Model Badge - subtle bottom corner, controlled by feature flag */}
+      {showAiBadge && config?.is_active && (
         <div className="absolute bottom-20 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground text-[10px]">
           <Cpu className="h-2.5 w-2.5" />
           <span>{displayModelName}</span>
