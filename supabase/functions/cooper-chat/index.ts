@@ -39,7 +39,7 @@ function getApiKeyForProvider(provider: AIProvider): string {
     case 'google':
       return Deno.env.get("GOOGLE_API_KEY") || "";
     case 'local':
-      return ""; // Local usually doesn't need a key
+      return Deno.env.get("LOCAL_LLM_API_KEY") || ""; // Optional - some local LLMs don't need a key
     default:
       return Deno.env.get("OPENAI_API_KEY") || "";
   }
@@ -85,7 +85,7 @@ async function getAIEndpoint(): Promise<AIEndpointConfig> {
     const provider = detectProvider(configData.endpoint_url);
     const apiKey = getApiKeyForProvider(provider);
     
-    // For non-local providers, require an API key
+    // For non-local providers, require an API key. For local, it's optional.
     if (provider !== 'local' && !apiKey) {
       console.log(`No API key found for provider ${provider}, falling back to Lovable AI`);
       return defaultConfig;

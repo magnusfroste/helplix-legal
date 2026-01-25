@@ -35,6 +35,11 @@ serve(async (req) => {
         provider: 'Google Gemini',
         configured: !!Deno.env.get("GOOGLE_API_KEY"),
       },
+      {
+        name: 'LOCAL_LLM_API_KEY',
+        provider: 'Local LLM',
+        configured: !!Deno.env.get("LOCAL_LLM_API_KEY"),
+      },
     ];
 
     console.log('Checking AI secrets status:', secrets.map(s => `${s.name}: ${s.configured}`).join(', '));
