@@ -1,5 +1,5 @@
 import { useState, useCallback, memo } from 'react';
-import { RotateCcw, Keyboard, Plus } from 'lucide-react';
+import { RotateCcw, Keyboard, Plus, Cpu } from 'lucide-react';
 import { PushToTalkButton } from './PushToTalkButton';
 import { QuestionDisplay } from './QuestionDisplay';
 import { TextInputDialog } from './TextInputDialog';
@@ -8,6 +8,7 @@ import { RealtimeTranscription } from './RealtimeTranscription';
 import { cn } from '@/lib/utils';
 import type { ConversationStatus, CooperSettings, CountryCode } from '@/types/helplix';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useAIConfig } from '@/hooks/useAIConfig';
 
 interface DictaphoneScreenProps {
   status: ConversationStatus;
@@ -43,7 +44,13 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
   hasContent = false,
 }: DictaphoneScreenProps) {
   const t = useTranslation(country);
+  const { config } = useAIConfig();
   const [showTextInput, setShowTextInput] = useState(false);
+
+  // Extract short model name for display
+  const displayModelName = config?.model_name 
+    ? config.model_name.split('/').pop() || config.model_name 
+    : 'AI';
 
   const handleTextSubmit = useCallback((text: string) => {
     onTextSubmit(text);
@@ -63,7 +70,14 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
   );
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-[calc(100vh-80px)] py-4 px-2">
+    <div className="flex flex-col items-center justify-between min-h-[calc(100vh-80px)] py-4 px-2 relative">
+      {/* AI Model Badge - subtle bottom corner */}
+      {config?.is_active && (
+        <div className="absolute bottom-20 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground text-[10px]">
+          <Cpu className="h-2.5 w-2.5" />
+          <span>{displayModelName}</span>
+        </div>
+      )}
       {/* Header with New Case button */}
       <header className="w-full flex items-center justify-between px-2 py-2">
         <div className="w-16" /> {/* Spacer for centering */}
