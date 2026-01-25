@@ -113,6 +113,15 @@ export default function Admin() {
   const [aiConfigInitialized, setAiConfigInitialized] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [connectionTestResult, setConnectionTestResult] = useState<{ success: boolean; message: string; missingSecret?: string } | null>(null);
+  
+  // Secrets status
+  interface SecretStatus {
+    name: string;
+    provider: string;
+    configured: boolean;
+  }
+  const [secretsStatus, setSecretsStatus] = useState<SecretStatus[]>([]);
+  const [loadingSecrets, setLoadingSecrets] = useState(false);
 
   // Sync AI config state from hook
   useEffect(() => {
@@ -132,6 +141,28 @@ export default function Admin() {
     };
     getCurrentUser();
   }, []);
+  
+  // Fetch AI secrets status
+  const fetchSecretsStatus = useCallback(async () => {
+    setLoadingSecrets(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-ai-secrets');
+      if (error) throw error;
+      if (data?.secrets) {
+        setSecretsStatus(data.secrets);
+      }
+    } catch (err) {
+      console.error('Error fetching secrets status:', err);
+    } finally {
+      setLoadingSecrets(false);
+    }
+  }, []);
+  
+  useEffect(() => {
+    if (isAdmin) {
+      fetchSecretsStatus();
+    }
+  }, [isAdmin, fetchSecretsStatus]);
 
   // Redirect if not admin
   useEffect(() => {
@@ -614,9 +645,57 @@ export default function Admin() {
                     )}
                   </div>
 
-                  <div className="flex items-start gap-2 p-3 rounded-md bg-muted/50 text-sm text-muted-foreground">
-                    <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-                    <p>API-nycklar läses från Secrets (OPENAI_API_KEY, GOOGLE_API_KEY). Lovable AI kräver ingen nyckel.</p>
+                  {/* API Keys Status */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">API-nyckel status</Label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={fetchSecretsStatus}
+                        disabled={loadingSecrets}
+                      >
+                        {loadingSecrets ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <span className="text-xs">Uppdatera</span>
+                        )}
+                      </Button>
+                    </div>
+                    
+                    {loadingSecrets && secretsStatus.length === 0 ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : (
+                      <div className="grid gap-2">
+                        {secretsStatus.map((secret) => (
+                          <div
+                            key={secret.name}
+                            className="flex items-center justify-between p-3 rounded-md border border-border bg-card"
+                          >
+                            <div className="flex items-center gap-2">
+                              {secret.configured ? (
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                              ) : (
+                                <XCircle className="h-4 w-4 text-red-500" />
+                              )}
+                              <span className="text-sm font-medium">{secret.provider}</span>
+                            </div>
+                            <Badge 
+                              variant={secret.configured ? "default" : "secondary"}
+                              className={secret.configured ? "bg-green-600" : "bg-red-500/10 text-red-500"}
+                            >
+                              {secret.configured ? 'Konfigurerad' : 'Saknas'}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <p className="text-xs text-muted-foreground">
+                      Lägg till API-nycklar i Secrets via projektinställningarna.
+                    </p>
                   </div>
                 </>
               )}
