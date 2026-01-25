@@ -57,6 +57,10 @@ export function InstallBanner({ country }: InstallBannerProps) {
   };
 
   const handleInstallClick = () => {
+    // Haptic feedback on mobile devices
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50);
+    }
     navigate('/install');
   };
 
