@@ -182,6 +182,23 @@ export interface Translations {
       confirm: string;
     };
     
+    privacy: {
+      title: string;
+      storage: {
+        title: string;
+        description: string;
+      };
+      ai: {
+        title: string;
+        description: string;
+      };
+      security: {
+        title: string;
+        description: string;
+      };
+      disclaimer: string;
+    };
+    
     toast: {
       saved: string;
       reset: string;
@@ -473,6 +490,22 @@ export const translations: Record<CountryCode, Translations> = {
         conversationDeleted: 'Conversa excluída',
         caseCompleted: 'Caso concluído e salvo',
       },
+      privacy: {
+        title: 'Sobre seus dados',
+        storage: {
+          title: 'Armazenamento seguro',
+          description: 'Seus dados são armazenados de forma criptografada em servidores seguros. Apenas você tem acesso às suas informações através da sua conta.',
+        },
+        ai: {
+          title: 'IA utilizada',
+          description: 'O Helplix usa modelos de IA do Google (Gemini) para fazer perguntas e gerar relatórios. Seus dados NÃO são usados para treinar a IA.',
+        },
+        security: {
+          title: 'Sua privacidade',
+          description: 'Nenhum outro usuário pode ver seus casos. Você pode excluir seus dados a qualquer momento através das configurações.',
+        },
+        disclaimer: 'O Helplix não fornece aconselhamento jurídico. Sempre consulte um advogado para questões legais.',
+      },
     },
     dictaphone: {
       cooper: 'Helplix',
@@ -740,6 +773,22 @@ export const translations: Record<CountryCode, Translations> = {
         returning: 'Regresando a la selección de país...',
         conversationDeleted: 'Conversación eliminada',
         caseCompleted: 'Caso completado y guardado',
+      },
+      privacy: {
+        title: 'Sobre tus datos',
+        storage: {
+          title: 'Almacenamiento seguro',
+          description: 'Tus datos se almacenan de forma encriptada en servidores seguros. Solo tú tienes acceso a tu información a través de tu cuenta.',
+        },
+        ai: {
+          title: 'IA utilizada',
+          description: 'Helplix utiliza modelos de IA de Google (Gemini) para hacer preguntas y generar informes. Tus datos NO se utilizan para entrenar la IA.',
+        },
+        security: {
+          title: 'Tu privacidad',
+          description: 'Ningún otro usuario puede ver tus casos. Puedes eliminar tus datos en cualquier momento desde la configuración.',
+        },
+        disclaimer: 'Helplix no proporciona asesoramiento legal. Siempre consulta a un abogado para cuestiones legales.',
       },
     },
     dictaphone: {
@@ -1009,6 +1058,22 @@ export const translations: Record<CountryCode, Translations> = {
         conversationDeleted: 'Conversación eliminada',
         caseCompleted: 'Caso completado y guardado',
       },
+      privacy: {
+        title: 'Sobre tus datos',
+        storage: {
+          title: 'Almacenamiento seguro',
+          description: 'Tus datos se almacenan de forma encriptada en servidores seguros. Solo tú tienes acceso a tu información a través de tu cuenta.',
+        },
+        ai: {
+          title: 'IA utilizada',
+          description: 'Helplix utiliza modelos de IA de Google (Gemini) para hacer preguntas y generar informes. Tus datos NO se utilizan para entrenar la IA.',
+        },
+        security: {
+          title: 'Tu privacidad',
+          description: 'Ningún otro usuario puede ver tus casos. Puedes eliminar tus datos en cualquier momento desde la configuración.',
+        },
+        disclaimer: 'Helplix no proporciona asesoramiento legal. Siempre consulta a un abogado para cuestiones legales.',
+      },
     },
     dictaphone: {
       cooper: 'Helplix',
@@ -1276,6 +1341,22 @@ export const translations: Record<CountryCode, Translations> = {
         returning: 'Återgår till landsval...',
         conversationDeleted: 'Ärende raderat',
         caseCompleted: 'Ärende avslutat och sparat',
+      },
+      privacy: {
+        title: 'Om din data',
+        storage: {
+          title: 'Säker lagring',
+          description: 'Din data lagras krypterat på säkra servrar. Endast du har tillgång till din information via ditt konto.',
+        },
+        ai: {
+          title: 'AI som används',
+          description: 'Helplix använder AI-modeller från Google (Gemini) för att ställa frågor och generera rapporter. Din data används INTE för att träna AI:n.',
+        },
+        security: {
+          title: 'Din integritet',
+          description: 'Ingen annan användare kan se dina ärenden. Du kan radera din data när som helst via inställningarna.',
+        },
+        disclaimer: 'Helplix ger inte juridisk rådgivning. Konsultera alltid en jurist för rättsliga frågor.',
       },
     },
     dictaphone: {
@@ -1545,6 +1626,22 @@ export const translations: Record<CountryCode, Translations> = {
         conversationDeleted: 'Conversation deleted',
         caseCompleted: 'Case completed and saved',
       },
+      privacy: {
+        title: 'About your data',
+        storage: {
+          title: 'Secure storage',
+          description: 'Your data is stored encrypted on secure servers. Only you have access to your information through your account.',
+        },
+        ai: {
+          title: 'AI used',
+          description: 'Helplix uses AI models from Google (Gemini) to ask questions and generate reports. Your data is NOT used to train the AI.',
+        },
+        security: {
+          title: 'Your privacy',
+          description: 'No other user can see your cases. You can delete your data at any time from the settings.',
+        },
+        disclaimer: 'Helplix does not provide legal advice. Always consult a lawyer for legal matters.',
+      },
     },
     dictaphone: {
       cooper: 'Helplix',
@@ -1812,6 +1909,22 @@ export const translations: Record<CountryCode, Translations> = {
         returning: 'Terug naar landselectie...',
         conversationDeleted: 'Gesprek verwijderd',
         caseCompleted: 'Zaak afgerond en opgeslagen',
+      },
+      privacy: {
+        title: 'Over je gegevens',
+        storage: {
+          title: 'Veilige opslag',
+          description: 'Je gegevens worden versleuteld opgeslagen op beveiligde servers. Alleen jij hebt toegang tot je informatie via je account.',
+        },
+        ai: {
+          title: 'Gebruikte AI',
+          description: 'Helplix gebruikt AI-modellen van Google (Gemini) om vragen te stellen en rapporten te genereren. Je gegevens worden NIET gebruikt om de AI te trainen.',
+        },
+        security: {
+          title: 'Je privacy',
+          description: 'Geen andere gebruiker kan je zaken zien. Je kunt je gegevens op elk moment verwijderen via de instellingen.',
+        },
+        disclaimer: 'Helplix geeft geen juridisch advies. Raadpleeg altijd een advocaat voor juridische kwesties.',
       },
     },
     dictaphone: {
