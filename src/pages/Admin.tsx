@@ -418,6 +418,62 @@ export default function Admin() {
                 </div>
               ) : (
                 <>
+                  {/* AI Provider Presets */}
+                  <div className="space-y-2">
+                    <Label>Välj AI-provider (preset)</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant={!aiActive ? 'default' : 'outline'}
+                        className="justify-start"
+                        onClick={() => {
+                          setAiActive(false);
+                          setAiEndpoint('https://ai.gateway.lovable.dev/v1/chat/completions');
+                          setAiModel('google/gemini-2.5-flash');
+                          setAiApiKey('');
+                        }}
+                      >
+                        <Bot className="h-4 w-4 mr-2" />
+                        Lovable AI
+                      </Button>
+                      <Button
+                        variant={aiActive && aiEndpoint.includes('openai.com') ? 'default' : 'outline'}
+                        className="justify-start"
+                        onClick={() => {
+                          setAiActive(true);
+                          setAiEndpoint('https://api.openai.com/v1/chat/completions');
+                          setAiModel('gpt-4o');
+                        }}
+                      >
+                        <Zap className="h-4 w-4 mr-2" />
+                        OpenAI
+                      </Button>
+                      <Button
+                        variant={aiActive && aiEndpoint.includes('generativelanguage.googleapis') ? 'default' : 'outline'}
+                        className="justify-start"
+                        onClick={() => {
+                          setAiActive(true);
+                          setAiEndpoint('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions');
+                          setAiModel('gemini-2.5-flash');
+                        }}
+                      >
+                        <Bot className="h-4 w-4 mr-2" />
+                        Google Gemini
+                      </Button>
+                      <Button
+                        variant={aiActive && (aiEndpoint.includes('localhost') || aiEndpoint.includes('127.0.0.1')) ? 'default' : 'outline'}
+                        className="justify-start"
+                        onClick={() => {
+                          setAiActive(true);
+                          setAiEndpoint('http://localhost:1234/v1/chat/completions');
+                          setAiModel('local-model');
+                        }}
+                      >
+                        <Wrench className="h-4 w-4 mr-2" />
+                        Local (LMStudio)
+                      </Button>
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-md ${aiActive ? 'bg-green-500/10' : 'bg-muted'}`}>
@@ -529,8 +585,8 @@ export default function Admin() {
                     <Button
                       variant="outline"
                       onClick={async () => {
-                        if (!aiEndpoint || !aiApiKey || !aiModel) {
-                          toast.error('Fyll i alla fält innan du testar anslutningen');
+                        if (!aiEndpoint || !aiModel) {
+                          toast.error('Fyll i endpoint och modellnamn innan du testar anslutningen');
                           return;
                         }
                         
@@ -564,7 +620,7 @@ export default function Admin() {
                           setTestingConnection(false);
                         }
                       }}
-                      disabled={testingConnection || !aiEndpoint || !aiApiKey || !aiModel}
+                      disabled={testingConnection || !aiEndpoint || !aiModel}
                     >
                       {testingConnection ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -590,7 +646,7 @@ export default function Admin() {
 
                   <div className="flex items-start gap-2 p-3 rounded-md bg-muted/50 text-sm text-muted-foreground">
                     <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-                    <p>Om inaktiverad används Lovable AI (gemini-2.5-flash) som standard.</p>
+                    <p>Lovable AI kräver ingen API-nyckel. För OpenAI/Gemini/Local, ange din egen nyckel.</p>
                   </div>
                 </>
               )}
