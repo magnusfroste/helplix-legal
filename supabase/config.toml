@@ -23,3 +23,15 @@ verify_jwt = false
 
 [functions.classify-session]
 verify_jwt = false
+
+[functions.test-ai-connection]
+verify_jwt = false
+
+[functions.elevenlabs-tts-stream]
+verify_jwt = false
+
+[functions.elevenlabs-scribe-token]
+verify_jwt = false
+
+[functions.check-ai-secrets]
+verify_jwt = false
