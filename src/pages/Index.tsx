@@ -18,6 +18,7 @@ import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 export default function Index() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<NavigationTab>('dictaphone');
+  const [showOnboardingManually, setShowOnboardingManually] = useState(false);
   
   const auth = useAuth();
   const { settings, setSettings, isInitialized } = useSettings({ 
@@ -25,6 +26,14 @@ export default function Index() {
   });
   const { getFlag } = useFeatureFlags();
   const { shouldShowOnboarding, completeOnboarding } = useOnboardingStatus(auth.user?.id);
+
+  // Combined state for showing onboarding (first time OR manually triggered)
+  const isOnboardingOpen = (shouldShowOnboarding && isInitialized) || showOnboardingManually;
+
+  const handleCloseOnboarding = () => {
+    completeOnboarding();
+    setShowOnboardingManually(false);
+  };
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -129,6 +138,7 @@ export default function Index() {
             onLogout={handleLogout}
             onDeleteConversation={conversation.deleteConversation}
             onCompleteCase={conversation.completeAndStartNew}
+            onShowOnboarding={() => setShowOnboardingManually(true)}
             hasContent={conversation.logEntries.length > 0}
           />
         );
@@ -148,12 +158,12 @@ export default function Index() {
         country={settings.country}
       />
 
-      {/* Onboarding modal for first-time users */}
+      {/* Onboarding modal for first-time users or manual trigger */}
       <OnboardingModal
         country={settings.country}
         userId={auth.user?.id}
-        isOpen={shouldShowOnboarding && isInitialized}
-        onComplete={completeOnboarding}
+        isOpen={isOnboardingOpen}
+        onComplete={handleCloseOnboarding}
       />
     </div>
   );

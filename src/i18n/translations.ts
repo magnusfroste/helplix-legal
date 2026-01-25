@@ -222,6 +222,8 @@ export interface Translations {
       disclaimer: string;
     };
     
+    showWelcome: string;
+    
     toast: {
       saved: string;
       reset: string;
@@ -550,6 +552,7 @@ export const translations: Record<CountryCode, Translations> = {
         },
         disclaimer: 'O Helplix não fornece aconselhamento jurídico. Sempre consulte um advogado para questões legais.',
       },
+      showWelcome: 'Mostrar informações de boas-vindas',
     },
     dictaphone: {
       cooper: 'Helplix',
@@ -855,6 +858,7 @@ export const translations: Record<CountryCode, Translations> = {
         },
         disclaimer: 'Helplix no proporciona asesoramiento legal. Siempre consulta a un abogado para cuestiones legales.',
       },
+      showWelcome: 'Mostrar información de bienvenida',
     },
     dictaphone: {
       cooper: 'Helplix',
@@ -1160,6 +1164,7 @@ export const translations: Record<CountryCode, Translations> = {
         },
         disclaimer: 'Helplix no proporciona asesoramiento legal. Siempre consulta a un abogado para cuestiones legales.',
       },
+      showWelcome: 'Mostrar información de bienvenida',
     },
     dictaphone: {
       cooper: 'Helplix',
@@ -1465,6 +1470,7 @@ export const translations: Record<CountryCode, Translations> = {
         },
         disclaimer: 'Helplix ger inte juridisk rådgivning. Konsultera alltid en jurist för rättsliga frågor.',
       },
+      showWelcome: 'Visa välkomstinformation',
     },
     dictaphone: {
       cooper: 'Helplix',
@@ -1770,6 +1776,7 @@ export const translations: Record<CountryCode, Translations> = {
         },
         disclaimer: 'Helplix does not provide legal advice. Always consult a lawyer for legal matters.',
       },
+      showWelcome: 'Show welcome information',
     },
     dictaphone: {
       cooper: 'Helplix',
@@ -2075,6 +2082,7 @@ export const translations: Record<CountryCode, Translations> = {
         },
         disclaimer: 'Helplix geeft geen juridisch advies. Raadpleeg altijd een advocaat voor juridische kwesties.',
       },
+      showWelcome: 'Welkomstinformatie tonen',
     },
     dictaphone: {
       cooper: 'Helplix',

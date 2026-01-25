@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, RefreshCw, LogOut, Shield, Trash2, CheckCircle2, Download, Lock, Database, Brain, ChevronDown, ChevronUp } from 'lucide-react';
+import { Save, RotateCcw, RefreshCw, LogOut, Shield, Trash2, CheckCircle2, Download, Lock, Database, Brain, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -41,10 +41,11 @@ interface SettingsScreenProps {
   onLogout?: () => void;
   onDeleteConversation?: () => void;
   onCompleteCase?: () => void;
+  onShowOnboarding?: () => void;
   hasContent?: boolean;
 }
 
-export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, onLogout, onDeleteConversation, onCompleteCase, hasContent = false }: SettingsScreenProps) {
+export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, onLogout, onDeleteConversation, onCompleteCase, onShowOnboarding, hasContent = false }: SettingsScreenProps) {
   const navigate = useNavigate();
   const t = useTranslation(settings.country);
   const [localSettings, setLocalSettings] = useState<CooperSettings>(settings);
@@ -420,6 +421,20 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
               </CollapsibleContent>
             </Collapsible>
           </section>
+
+          {/* Show Welcome Info Button */}
+          {onShowOnboarding && (
+            <section className="pt-4 border-t border-border">
+              <Button
+                variant="outline"
+                onClick={onShowOnboarding}
+                className="w-full"
+              >
+                <Info className="h-4 w-4 mr-2" />
+                {t.settings.showWelcome}
+              </Button>
+            </section>
+          )}
 
           {/* Install App Link - Only show if not already installed */}
           {!isPwaInstalled && (
