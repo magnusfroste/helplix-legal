@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { CountryCode } from '@/types/helplix';
 import { FileText, Shield, Brain, AlertTriangle, ChevronRight, ChevronLeft, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface OnboardingModalProps {
   country: CountryCode | null;
@@ -25,6 +26,9 @@ const STORAGE_KEY = 'helplix_onboarding_completed';
 export function OnboardingModal({ country, userId, isOpen, onComplete }: OnboardingModalProps) {
   const t = useTranslation(country);
   const [step, setStep] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+  const contentRef = useRef<HTMLDivElement>(null);
   
   const steps = [
     {
@@ -53,6 +57,16 @@ export function OnboardingModal({ country, userId, isOpen, onComplete }: Onboard
   const isLastStep = step === steps.length - 1;
   const Icon = currentStep.icon;
 
+  const animateStep = (newStep: number, dir: 'forward' | 'backward') => {
+    setDirection(dir);
+    setIsAnimating(true);
+    
+    setTimeout(() => {
+      setStep(newStep);
+      setIsAnimating(false);
+    }, 150);
+  };
+
   const handleNext = () => {
     if (isLastStep) {
       // Mark onboarding as completed for this user
@@ -61,13 +75,13 @@ export function OnboardingModal({ country, userId, isOpen, onComplete }: Onboard
       }
       onComplete();
     } else {
-      setStep(step + 1);
+      animateStep(step + 1, 'forward');
     }
   };
 
   const handleBack = () => {
     if (step > 0) {
-      setStep(step - 1);
+      animateStep(step - 1, 'backward');
     }
   };
 
@@ -77,6 +91,14 @@ export function OnboardingModal({ country, userId, isOpen, onComplete }: Onboard
     if (!open) return;
   };
 
+  // Reset animation state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setStep(0);
+      setIsAnimating(false);
+    }
+  }, [isOpen]);
+
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent 
@@ -84,22 +106,32 @@ export function OnboardingModal({ country, userId, isOpen, onComplete }: Onboard
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader className="space-y-2">
-          <div className="flex items-center justify-center">
-            <div className="p-2 rounded-full bg-primary/10">
-              <Icon className="h-6 w-6 text-primary" />
+        <div 
+          ref={contentRef}
+          className={cn(
+            "transition-all duration-150 ease-out",
+            isAnimating && direction === 'forward' && "opacity-0 translate-x-4",
+            isAnimating && direction === 'backward' && "opacity-0 -translate-x-4",
+            !isAnimating && "opacity-100 translate-x-0"
+          )}
+        >
+          <DialogHeader className="space-y-2">
+            <div className="flex items-center justify-center">
+              <div className="p-2 rounded-full bg-primary/10">
+                <Icon className="h-6 w-6 text-primary" />
+              </div>
             </div>
-          </div>
-          <DialogTitle className="text-center text-lg">
-            {currentStep.title}
-          </DialogTitle>
-        </DialogHeader>
-        
-        <ScrollArea className="max-h-48">
-          <DialogDescription className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
-            {currentStep.content}
-          </DialogDescription>
-        </ScrollArea>
+            <DialogTitle className="text-center text-lg">
+              {currentStep.title}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <ScrollArea className="max-h-48 mt-3">
+            <DialogDescription className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
+              {currentStep.content}
+            </DialogDescription>
+          </ScrollArea>
+        </div>
 
         {/* Step indicators */}
         <div className="flex justify-center gap-1.5 py-1">
