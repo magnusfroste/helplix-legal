@@ -12,6 +12,39 @@ interface AIEndpointConfig {
   model: string;
 }
 
+type AIProvider = 'lovable' | 'openai' | 'google' | 'local';
+
+interface AIConfigDB {
+  endpoint_url: string;
+  model_name: string;
+  is_active: boolean;
+}
+
+// Determine which provider is being used based on endpoint URL
+function detectProvider(endpointUrl: string): AIProvider {
+  if (endpointUrl.includes('ai.gateway.lovable.dev')) return 'lovable';
+  if (endpointUrl.includes('openai.com')) return 'openai';
+  if (endpointUrl.includes('generativelanguage.googleapis')) return 'google';
+  if (endpointUrl.includes('localhost') || endpointUrl.includes('127.0.0.1')) return 'local';
+  return 'openai'; // Default to OpenAI-compatible for custom endpoints
+}
+
+// Get API key from secrets based on provider
+function getApiKeyForProvider(provider: AIProvider): string {
+  switch (provider) {
+    case 'lovable':
+      return Deno.env.get("LOVABLE_API_KEY") || "";
+    case 'openai':
+      return Deno.env.get("OPENAI_API_KEY") || "";
+    case 'google':
+      return Deno.env.get("GOOGLE_API_KEY") || "";
+    case 'local':
+      return ""; // Local usually doesn't need a key
+    default:
+      return Deno.env.get("OPENAI_API_KEY") || "";
+  }
+}
+
 // Fetch AI endpoint configuration from database
 async function getAIEndpoint(): Promise<AIEndpointConfig> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -30,7 +63,7 @@ async function getAIEndpoint(): Promise<AIEndpointConfig> {
     
     const { data, error } = await supabase
       .from('ai_config')
-      .select('endpoint_url, api_key, model_name, is_active')
+      .select('endpoint_url, model_name, is_active')
       .eq('config_key', 'primary')
       .eq('is_active', true)
       .single();
@@ -40,17 +73,29 @@ async function getAIEndpoint(): Promise<AIEndpointConfig> {
       return defaultConfig;
     }
     
+    const configData = data as AIConfigDB;
+    
     // Validate that we have required fields
-    if (!data.endpoint_url || !data.api_key) {
-      console.log('AI config missing required fields, using Lovable AI');
+    if (!configData.endpoint_url) {
+      console.log('AI config missing endpoint URL, using Lovable AI');
       return defaultConfig;
     }
     
-    console.log('Using custom AI endpoint:', data.endpoint_url, 'model:', data.model_name);
+    // Detect provider and get API key from secrets
+    const provider = detectProvider(configData.endpoint_url);
+    const apiKey = getApiKeyForProvider(provider);
+    
+    // For non-local providers, require an API key
+    if (provider !== 'local' && !apiKey) {
+      console.log(`No API key found for provider ${provider}, falling back to Lovable AI`);
+      return defaultConfig;
+    }
+    
+    console.log('Using AI provider:', provider, 'endpoint:', configData.endpoint_url, 'model:', configData.model_name);
     return {
-      url: data.endpoint_url,
-      apiKey: data.api_key,
-      model: data.model_name || 'gpt-4o',
+      url: configData.endpoint_url,
+      apiKey: apiKey,
+      model: configData.model_name || 'gpt-4o',
     };
   } catch (error) {
     console.error('Error fetching AI config:', error);

@@ -6,6 +6,55 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+type AIProvider = 'lovable' | 'openai' | 'google' | 'local';
+
+// Determine which provider is being used based on endpoint URL
+function detectProvider(endpointUrl: string): AIProvider {
+  if (endpointUrl.includes('ai.gateway.lovable.dev')) return 'lovable';
+  if (endpointUrl.includes('openai.com')) return 'openai';
+  if (endpointUrl.includes('generativelanguage.googleapis')) return 'google';
+  if (endpointUrl.includes('localhost') || endpointUrl.includes('127.0.0.1')) return 'local';
+  return 'openai'; // Default to OpenAI-compatible for custom endpoints
+}
+
+// Get API key from secrets based on provider
+function getApiKeyForProvider(provider: AIProvider): string {
+  switch (provider) {
+    case 'lovable':
+      return Deno.env.get("LOVABLE_API_KEY") || "";
+    case 'openai':
+      return Deno.env.get("OPENAI_API_KEY") || "";
+    case 'google':
+      return Deno.env.get("GOOGLE_API_KEY") || "";
+    case 'local':
+      return ""; // Local usually doesn't need a key
+    default:
+      return Deno.env.get("OPENAI_API_KEY") || "";
+  }
+}
+
+// Get human-readable provider name
+function getProviderName(provider: AIProvider): string {
+  switch (provider) {
+    case 'lovable': return 'Lovable AI';
+    case 'openai': return 'OpenAI';
+    case 'google': return 'Google Gemini';
+    case 'local': return 'Local';
+    default: return 'Unknown';
+  }
+}
+
+// Get secret name for provider
+function getSecretName(provider: AIProvider): string {
+  switch (provider) {
+    case 'lovable': return 'LOVABLE_API_KEY';
+    case 'openai': return 'OPENAI_API_KEY';
+    case 'google': return 'GOOGLE_API_KEY';
+    case 'local': return '';
+    default: return 'OPENAI_API_KEY';
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -13,27 +62,50 @@ serve(async (req) => {
   }
 
   try {
-    const { endpoint_url, api_key, model_name } = await req.json();
+    const { endpoint_url, model_name } = await req.json();
 
-    if (!endpoint_url || !api_key || !model_name) {
+    if (!endpoint_url || !model_name) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Saknar endpoint URL, API-nyckel eller modellnamn' 
+          error: 'Saknar endpoint URL eller modellnamn' 
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Testing AI connection to ${endpoint_url} with model ${model_name}`);
+    // Detect provider and get API key from secrets
+    const provider = detectProvider(endpoint_url);
+    const providerName = getProviderName(provider);
+    const secretName = getSecretName(provider);
+    const api_key = getApiKeyForProvider(provider);
+
+    console.log(`Testing AI connection to ${providerName} (${endpoint_url}) with model ${model_name}`);
+
+    // For non-local providers, require an API key
+    if (provider !== 'local' && !api_key) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `API-nyckel saknas för ${providerName}. Lägg till ${secretName} i Secrets.`,
+          missingSecret: secretName
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Make a simple test request to the AI endpoint
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (api_key) {
+      headers['Authorization'] = `Bearer ${api_key}`;
+    }
+
     const response = await fetch(endpoint_url, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${api_key}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
         model: model_name,
         messages: [
@@ -64,7 +136,8 @@ serve(async (req) => {
         JSON.stringify({ 
           success: false, 
           error: errorMessage,
-          status: response.status
+          status: response.status,
+          provider: providerName
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -81,7 +154,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Oväntat svarsformat från API:et' 
+          error: 'Oväntat svarsformat från API:et',
+          provider: providerName
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -90,9 +164,10 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Anslutningen fungerar!',
+        message: `${providerName} anslutning fungerar!`,
         model: data.model || model_name,
-        response: content
+        response: content,
+        provider: providerName
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
