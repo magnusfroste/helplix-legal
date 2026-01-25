@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge, ListTree, BookOpen, Plus, Trash2, Globe, ClipboardList, Bot, Eye, EyeOff, Zap, XCircle } from 'lucide-react';
+import { ArrowLeft, Shield, ToggleLeft, ToggleRight, Users, Loader2, AlertTriangle, CheckCircle, Wrench, Search, Mic, Volume2, ShieldCheck, ShieldOff, FileText, Save, ChevronDown, ChevronUp, Gauge, ListTree, BookOpen, Plus, Trash2, Globe, ClipboardList, Bot, Zap, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -108,19 +108,16 @@ export default function Admin() {
   
   // AI Config local state
   const [aiEndpoint, setAiEndpoint] = useState('');
-  const [aiApiKey, setAiApiKey] = useState('');
   const [aiModel, setAiModel] = useState('');
   const [aiActive, setAiActive] = useState(false);
-  const [showApiKey, setShowApiKey] = useState(false);
   const [aiConfigInitialized, setAiConfigInitialized] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
-  const [connectionTestResult, setConnectionTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [connectionTestResult, setConnectionTestResult] = useState<{ success: boolean; message: string; missingSecret?: string } | null>(null);
 
   // Sync AI config state from hook
   useEffect(() => {
     if (aiConfig && !aiConfigInitialized) {
       setAiEndpoint(aiConfig.endpoint_url);
-      setAiApiKey(aiConfig.api_key);
       setAiModel(aiConfig.model_name);
       setAiActive(aiConfig.is_active);
       setAiConfigInitialized(true);
@@ -429,7 +426,6 @@ export default function Admin() {
                           setAiActive(false);
                           setAiEndpoint('https://ai.gateway.lovable.dev/v1/chat/completions');
                           setAiModel('google/gemini-2.5-flash');
-                          setAiApiKey('');
                         }}
                       >
                         <Bot className="h-4 w-4 mr-2" />
@@ -510,33 +506,6 @@ export default function Admin() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="ai-api-key">API-nyckel</Label>
-                      <div className="relative">
-                        <Input
-                          id="ai-api-key"
-                          type={showApiKey ? 'text' : 'password'}
-                          value={aiApiKey}
-                          onChange={(e) => setAiApiKey(e.target.value)}
-                          placeholder="sk-..."
-                          className="font-mono text-sm pr-10"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-0 top-0 h-full px-3"
-                          onClick={() => setShowApiKey(!showApiKey)}
-                        >
-                          {showApiKey ? (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
                       <Label htmlFor="ai-model">Modellnamn</Label>
                       <Input
                         id="ai-model"
@@ -549,7 +518,6 @@ export default function Admin() {
                     </div>
 
                     {(aiEndpoint !== (aiConfig?.endpoint_url || '') ||
-                      aiApiKey !== (aiConfig?.api_key || '') ||
                       aiModel !== (aiConfig?.model_name || '') ||
                       aiActive !== (aiConfig?.is_active || false)) && (
                       <div className="flex justify-end pt-2">
@@ -557,7 +525,6 @@ export default function Admin() {
                           onClick={async () => {
                             const success = await updateAIConfig({
                               endpoint_url: aiEndpoint,
-                              api_key: aiApiKey,
                               model_name: aiModel,
                               is_active: aiActive,
                             });
@@ -597,7 +564,6 @@ export default function Admin() {
                           const { data, error } = await supabase.functions.invoke('test-ai-connection', {
                             body: {
                               endpoint_url: aiEndpoint,
-                              api_key: aiApiKey,
                               model_name: aiModel,
                             }
                           });
@@ -608,7 +574,11 @@ export default function Admin() {
                             setConnectionTestResult({ success: true, message: data.message || 'Anslutningen fungerar!' });
                             toast.success('AI-anslutning lyckades!');
                           } else {
-                            setConnectionTestResult({ success: false, message: data?.error || 'Okänt fel' });
+                            setConnectionTestResult({ 
+                              success: false, 
+                              message: data?.error || 'Okänt fel',
+                              missingSecret: data?.missingSecret
+                            });
                             toast.error(data?.error || 'Kunde inte ansluta');
                           }
                         } catch (err) {
@@ -646,7 +616,7 @@ export default function Admin() {
 
                   <div className="flex items-start gap-2 p-3 rounded-md bg-muted/50 text-sm text-muted-foreground">
                     <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-                    <p>Lovable AI kräver ingen API-nyckel. För OpenAI/Gemini/Local, ange din egen nyckel.</p>
+                    <p>API-nycklar läses från Secrets (OPENAI_API_KEY, GOOGLE_API_KEY). Lovable AI kräver ingen nyckel.</p>
                   </div>
                 </>
               )}
