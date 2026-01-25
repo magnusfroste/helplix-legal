@@ -59,6 +59,29 @@ export interface Translations {
     selectJurisdiction: string;
   };
   
+  // Welcome modal (first login)
+  welcome: {
+    howItWorks: {
+      title: string;
+      description: string;
+    };
+    notLegalAdvice: {
+      title: string;
+      description: string;
+    };
+    dataStorage: {
+      title: string;
+      description: string;
+    };
+    privacy: {
+      title: string;
+      description: string;
+    };
+    next: string;
+    back: string;
+    understood: string;
+  };
+  
   // Log Screen
   log: {
     title: string;
@@ -369,6 +392,27 @@ export const translations: Record<CountryCode, Translations> = {
       appName: 'Helplix Assist',
       selectJurisdiction: 'Selecione sua jurisdição',
     },
+    welcome: {
+      howItWorks: {
+        title: 'Como funciona',
+        description: 'Helplix é seu assistente de documentação jurídica. Ele faz perguntas estruturadas sobre sua situação, ajuda a capturar todos os detalhes importantes e cria uma visão geral do seu caso.\n\nO assistente usa inteligência artificial para fazer perguntas relevantes e gerar relatórios que podem ser úteis ao conversar com um advogado.',
+      },
+      notLegalAdvice: {
+        title: 'Não é consultoria jurídica',
+        description: 'IMPORTANTE: Helplix NÃO fornece aconselhamento jurídico. É uma ferramenta para ajudá-lo a documentar sua situação e obter uma compreensão geral de possíveis questões legais.\n\nO assistente pode identificar áreas jurídicas relevantes, mas isso é apenas informativo. Sempre consulte um advogado licenciado para questões legais.',
+      },
+      dataStorage: {
+        title: 'Armazenamento de dados',
+        description: 'Suas informações são armazenadas de forma segura e criptografada. Apenas você tem acesso aos seus casos através de sua conta.\n\nVocê pode excluir seus dados a qualquer momento através das configurações.',
+      },
+      privacy: {
+        title: 'IA e privacidade',
+        description: 'Helplix usa modelos de IA de fornecedores estabelecidos (Google Gemini). Seus dados NÃO são usados para treinar a IA.\n\nSe você se sentir desconfortável, pode descrever seu caso em termos gerais sem incluir nomes ou detalhes identificáveis.',
+      },
+      next: 'Próximo',
+      back: 'Voltar',
+      understood: 'Entendi',
+    },
     log: {
       title: 'Registro',
       entries: 'entradas',
@@ -652,6 +696,27 @@ export const translations: Record<CountryCode, Translations> = {
     onboarding: {
       appName: 'Helplix Assist',
       selectJurisdiction: 'Seleccione su jurisdicción',
+    },
+    welcome: {
+      howItWorks: {
+        title: 'Cómo funciona',
+        description: 'Helplix es su asistente de documentación legal. Hace preguntas estructuradas sobre su situación, ayuda a capturar todos los detalles importantes y crea un resumen de su caso.\n\nEl asistente usa inteligencia artificial para hacer preguntas relevantes y generar informes que pueden ser útiles al hablar con un abogado.',
+      },
+      notLegalAdvice: {
+        title: 'No es asesoría legal',
+        description: 'IMPORTANTE: Helplix NO proporciona asesoramiento legal. Es una herramienta para ayudarle a documentar su situación y obtener una comprensión general de posibles problemas legales.\n\nEl asistente puede identificar áreas legales relevantes, pero esto es solo informativo. Siempre consulte a un abogado licenciado para asuntos legales.',
+      },
+      dataStorage: {
+        title: 'Almacenamiento de datos',
+        description: 'Su información se almacena de forma segura y encriptada. Solo usted tiene acceso a sus casos a través de su cuenta.\n\nPuede eliminar sus datos en cualquier momento desde la configuración.',
+      },
+      privacy: {
+        title: 'IA y privacidad',
+        description: 'Helplix utiliza modelos de IA de proveedores establecidos (Google Gemini). Sus datos NO se utilizan para entrenar la IA.\n\nSi se siente incómodo, puede describir su caso en términos generales sin incluir nombres o detalles identificables.',
+      },
+      next: 'Siguiente',
+      back: 'Atrás',
+      understood: 'Entendido',
     },
     log: {
       title: 'Registro',
@@ -937,6 +1002,27 @@ export const translations: Record<CountryCode, Translations> = {
       appName: 'Helplix Assist',
       selectJurisdiction: 'Seleccione su jurisdicción',
     },
+    welcome: {
+      howItWorks: {
+        title: 'Cómo funciona',
+        description: 'Helplix es su asistente de documentación legal. Hace preguntas estructuradas sobre su situación, ayuda a capturar todos los detalles importantes y crea un resumen de su caso.\n\nEl asistente usa inteligencia artificial para hacer preguntas relevantes y generar informes que pueden ser útiles al hablar con un abogado.',
+      },
+      notLegalAdvice: {
+        title: 'No es asesoría legal',
+        description: 'IMPORTANTE: Helplix NO proporciona asesoramiento legal. Es una herramienta para ayudarle a documentar su situación y obtener una comprensión general de posibles problemas legales.\n\nEl asistente puede identificar áreas legales relevantes, pero esto es solo informativo. Siempre consulte a un abogado licenciado para asuntos legales.',
+      },
+      dataStorage: {
+        title: 'Almacenamiento de datos',
+        description: 'Su información se almacena de forma segura y encriptada. Solo usted tiene acceso a sus casos a través de su cuenta.\n\nPuede eliminar sus datos en cualquier momento desde la configuración.',
+      },
+      privacy: {
+        title: 'IA y privacidad',
+        description: 'Helplix utiliza modelos de IA de proveedores establecidos (Google Gemini). Sus datos NO se utilizan para entrenar la IA.\n\nSi se siente incómodo, puede describir su caso en términos generales sin incluir nombres o detalles identificables.',
+      },
+      next: 'Siguiente',
+      back: 'Atrás',
+      understood: 'Entendido',
+    },
     log: {
       title: 'Registro',
       entries: 'entradas',
@@ -1220,6 +1306,27 @@ export const translations: Record<CountryCode, Translations> = {
     onboarding: {
       appName: 'Helplix Assist',
       selectJurisdiction: 'Välj din jurisdiktion',
+    },
+    welcome: {
+      howItWorks: {
+        title: 'Så fungerar det',
+        description: 'Helplix är din juridiska dokumentationsassistent. Den ställer strukturerade frågor om din situation, hjälper dig att fånga alla viktiga detaljer och skapar en översikt av ditt ärende.\n\nAssistenten använder artificiell intelligens för att ställa relevanta frågor och generera rapporter som kan vara användbara när du pratar med en jurist.',
+      },
+      notLegalAdvice: {
+        title: 'Inte juridisk rådgivning',
+        description: 'VIKTIGT: Helplix ger INTE juridisk rådgivning. Det är ett verktyg för att hjälpa dig dokumentera din situation och få en allmän förståelse för potentiella juridiska frågor.\n\nAssistenten kan identifiera relevanta rättsområden, men detta är endast informativt. Konsultera alltid en legitimerad jurist för rättsliga frågor.',
+      },
+      dataStorage: {
+        title: 'Datalagring',
+        description: 'Din information lagras säkert och krypterat. Endast du har tillgång till dina ärenden via ditt konto.\n\nDu kan radera dina data när som helst via inställningarna.',
+      },
+      privacy: {
+        title: 'AI och integritet',
+        description: 'Helplix använder AI-modeller från etablerade leverantörer (Google Gemini). Din data används INTE för att träna AI:n.\n\nOm du känner dig obekväm kan du beskriva ditt fall i generella termer utan att inkludera namn eller identifierbara detaljer.',
+      },
+      next: 'Nästa',
+      back: 'Tillbaka',
+      understood: 'Jag förstår',
     },
     log: {
       title: 'Logg',
@@ -1505,6 +1612,27 @@ export const translations: Record<CountryCode, Translations> = {
       appName: 'Helplix Assist',
       selectJurisdiction: 'Select your jurisdiction',
     },
+    welcome: {
+      howItWorks: {
+        title: 'How it works',
+        description: 'Helplix is your legal documentation assistant. It asks structured questions about your situation, helps capture all important details, and creates an overview of your case.\n\nThe assistant uses artificial intelligence to ask relevant questions and generate reports that can be useful when talking to a lawyer.',
+      },
+      notLegalAdvice: {
+        title: 'Not legal advice',
+        description: 'IMPORTANT: Helplix does NOT provide legal advice. It is a tool to help you document your situation and get a general understanding of potential legal issues.\n\nThe assistant can identify relevant legal areas, but this is for informational purposes only. Always consult a licensed attorney for legal matters.',
+      },
+      dataStorage: {
+        title: 'Data storage',
+        description: 'Your information is stored securely and encrypted. Only you have access to your cases through your account.\n\nYou can delete your data at any time from the settings.',
+      },
+      privacy: {
+        title: 'AI and privacy',
+        description: 'Helplix uses AI models from established providers (Google Gemini). Your data is NOT used to train the AI.\n\nIf you feel uncomfortable, you can describe your case in general terms without including names or identifiable details.',
+      },
+      next: 'Next',
+      back: 'Back',
+      understood: 'I understand',
+    },
     log: {
       title: 'Log',
       entries: 'entries',
@@ -1788,6 +1916,27 @@ export const translations: Record<CountryCode, Translations> = {
     onboarding: {
       appName: 'Helplix Assist',
       selectJurisdiction: 'Selecteer uw jurisdictie',
+    },
+    welcome: {
+      howItWorks: {
+        title: 'Hoe het werkt',
+        description: 'Helplix is uw juridische documentatie-assistent. Het stelt gestructureerde vragen over uw situatie, helpt alle belangrijke details vast te leggen en maakt een overzicht van uw zaak.\n\nDe assistent gebruikt kunstmatige intelligentie om relevante vragen te stellen en rapporten te genereren die nuttig kunnen zijn bij een gesprek met een advocaat.',
+      },
+      notLegalAdvice: {
+        title: 'Geen juridisch advies',
+        description: 'BELANGRIJK: Helplix geeft GEEN juridisch advies. Het is een hulpmiddel om u te helpen uw situatie te documenteren en een algemeen begrip te krijgen van mogelijke juridische kwesties.\n\nDe assistent kan relevante rechtsgebieden identificeren, maar dit is alleen ter informatie. Raadpleeg altijd een erkende advocaat voor juridische zaken.',
+      },
+      dataStorage: {
+        title: 'Gegevensopslag',
+        description: 'Uw informatie wordt veilig en versleuteld opgeslagen. Alleen u heeft toegang tot uw zaken via uw account.\n\nU kunt uw gegevens op elk moment verwijderen via de instellingen.',
+      },
+      privacy: {
+        title: 'AI en privacy',
+        description: 'Helplix gebruikt AI-modellen van gevestigde leveranciers (Google Gemini). Uw gegevens worden NIET gebruikt om de AI te trainen.\n\nAls u zich ongemakkelijk voelt, kunt u uw zaak in algemene termen beschrijven zonder namen of identificeerbare details te noemen.',
+      },
+      next: 'Volgende',
+      back: 'Terug',
+      understood: 'Begrepen',
     },
     log: {
       title: 'Logboek',

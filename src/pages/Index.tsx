@@ -7,6 +7,7 @@ import { ReportScreen } from '@/components/helplix/ReportScreen';
 import { SettingsScreen } from '@/components/helplix/SettingsScreen';
 import { SessionHistoryScreen } from '@/components/helplix/SessionHistoryScreen';
 import { InstallBanner } from '@/components/helplix/InstallBanner';
+import { OnboardingModal, useOnboardingStatus } from '@/components/helplix/OnboardingModal';
 import { DictaphoneSkeleton, LogSkeleton, ReportSkeleton } from '@/components/helplix/skeletons';
 import { useAuth } from '@/hooks/useAuth';
 import { COUNTRIES } from '@/types/helplix';
@@ -23,6 +24,7 @@ export default function Index() {
     userCountry: auth.user?.country 
   });
   const { getFlag } = useFeatureFlags();
+  const { shouldShowOnboarding, completeOnboarding } = useOnboardingStatus(auth.user?.id);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -144,6 +146,14 @@ export default function Index() {
         activeTab={activeTab} 
         onTabChange={setActiveTab}
         country={settings.country}
+      />
+
+      {/* Onboarding modal for first-time users */}
+      <OnboardingModal
+        country={settings.country}
+        userId={auth.user?.id}
+        isOpen={shouldShowOnboarding && isInitialized}
+        onComplete={completeOnboarding}
       />
     </div>
   );
