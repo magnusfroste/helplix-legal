@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, RefreshCw, LogOut, Shield, Trash2, CheckCircle2, Download } from 'lucide-react';
+import { Save, RotateCcw, RefreshCw, LogOut, Shield, Trash2, CheckCircle2, Download, Lock, Database, Brain, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -17,6 +17,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { toast } from 'sonner';
 import { 
   DEFAULT_SETTINGS, 
@@ -55,6 +60,9 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
   const isRealtimeTranscriptionEnabled = getFlag('realtime_transcription');
   const isTtsEnabled = getFlag('tts_enabled');
   const isSttEnabled = getFlag('stt_enabled');
+  
+  // Privacy section state
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   // Check if app is installed as PWA
   useEffect(() => {
@@ -357,6 +365,61 @@ export function SettingsScreen({ settings, onSettingsChange, onStartNewSession, 
             )}
           </section>
 
+
+          {/* About Your Data Section */}
+          <section className="pt-4 border-t border-border">
+            <Collapsible open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen}>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between text-left h-auto py-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-primary" />
+                    <span className="text-helplix-lg font-semibold">{t.settings.privacy.title}</span>
+                  </div>
+                  {isPrivacyOpen ? (
+                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-4 pt-2 pb-4">
+                {/* Data Storage */}
+                <div className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Database className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-helplix-base font-medium">{t.settings.privacy.storage.title}</p>
+                    <p className="text-helplix-sm text-muted-foreground">{t.settings.privacy.storage.description}</p>
+                  </div>
+                </div>
+                
+                {/* AI Model */}
+                <div className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Brain className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-helplix-base font-medium">{t.settings.privacy.ai.title}</p>
+                    <p className="text-helplix-sm text-muted-foreground">{t.settings.privacy.ai.description}</p>
+                  </div>
+                </div>
+                
+                {/* Privacy */}
+                <div className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Lock className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-helplix-base font-medium">{t.settings.privacy.security.title}</p>
+                    <p className="text-helplix-sm text-muted-foreground">{t.settings.privacy.security.description}</p>
+                  </div>
+                </div>
+                
+                {/* Important note */}
+                <p className="text-helplix-xs text-muted-foreground italic px-1">
+                  {t.settings.privacy.disclaimer}
+                </p>
+              </CollapsibleContent>
+            </Collapsible>
+          </section>
 
           {/* Install App Link - Only show if not already installed */}
           {!isPwaInstalled && (
