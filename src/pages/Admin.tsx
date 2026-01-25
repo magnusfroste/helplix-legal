@@ -693,9 +693,42 @@ export default function Admin() {
                       </div>
                     )}
                     
-                    <p className="text-xs text-muted-foreground">
-                      Lägg till API-nycklar i Secrets via projektinställningarna.
-                    </p>
+                    {/* Secrets configuration guide */}
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        <ChevronDown className="h-4 w-4" />
+                        <span>Hur konfigurerar jag Secrets?</span>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-3">
+                        <div className="space-y-3 text-xs">
+                          <p className="text-muted-foreground">
+                            Lägg till följande secrets i Supabase Dashboard → Project Settings → Edge Functions → Secrets:
+                          </p>
+                          <div className="bg-muted rounded-md p-3 font-mono space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-green-600">LOVABLE_API_KEY</span>
+                              <span className="text-muted-foreground"># Auto-konfigurerad</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>OPENAI_API_KEY</span>
+                              <span className="text-muted-foreground"># sk-...</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>GOOGLE_API_KEY</span>
+                              <span className="text-muted-foreground"># AIza...</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>LOCAL_LLM_API_KEY</span>
+                              <span className="text-muted-foreground"># Valfritt för lokal LLM</span>
+                            </div>
+                          </div>
+                          <p className="text-muted-foreground">
+                            <strong>Local LLM:</strong> Om din lokala LLM (t.ex. LMStudio, Ollama) kräver API-nyckel, 
+                            lägg till den som LOCAL_LLM_API_KEY. Annars kan du lämna den tom.
+                          </p>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </div>
                 </>
               )}

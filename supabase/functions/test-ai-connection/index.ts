@@ -27,7 +27,7 @@ function getApiKeyForProvider(provider: AIProvider): string {
     case 'google':
       return Deno.env.get("GOOGLE_API_KEY") || "";
     case 'local':
-      return ""; // Local usually doesn't need a key
+      return Deno.env.get("LOCAL_LLM_API_KEY") || ""; // Optional - some local LLMs don't need a key
     default:
       return Deno.env.get("OPENAI_API_KEY") || "";
   }
@@ -50,7 +50,7 @@ function getSecretName(provider: AIProvider): string {
     case 'lovable': return 'LOVABLE_API_KEY';
     case 'openai': return 'OPENAI_API_KEY';
     case 'google': return 'GOOGLE_API_KEY';
-    case 'local': return '';
+    case 'local': return 'LOCAL_LLM_API_KEY';
     default: return 'OPENAI_API_KEY';
   }
 }
@@ -82,7 +82,7 @@ serve(async (req) => {
 
     console.log(`Testing AI connection to ${providerName} (${endpoint_url}) with model ${model_name}`);
 
-    // For non-local providers, require an API key
+    // For non-local providers, require an API key. For local, it's optional but supported.
     if (provider !== 'local' && !api_key) {
       return new Response(
         JSON.stringify({ 
