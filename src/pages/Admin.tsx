@@ -39,6 +39,8 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
   'realtime_transcription': <Mic className="h-5 w-5" />,
   'streaming_tts': <Volume2 className="h-5 w-5" />,
   'voice_cloning': <Volume2 className="h-5 w-5" />,
+  'stt_enabled': <Mic className="h-5 w-5" />,
+  'tts_enabled': <Volume2 className="h-5 w-5" />,
 };
 
 const FEATURE_LABELS: Record<string, string> = {
@@ -46,6 +48,8 @@ const FEATURE_LABELS: Record<string, string> = {
   'realtime_transcription': 'Real-time Transkription',
   'streaming_tts': 'Streaming TTS',
   'voice_cloning': 'Avancerad Röstkloning',
+  'stt_enabled': 'Tal-till-text (STT)',
+  'tts_enabled': 'Text-till-tal (TTS)',
 };
 
 const CONNECTION_STATUS: Record<string, { label: string; available: boolean }> = {
