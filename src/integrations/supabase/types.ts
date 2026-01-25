@@ -351,30 +351,6 @@ export type Database = {
         }
         Relationships: []
       }
-      users: {
-        Row: {
-          country: string
-          created_at: string
-          id: string
-          last_login_at: string | null
-          pin_hash: string
-        }
-        Insert: {
-          country: string
-          created_at?: string
-          id?: string
-          last_login_at?: string | null
-          pin_hash: string
-        }
-        Update: {
-          country?: string
-          created_at?: string
-          id?: string
-          last_login_at?: string | null
-          pin_hash?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
