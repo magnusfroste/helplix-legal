@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { CooperSettings, ConversationStatus } from '@/types/helplix';
+import type { CooperSettings, ConversationStatus, AnalysisDepth } from '@/types/helplix';
 import { useRealtimeVoice } from './useRealtimeVoice';
 import { useCooperChat } from './useCooperChat';
 import { usePhaseTracking } from './usePhaseTracking';
@@ -20,6 +20,9 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   const useRealtimeSTT = getFlag('realtime_transcription');
   const useStreamingTTS = getFlag('streaming_tts');
   
+  // Analysis depth state - user's choice for this session
+  const [analysisDepth, setAnalysisDepth] = useState<AnalysisDepth | null>(null);
+  
   // Get system prompt and intensity from database based on country
   const systemPrompt = useMemo(() => {
     if (settings.country) {
@@ -28,12 +31,23 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     return '';
   }, [settings.country, getPromptForCountry]);
 
+  // Calculate question intensity based on baseline + analysis depth modifier
   const questionIntensity = useMemo(() => {
-    if (settings.country) {
-      return getIntensityForCountry(settings.country);
+    const baseline = settings.country ? getIntensityForCountry(settings.country) : 70;
+    
+    if (!analysisDepth) return baseline;
+    
+    switch (analysisDepth) {
+      case 'quick':
+        return Math.max(0, baseline - 40);
+      case 'standard':
+        return baseline;
+      case 'thorough':
+        return Math.min(100, baseline + 30);
+      default:
+        return baseline;
     }
-    return 70; // Default
-  }, [settings.country, getIntensityForCountry]);
+  }, [settings.country, getIntensityForCountry, analysisDepth]);
   
   // State for realtime transcript display
   const [realtimeTranscriptText, setRealtimeTranscriptText] = useState('');
@@ -183,6 +197,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       await logEntries.startNewSession();
       chat.resetConversation();
       phaseTracking.reset();
+      setAnalysisDepth(null); // Reset depth for new session
       
       toast.success('New session started');
 
@@ -200,6 +215,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       await logEntries.completeCurrentAndStartNew();
       chat.resetConversation();
       phaseTracking.reset();
+      setAnalysisDepth(null); // Reset depth for new session
       
       if (settings.autoplaySpeech && settings.ttsEnabled) {
         voice.speak(logEntries.currentQuestion).catch(console.error);
@@ -214,6 +230,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
       await logEntries.deleteCurrentSession();
       chat.resetConversation();
       phaseTracking.reset();
+      setAnalysisDepth(null); // Reset depth for new session
     } catch {
       console.error('Failed to delete conversation');
     }
@@ -229,12 +246,17 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     audioLevel: voice.audioLevel,
     currentSessionId: logEntries.currentSessionId,
     phaseProgress: phaseTracking.phaseProgress,
+    currentPhase: phaseTracking.currentPhase,
     infoTracker: phaseTracking.infoTracker,
     qualityMetrics: phaseTracking.qualityMetrics,
     lastAssessment: phaseTracking.lastAssessment,
     realtimeTranscriptionText: voice.partialTranscript || realtimeTranscriptText,
     sessions: logEntries.sessions,
     isLoadingSessions: logEntries.isLoadingSessions,
+    
+    // Analysis depth
+    analysisDepth,
+    completeness: phaseTracking.completeness,
 
     // Actions
     startRecording,
@@ -248,6 +270,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     resumeSession: logEntries.resumeSession,
     archiveSession: logEntries.archiveSession,
     deleteSession: logEntries.deleteSession,
+    setAnalysisDepth,
 
     // Pass-through for Report
     speak: voice.speak,

@@ -7,6 +7,18 @@ export type ConversationStatus =
   | 'thinking'       // AI generating response
   | 'speaking';      // Playing AI response
 
+// Analysis depth - controls how thorough the investigation is
+export type AnalysisDepth = 'quick' | 'standard' | 'thorough';
+
+export interface AnalysisDepthConfig {
+  depth: AnalysisDepth;
+  label: string;
+  description: string;
+  intensityModifier: number; // Added/subtracted from baseline intensity
+  minQuestionsMultiplier: number; // Multiplier for phase minQuestions
+  followUpThreshold: number; // 0-1, higher = more follow-ups allowed
+}
+
 export type LogEntryType = 'question' | 'answer' | 'system';
 
 export interface LogEntry {
