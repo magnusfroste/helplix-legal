@@ -5,8 +5,11 @@ import { QuestionDisplay } from './QuestionDisplay';
 import { TextInputDialog } from './TextInputDialog';
 import { AudioLevelIndicator } from './AudioLevelIndicator';
 import { RealtimeTranscription } from './RealtimeTranscription';
+import { AnalysisDepthSelector } from './AnalysisDepthSelector';
+import { PhaseProgressIndicator } from './PhaseProgressIndicator';
 import { cn } from '@/lib/utils';
-import type { ConversationStatus, CooperSettings, CountryCode } from '@/types/helplix';
+import type { ConversationStatus, CooperSettings, CountryCode, AnalysisDepth } from '@/types/helplix';
+import type { ConversationPhase } from '@/types/phases';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useAIConfig } from '@/hooks/useAIConfig';
 
@@ -26,6 +29,11 @@ interface DictaphoneScreenProps {
   realtimeTranscriptionText?: string;
   hasContent?: boolean;
   showAiBadge?: boolean;
+  // New props for analysis depth and progress
+  analysisDepth: AnalysisDepth | null;
+  onAnalysisDepthSelect: (depth: AnalysisDepth) => void;
+  currentPhase?: ConversationPhase;
+  completeness?: number;
 }
 
 export const DictaphoneScreen = memo(function DictaphoneScreen({
@@ -44,6 +52,10 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
   realtimeTranscriptionText = '',
   hasContent = false,
   showAiBadge = false,
+  analysisDepth,
+  onAnalysisDepthSelect,
+  currentPhase = 'opening',
+  completeness = 0,
 }: DictaphoneScreenProps) {
   const t = useTranslation(country);
   const { config } = useAIConfig();
@@ -111,18 +123,35 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
 
       {/* Question Display - maximize space */}
       <div className="flex-1 flex flex-col items-center justify-center w-full gap-4">
-        {showRealtimeTranscription && status === 'listening' ? (
+        {/* Show analysis depth selector for first interaction before depth is chosen */}
+        {isFirstInteraction && !analysisDepth ? (
+          <AnalysisDepthSelector
+            onSelect={onAnalysisDepthSelect}
+            country={country}
+          />
+        ) : showRealtimeTranscription && status === 'listening' ? (
           <RealtimeTranscription
             text={realtimeTranscriptionText}
             isVisible={true}
             isRecording={status === 'listening'}
           />
         ) : (
-          <QuestionDisplay 
-            question={currentQuestion}
-            isFirstInteraction={isFirstInteraction}
-            isSpeaking={isSpeaking}
-          />
+          <>
+            <QuestionDisplay 
+              question={currentQuestion}
+              isFirstInteraction={isFirstInteraction}
+              isSpeaking={isSpeaking}
+            />
+            {/* Show progress indicator after depth is selected and conversation started */}
+            {analysisDepth && !isFirstInteraction && (
+              <PhaseProgressIndicator
+                currentPhase={currentPhase}
+                completeness={completeness}
+                analysisDepth={analysisDepth}
+                country={country}
+              />
+            )}
+          </>
         )}
       </div>
 

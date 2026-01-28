@@ -340,6 +340,34 @@ export interface Translations {
       updates: string;
     };
   };
+  
+  // Analysis Depth Selection
+  analysisDepth: {
+    selectPrompt: string;
+    quick: {
+      label: string;
+      description: string;
+    };
+    standard: {
+      label: string;
+      description: string;
+    };
+    thorough: {
+      label: string;
+      description: string;
+    };
+  };
+  
+  // Conversation Phases
+  phases: {
+    opening: string;
+    timeline: string;
+    details: string;
+    legal: string;
+    evidence: string;
+    impact: string;
+    closing: string;
+  };
 }
 
 export const translations: Record<CountryCode, Translations> = {
@@ -647,6 +675,30 @@ export const translations: Record<CountryCode, Translations> = {
         updates: 'Atualizações automáticas',
       },
     },
+    analysisDepth: {
+      selectPrompt: 'Escolha o nível de análise:',
+      quick: {
+        label: 'Rápida',
+        description: 'Visão geral - fatos básicos',
+      },
+      standard: {
+        label: 'Padrão',
+        description: 'Análise equilibrada',
+      },
+      thorough: {
+        label: 'Detalhada',
+        description: 'Investigação completa',
+      },
+    },
+    phases: {
+      opening: 'Abertura',
+      timeline: 'Cronologia',
+      details: 'Detalhes',
+      legal: 'Aspectos legais',
+      evidence: 'Evidências',
+      impact: 'Impacto',
+      closing: 'Conclusão',
+    },
   },
   
   MX: {
@@ -952,6 +1004,30 @@ export const translations: Record<CountryCode, Translations> = {
         fullscreen: 'Modo de pantalla completa sin navegador',
         updates: 'Actualizaciones automáticas',
       },
+    },
+    analysisDepth: {
+      selectPrompt: 'Elige el nivel de análisis:',
+      quick: {
+        label: 'Rápido',
+        description: 'Visión general - hechos básicos',
+      },
+      standard: {
+        label: 'Estándar',
+        description: 'Análisis equilibrado',
+      },
+      thorough: {
+        label: 'Detallado',
+        description: 'Investigación completa',
+      },
+    },
+    phases: {
+      opening: 'Apertura',
+      timeline: 'Cronología',
+      details: 'Detalles',
+      legal: 'Aspectos legales',
+      evidence: 'Evidencias',
+      impact: 'Impacto',
+      closing: 'Conclusión',
     },
   },
   
@@ -1259,6 +1335,30 @@ export const translations: Record<CountryCode, Translations> = {
         updates: 'Actualizaciones automáticas',
       },
     },
+    analysisDepth: {
+      selectPrompt: 'Elige el nivel de análisis:',
+      quick: {
+        label: 'Rápido',
+        description: 'Visión general - hechos básicos',
+      },
+      standard: {
+        label: 'Estándar',
+        description: 'Análisis equilibrado',
+      },
+      thorough: {
+        label: 'Detallado',
+        description: 'Investigación completa',
+      },
+    },
+    phases: {
+      opening: 'Apertura',
+      timeline: 'Cronología',
+      details: 'Detalles',
+      legal: 'Aspectos legales',
+      evidence: 'Evidencias',
+      impact: 'Impacto',
+      closing: 'Conclusión',
+    },
   },
   
   SE: {
@@ -1564,6 +1664,30 @@ export const translations: Record<CountryCode, Translations> = {
         fullscreen: 'Helskärmsläge utan webbläsare',
         updates: 'Automatiska uppdateringar',
       },
+    },
+    analysisDepth: {
+      selectPrompt: 'Välj analysdjup:',
+      quick: {
+        label: 'Snabb',
+        description: 'Översiktlig - grundläggande fakta',
+      },
+      standard: {
+        label: 'Standard',
+        description: 'Balanserad analys',
+      },
+      thorough: {
+        label: 'Grundlig',
+        description: 'Fullständig utredning',
+      },
+    },
+    phases: {
+      opening: 'Öppning',
+      timeline: 'Tidslinje',
+      details: 'Detaljer',
+      legal: 'Juridik',
+      evidence: 'Bevis',
+      impact: 'Konsekvenser',
+      closing: 'Avslutning',
     },
   },
   
@@ -1871,6 +1995,30 @@ export const translations: Record<CountryCode, Translations> = {
         updates: 'Automatic updates',
       },
     },
+    analysisDepth: {
+      selectPrompt: 'Choose analysis depth:',
+      quick: {
+        label: 'Quick',
+        description: 'Overview - basic facts',
+      },
+      standard: {
+        label: 'Standard',
+        description: 'Balanced analysis',
+      },
+      thorough: {
+        label: 'Thorough',
+        description: 'Full investigation',
+      },
+    },
+    phases: {
+      opening: 'Opening',
+      timeline: 'Timeline',
+      details: 'Details',
+      legal: 'Legal aspects',
+      evidence: 'Evidence',
+      impact: 'Impact',
+      closing: 'Closing',
+    },
   },
   
   NL: {
@@ -2176,6 +2324,30 @@ export const translations: Record<CountryCode, Translations> = {
         fullscreen: 'Volledig scherm zonder browser',
         updates: 'Automatische updates',
       },
+    },
+    analysisDepth: {
+      selectPrompt: 'Kies analysediepte:',
+      quick: {
+        label: 'Snel',
+        description: 'Overzicht - basisfacten',
+      },
+      standard: {
+        label: 'Standaard',
+        description: 'Gebalanceerde analyse',
+      },
+      thorough: {
+        label: 'Grondig',
+        description: 'Volledig onderzoek',
+      },
+    },
+    phases: {
+      opening: 'Opening',
+      timeline: 'Tijdlijn',
+      details: 'Details',
+      legal: 'Juridische aspecten',
+      evidence: 'Bewijs',
+      impact: 'Impact',
+      closing: 'Afsluiting',
     },
   },
 };

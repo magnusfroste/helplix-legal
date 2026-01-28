@@ -94,6 +94,10 @@ export default function Index() {
             realtimeTranscriptionText={conversation.realtimeTranscriptionText || ''}
             hasContent={conversation.logEntries.length > 0}
             showAiBadge={getFlag('show_ai_badge')}
+            analysisDepth={conversation.analysisDepth}
+            onAnalysisDepthSelect={conversation.setAnalysisDepth}
+            currentPhase={conversation.currentPhase}
+            completeness={conversation.completeness}
           />
         );
       case 'history':

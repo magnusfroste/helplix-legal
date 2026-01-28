@@ -1,8 +1,8 @@
 
 
-# Plan: Analysdjup-val & Visuell Framstegsindikator
+# Plan: Analysdjup-val & Visuell Framstegsindikator ✅ IMPLEMENTED
 
-## Sammanfattning
+## Status: Klar
 
 Användare har gett feedback att AI:n ställer "för många frågor". Detta är avsiktligt - systemet är designat för att vara dynamisk och ställa fler frågor kring viktiga ämnen. Lösningen är att ge användaren kontroll över analysdjupet och en visuell indikator som visar var de befinner sig i processen.
 
