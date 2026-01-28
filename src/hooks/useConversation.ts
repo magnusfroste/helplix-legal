@@ -273,6 +273,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     realtimeTranscriptionText: voice.partialTranscript || realtimeTranscriptText,
     sessions: logEntries.sessions,
     isLoadingSessions: logEntries.isLoadingSessions,
+    activeSTTProvider: voice.activeSTTProvider,
     
     // Analysis depth
     analysisDepth,

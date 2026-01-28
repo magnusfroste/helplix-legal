@@ -94,6 +94,7 @@ export default function Index() {
             realtimeTranscriptionText={conversation.realtimeTranscriptionText || ''}
             hasContent={conversation.logEntries.length > 0}
             showAiBadge={getFlag('show_ai_badge')}
+            activeSTTProvider={conversation.activeSTTProvider}
             analysisDepth={conversation.analysisDepth}
             onAnalysisDepthSelect={conversation.setAnalysisDepth}
             currentPhase={conversation.currentPhase}

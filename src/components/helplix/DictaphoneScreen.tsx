@@ -1,5 +1,5 @@
 import { useState, useCallback, memo } from 'react';
-import { RotateCcw, Keyboard, Plus, Cpu } from 'lucide-react';
+import { RotateCcw, Keyboard, Plus, Cpu, Mic } from 'lucide-react';
 import { PushToTalkButton } from './PushToTalkButton';
 import { QuestionDisplay } from './QuestionDisplay';
 import { TextInputDialog } from './TextInputDialog';
@@ -12,6 +12,8 @@ import type { ConversationStatus, CooperSettings, CountryCode, AnalysisDepth } f
 import type { ConversationPhase } from '@/types/phases';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useAIConfig } from '@/hooks/useAIConfig';
+
+export type STTProvider = 'google' | 'elevenlabs' | 'browser' | 'realtime' | null;
 
 interface DictaphoneScreenProps {
   status: ConversationStatus;
@@ -29,6 +31,7 @@ interface DictaphoneScreenProps {
   realtimeTranscriptionText?: string;
   hasContent?: boolean;
   showAiBadge?: boolean;
+  activeSTTProvider?: STTProvider;
   // New props for analysis depth and progress
   analysisDepth: AnalysisDepth | null;
   onAnalysisDepthSelect: (depth: AnalysisDepth) => void;
@@ -52,6 +55,7 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
   realtimeTranscriptionText = '',
   hasContent = false,
   showAiBadge = false,
+  activeSTTProvider = null,
   analysisDepth,
   onAnalysisDepthSelect,
   currentPhase = 'opening',
@@ -83,15 +87,36 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
     "touch-manipulation select-none text-sm"
   );
 
+  // Get STT provider display name
+  const getSTTProviderLabel = (provider: STTProvider): string => {
+    switch (provider) {
+      case 'google': return 'Google';
+      case 'elevenlabs': return 'ElevenLabs';
+      case 'browser': return 'Browser';
+      case 'realtime': return 'Realtime';
+      default: return '';
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-between min-h-[calc(100vh-80px)] py-4 px-2 relative">
-      {/* AI Model Badge - subtle bottom corner, controlled by feature flag */}
-      {showAiBadge && config?.is_active && (
-        <div className="absolute bottom-20 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground text-[10px]">
-          <Cpu className="h-2.5 w-2.5" />
-          <span>{displayModelName}</span>
-        </div>
-      )}
+      {/* Status badges - subtle bottom corner */}
+      <div className="absolute bottom-20 right-2 flex flex-col items-end gap-1">
+        {/* STT Provider indicator - only show when recording */}
+        {activeSTTProvider && status === 'listening' && (
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] animate-pulse">
+            <Mic className="h-2.5 w-2.5" />
+            <span>{getSTTProviderLabel(activeSTTProvider)}</span>
+          </div>
+        )}
+        {/* AI Model Badge - controlled by feature flag */}
+        {showAiBadge && config?.is_active && (
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground text-[10px]">
+            <Cpu className="h-2.5 w-2.5" />
+            <span>{displayModelName}</span>
+          </div>
+        )}
+      </div>
       {/* Header with New Case button */}
       <header className="w-full flex items-center justify-between px-2 py-2">
         <div className="w-16" /> {/* Spacer for centering */}
