@@ -21,6 +21,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   const useStreamingTTS = getFlag('streaming_tts');
   const useBrowserSTT = getFlag('browser_stt');
   const useGoogleSTT = getFlag('google_stt');
+  const useSTTFallback = getFlag('stt_fallback');
   
   // Analysis depth state - user's choice for this session
   const [analysisDepth, setAnalysisDepth] = useState<AnalysisDepth | null>(null);
@@ -70,6 +71,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
     useStreamingTTS: useStreamingTTS,
     useBrowserSTT: !useGoogleSTT && useBrowserSTT,
     useGoogleSTT: useGoogleSTT,
+    useSTTFallback: useSTTFallback,
     languageCode: settings.country ? getLanguageCodeForCountry(settings.country) : 'sv-SE',
     onRealtimeTranscript: (text) => setRealtimeTranscriptText(text),
   });
