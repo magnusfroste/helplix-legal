@@ -4,14 +4,59 @@ import { useRealtimeScribe } from './useRealtimeScribe';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+// Web Speech API types
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: (() => void) | null;
+  onstart: (() => void) | null;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
+
 interface UseRealtimeVoiceOptions {
   useRealtimeSTT?: boolean;
   useStreamingTTS?: boolean;
+  useBrowserSTT?: boolean; // New: use Web Speech API instead of ElevenLabs
   onRealtimeTranscript?: (text: string) => void;
 }
 
 export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
-  const { useRealtimeSTT = false, useStreamingTTS = false, onRealtimeTranscript } = options;
+  const { useRealtimeSTT = false, useStreamingTTS = false, useBrowserSTT = false, onRealtimeTranscript } = options;
   
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -29,6 +74,11 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
   const animationFrameRef = useRef<number | null>(null);
   const preloadedStreamRef = useRef<MediaStream | null>(null);
   const preloadedAudioContextRef = useRef<AudioContext | null>(null);
+  
+  // Web Speech API refs
+  const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
+  const browserTranscriptRef = useRef<string>('');
+  const browserRecordingResolveRef = useRef<((text: string) => void) | null>(null);
 
   // Realtime scribe hook for WebSocket-based STT
   const realtimeScribe = useRealtimeScribe({
@@ -109,7 +159,65 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
   }, []);
 
   const startRecording = useCallback(async (): Promise<void> => {
-    // If using realtime STT, use WebSocket-based scribe
+    // If using browser STT (Web Speech API)
+    if (useBrowserSTT) {
+      console.log('Starting browser STT recording (Web Speech API)...');
+      
+      const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognitionClass) {
+        console.error('Web Speech API not supported in this browser');
+        throw new Error('Web Speech API not supported');
+      }
+      
+      browserTranscriptRef.current = '';
+      const recognition = new SpeechRecognitionClass();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'sv-SE'; // Default to Swedish, could be dynamic
+      
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          if (result.isFinal) {
+            finalTranscript += result[0].transcript;
+          } else {
+            interimTranscript += result[0].transcript;
+          }
+        }
+        
+        if (finalTranscript) {
+          browserTranscriptRef.current += finalTranscript + ' ';
+        }
+        
+        // Show interim results for real-time feedback
+        const currentText = browserTranscriptRef.current + interimTranscript;
+        setRealtimeTranscript(currentText);
+        onRealtimeTranscript?.(currentText);
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event);
+      };
+      
+      recognition.onend = () => {
+        console.log('Speech recognition ended');
+        // Resolve the promise if we're waiting for results
+        if (browserRecordingResolveRef.current) {
+          browserRecordingResolveRef.current(browserTranscriptRef.current.trim());
+          browserRecordingResolveRef.current = null;
+        }
+      };
+      
+      speechRecognitionRef.current = recognition;
+      recognition.start();
+      setIsRecording(true);
+      return;
+    }
+    
+    // If using realtime STT (ElevenLabs WebSocket), use WebSocket-based scribe
     if (useRealtimeSTT) {
       console.log('Starting realtime STT recording...');
       setIsRecording(true);
@@ -268,10 +376,36 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
       console.error('Error starting recording:', error);
       throw error;
     }
-  }, [useRealtimeSTT, realtimeScribe]);
+  }, [useBrowserSTT, useRealtimeSTT, realtimeScribe, onRealtimeTranscript]);
 
   const stopRecording = useCallback(async (): Promise<string> => {
-    // If using realtime STT, get transcript and disconnect
+    // If using browser STT (Web Speech API)
+    if (useBrowserSTT) {
+      console.log('Stopping browser STT recording...');
+      setIsRecording(false);
+      setRealtimeTranscript('');
+      
+      const recognition = speechRecognitionRef.current;
+      if (recognition) {
+        // Create a promise that will resolve with the transcript
+        return new Promise((resolve) => {
+          browserRecordingResolveRef.current = resolve;
+          recognition.stop();
+          
+          // Fallback timeout in case onend doesn't fire
+          setTimeout(() => {
+            if (browserRecordingResolveRef.current) {
+              browserRecordingResolveRef.current(browserTranscriptRef.current.trim());
+              browserRecordingResolveRef.current = null;
+            }
+          }, 500);
+        });
+      }
+      
+      return browserTranscriptRef.current.trim();
+    }
+    
+    // If using realtime STT (ElevenLabs), get transcript and disconnect
     if (useRealtimeSTT) {
       console.log('Stopping realtime STT recording...');
       realtimeScribe.commit(); // Commit any remaining audio
@@ -372,7 +506,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
       // Stop recording - this triggers ondataavailable with all data
       mediaRecorder.stop();
     });
-  }, [useRealtimeSTT, realtimeScribe]);
+  }, [useBrowserSTT, useRealtimeSTT, realtimeScribe]);
 
   const speak = useCallback(async (text: string): Promise<void> => {
     if (!text) return;

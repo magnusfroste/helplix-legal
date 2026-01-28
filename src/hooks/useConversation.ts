@@ -19,6 +19,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   const { getPromptForCountry, getIntensityForCountry } = useJurisdictionPrompts();
   const useRealtimeSTT = getFlag('realtime_transcription');
   const useStreamingTTS = getFlag('streaming_tts');
+  const useBrowserSTT = getFlag('browser_stt');
   
   // Analysis depth state - user's choice for this session
   const [analysisDepth, setAnalysisDepth] = useState<AnalysisDepth | null>(null);
@@ -62,10 +63,11 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   // Phase and quality tracking
   const phaseTracking = usePhaseTracking();
 
-  // Voice service - with realtime STT and streaming TTS support
+  // Voice service - with realtime STT, streaming TTS, and browser STT support
   const voice = useRealtimeVoice({
-    useRealtimeSTT,
+    useRealtimeSTT: !useBrowserSTT && useRealtimeSTT, // Browser STT takes priority
     useStreamingTTS,
+    useBrowserSTT,
     onRealtimeTranscript: (text) => setRealtimeTranscriptText(text),
   });
 
