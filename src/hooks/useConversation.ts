@@ -67,9 +67,9 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   // Voice service - STT priority: Google > Browser > Realtime (ElevenLabs)
   const voice = useRealtimeVoice({
     useRealtimeSTT: !useGoogleSTT && !useBrowserSTT && useRealtimeSTT,
-    useStreamingTTS,
+    useStreamingTTS: useStreamingTTS,
     useBrowserSTT: !useGoogleSTT && useBrowserSTT,
-    useGoogleSTT,
+    useGoogleSTT: useGoogleSTT,
     languageCode: settings.country ? getLanguageCodeForCountry(settings.country) : 'sv-SE',
     onRealtimeTranscript: (text) => setRealtimeTranscriptText(text),
   });

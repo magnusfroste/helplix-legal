@@ -48,12 +48,13 @@ declare global {
   }
 }
 
-interface UseRealtimeVoiceOptions {
+/** Options for the useRealtimeVoice hook */
+export interface UseRealtimeVoiceOptions {
   useRealtimeSTT?: boolean;
   useStreamingTTS?: boolean;
-  useBrowserSTT?: boolean; // Use Web Speech API
-  useGoogleSTT?: boolean;  // Use Google Cloud Speech-to-Text
-  languageCode?: string;   // Language for Google STT (e.g., 'sv-SE')
+  useBrowserSTT?: boolean;
+  useGoogleSTT?: boolean;
+  languageCode?: string;
   onRealtimeTranscript?: (text: string) => void;
 }
 
