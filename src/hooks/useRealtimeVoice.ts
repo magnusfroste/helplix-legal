@@ -54,6 +54,7 @@ export interface UseRealtimeVoiceOptions {
   useStreamingTTS?: boolean;
   useBrowserSTT?: boolean;
   useGoogleSTT?: boolean;
+  useSTTFallback?: boolean;
   languageCode?: string;
   onRealtimeTranscript?: (text: string) => void;
 }
@@ -64,6 +65,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
     useStreamingTTS = false, 
     useBrowserSTT = false,
     useGoogleSTT = false,
+    useSTTFallback = false,
     languageCode = 'sv-SE',
     onRealtimeTranscript 
   } = options;
@@ -484,42 +486,87 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
                            mimeType.includes('mp4') ? 'mp4' : 
                            mimeType.includes('ogg') ? 'ogg' : 'webm';
           
-          // Send to appropriate STT endpoint
+          // Send to appropriate STT endpoint with optional fallback
           const formData = new FormData();
           formData.append('audio', audioBlob, `recording.${extension}`);
           
-          // Use Google STT or ElevenLabs based on flag
-          const sttEndpoint = useGoogleSTT 
-            ? `${SUPABASE_URL}/functions/v1/google-stt`
-            : `${SUPABASE_URL}/functions/v1/elevenlabs-stt`;
+          // Helper function to try an STT endpoint
+          const trySTT = async (endpoint: string, provider: string, addLanguage: boolean): Promise<string> => {
+            console.log(`Trying ${provider} STT...`);
+            const fd = new FormData();
+            fd.append('audio', audioBlob, `recording.${extension}`);
+            if (addLanguage) {
+              fd.append('language', languageCode);
+            }
+            
+            const resp = await fetch(endpoint, {
+              method: 'POST',
+              headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+              },
+              body: fd,
+            });
+            
+            if (!resp.ok) {
+              const errorData = await resp.json();
+              throw new Error(`${provider} STT failed: ${errorData.error || 'Unknown error'}`);
+            }
+            
+            const result = await resp.json();
+            console.log(`${provider} STT result:`, result.text);
+            return result.text || '';
+          };
           
-          console.log(`Sending to ${useGoogleSTT ? 'Google' : 'ElevenLabs'} STT...`);
+          // Build fallback chain based on enabled providers
+          const providers: Array<{ endpoint: string; name: string; addLanguage: boolean }> = [];
           
-          // Add language code for Google STT
           if (useGoogleSTT) {
-            formData.append('language', languageCode);
+            providers.push({ 
+              endpoint: `${SUPABASE_URL}/functions/v1/google-stt`, 
+              name: 'Google',
+              addLanguage: true 
+            });
           }
           
-          const response = await fetch(sttEndpoint, {
-            method: 'POST',
-            headers: {
-              'apikey': SUPABASE_KEY,
-              'Authorization': `Bearer ${SUPABASE_KEY}`,
-            },
-            body: formData,
+          // Always include ElevenLabs as fallback option
+          providers.push({ 
+            endpoint: `${SUPABASE_URL}/functions/v1/elevenlabs-stt`, 
+            name: 'ElevenLabs',
+            addLanguage: false 
           });
           
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'STT failed');
+          let transcriptionResult = '';
+          let lastError: Error | null = null;
+          
+          for (const provider of providers) {
+            try {
+              transcriptionResult = await trySTT(provider.endpoint, provider.name, provider.addLanguage);
+              if (transcriptionResult) {
+                break; // Success, exit loop
+              }
+            } catch (error) {
+              console.warn(`${provider.name} STT failed:`, error);
+              lastError = error as Error;
+              
+              // If fallback is disabled, throw immediately
+              if (!useSTTFallback) {
+                throw error;
+              }
+              
+              // Otherwise continue to next provider
+              console.log('Fallback enabled, trying next provider...');
+            }
           }
           
-          const data = await response.json();
-          console.log('STT result:', data.text);
+          // If all providers failed
+          if (!transcriptionResult && lastError) {
+            throw lastError;
+          }
           
           setIsRecording(false);
           setIsTranscribing(false);
-          resolve(data.text || '');
+          resolve(transcriptionResult);
         } catch (error) {
           console.error('Error processing audio:', error);
           setIsRecording(false);
@@ -531,7 +578,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
       // Stop recording - this triggers ondataavailable with all data
       mediaRecorder.stop();
     });
-  }, [useGoogleSTT, useBrowserSTT, useRealtimeSTT, languageCode, realtimeScribe]);
+  }, [useGoogleSTT, useBrowserSTT, useRealtimeSTT, useSTTFallback, languageCode, realtimeScribe]);
 
   const speak = useCallback(async (text: string): Promise<void> => {
     if (!text) return;

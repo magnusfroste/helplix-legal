@@ -44,6 +44,7 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
   'show_ai_badge': <Bot className="h-5 w-5" />,
   'browser_stt': <Zap className="h-5 w-5" />,
   'google_stt': <Globe className="h-5 w-5" />,
+  'stt_fallback': <ShieldCheck className="h-5 w-5" />,
 };
 
 const FEATURE_LABELS: Record<string, string> = {
@@ -56,6 +57,7 @@ const FEATURE_LABELS: Record<string, string> = {
   'show_ai_badge': 'Visa AI-modell badge',
   'browser_stt': 'Webbläsar-STT (gratis, Chrome)',
   'google_stt': 'Google Cloud STT (alla plattformar)',
+  'stt_fallback': 'Auto-fallback mellan STT-leverantörer',
 };
 
 const CONNECTION_STATUS: Record<string, { label: string; available: boolean }> = {
