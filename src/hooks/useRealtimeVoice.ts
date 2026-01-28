@@ -76,6 +76,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
   const [audioLevel, setAudioLevel] = useState(0);
   const [isPreloaded, setIsPreloaded] = useState(false);
   const [realtimeTranscript, setRealtimeTranscript] = useState('');
+  const [activeSTTProvider, setActiveSTTProvider] = useState<'google' | 'elevenlabs' | 'browser' | 'realtime' | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -171,16 +172,21 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
   }, []);
 
   const startRecording = useCallback(async (): Promise<void> => {
+    // Reset active provider
+    setActiveSTTProvider(null);
+    
     // If using Google STT, use batch recording mode (similar to ElevenLabs)
     // but will send to Google Cloud endpoint
     if (useGoogleSTT) {
       console.log('Starting Google STT recording (batch mode)...');
+      setActiveSTTProvider('google');
       // Fall through to batch recording mode below
     }
     
     // If using browser STT (Web Speech API)
     else if (useBrowserSTT) {
       console.log('Starting browser STT recording (Web Speech API)...');
+      setActiveSTTProvider('browser');
       
       const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognitionClass) {
@@ -239,12 +245,16 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
     // If using realtime STT (ElevenLabs WebSocket), use WebSocket-based scribe
     if (useRealtimeSTT) {
       console.log('Starting realtime STT recording...');
+      setActiveSTTProvider('realtime');
       setIsRecording(true);
       await realtimeScribe.connect();
       return;
     }
-
-    // Batch mode - original implementation
+    
+    // Batch mode (ElevenLabs) - original implementation
+    if (!useGoogleSTT) {
+      setActiveSTTProvider('elevenlabs');
+    }
     try {
       console.log('Starting batch recording...');
       chunksRef.current = [];
@@ -519,12 +529,13 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
           };
           
           // Build fallback chain based on enabled providers
-          const providers: Array<{ endpoint: string; name: string; addLanguage: boolean }> = [];
+          const providers: Array<{ endpoint: string; name: string; key: 'google' | 'elevenlabs'; addLanguage: boolean }> = [];
           
           if (useGoogleSTT) {
             providers.push({ 
               endpoint: `${SUPABASE_URL}/functions/v1/google-stt`, 
               name: 'Google',
+              key: 'google',
               addLanguage: true 
             });
           }
@@ -533,16 +544,20 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
           providers.push({ 
             endpoint: `${SUPABASE_URL}/functions/v1/elevenlabs-stt`, 
             name: 'ElevenLabs',
+            key: 'elevenlabs',
             addLanguage: false 
           });
           
           let transcriptionResult = '';
           let lastError: Error | null = null;
+          let successfulProvider: 'google' | 'elevenlabs' | null = null;
           
           for (const provider of providers) {
             try {
               transcriptionResult = await trySTT(provider.endpoint, provider.name, provider.addLanguage);
               if (transcriptionResult) {
+                successfulProvider = provider.key;
+                setActiveSTTProvider(provider.key);
                 break; // Success, exit loop
               }
             } catch (error) {
@@ -768,6 +783,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
     isPreloaded,
     partialTranscript: useRealtimeSTT ? realtimeScribe.partialTranscript : '',
     realtimeTranscript,
+    activeSTTProvider,
     preloadMicrophone,
     startRecording,
     stopRecording,
