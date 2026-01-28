@@ -20,6 +20,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   const useRealtimeSTT = getFlag('realtime_transcription');
   const useStreamingTTS = getFlag('streaming_tts');
   const useBrowserSTT = getFlag('browser_stt');
+  const useGoogleSTT = getFlag('google_stt');
   
   // Analysis depth state - user's choice for this session
   const [analysisDepth, setAnalysisDepth] = useState<AnalysisDepth | null>(null);
@@ -63,13 +64,28 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   // Phase and quality tracking
   const phaseTracking = usePhaseTracking();
 
-  // Voice service - with realtime STT, streaming TTS, and browser STT support
+  // Voice service - STT priority: Google > Browser > Realtime (ElevenLabs)
   const voice = useRealtimeVoice({
-    useRealtimeSTT: !useBrowserSTT && useRealtimeSTT, // Browser STT takes priority
+    useRealtimeSTT: !useGoogleSTT && !useBrowserSTT && useRealtimeSTT,
     useStreamingTTS,
-    useBrowserSTT,
+    useBrowserSTT: !useGoogleSTT && useBrowserSTT,
+    useGoogleSTT,
+    languageCode: settings.country ? getLanguageCodeForCountry(settings.country) : 'sv-SE',
     onRealtimeTranscript: (text) => setRealtimeTranscriptText(text),
   });
+
+  // Helper to get language code for Google STT
+  function getLanguageCodeForCountry(country: string): string {
+    const languageMap: Record<string, string> = {
+      'SE': 'sv-SE',
+      'NO': 'nb-NO',
+      'FI': 'fi-FI',
+      'DK': 'da-DK',
+      'PT': 'pt-PT',
+      'BR': 'pt-BR',
+    };
+    return languageMap[country] || 'sv-SE';
+  }
 
   // Chat service - use jurisdiction prompt and intensity from database
   const chat = useCooperChat({

@@ -51,12 +51,21 @@ declare global {
 interface UseRealtimeVoiceOptions {
   useRealtimeSTT?: boolean;
   useStreamingTTS?: boolean;
-  useBrowserSTT?: boolean; // New: use Web Speech API instead of ElevenLabs
+  useBrowserSTT?: boolean; // Use Web Speech API
+  useGoogleSTT?: boolean;  // Use Google Cloud Speech-to-Text
+  languageCode?: string;   // Language for Google STT (e.g., 'sv-SE')
   onRealtimeTranscript?: (text: string) => void;
 }
 
 export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
-  const { useRealtimeSTT = false, useStreamingTTS = false, useBrowserSTT = false, onRealtimeTranscript } = options;
+  const { 
+    useRealtimeSTT = false, 
+    useStreamingTTS = false, 
+    useBrowserSTT = false,
+    useGoogleSTT = false,
+    languageCode = 'sv-SE',
+    onRealtimeTranscript 
+  } = options;
   
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -159,8 +168,15 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
   }, []);
 
   const startRecording = useCallback(async (): Promise<void> => {
+    // If using Google STT, use batch recording mode (similar to ElevenLabs)
+    // but will send to Google Cloud endpoint
+    if (useGoogleSTT) {
+      console.log('Starting Google STT recording (batch mode)...');
+      // Fall through to batch recording mode below
+    }
+    
     // If using browser STT (Web Speech API)
-    if (useBrowserSTT) {
+    else if (useBrowserSTT) {
       console.log('Starting browser STT recording (Web Speech API)...');
       
       const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -173,7 +189,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
       const recognition = new SpeechRecognitionClass();
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = 'sv-SE'; // Default to Swedish, could be dynamic
+      recognition.lang = languageCode;
       
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         let interimTranscript = '';
@@ -376,11 +392,11 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
       console.error('Error starting recording:', error);
       throw error;
     }
-  }, [useBrowserSTT, useRealtimeSTT, realtimeScribe, onRealtimeTranscript]);
+  }, [useGoogleSTT, useBrowserSTT, useRealtimeSTT, languageCode, realtimeScribe, onRealtimeTranscript]);
 
   const stopRecording = useCallback(async (): Promise<string> => {
     // If using browser STT (Web Speech API)
-    if (useBrowserSTT) {
+    if (useBrowserSTT && !useGoogleSTT) {
       console.log('Stopping browser STT recording...');
       setIsRecording(false);
       setRealtimeTranscript('');
@@ -406,7 +422,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
     }
     
     // If using realtime STT (ElevenLabs), get transcript and disconnect
-    if (useRealtimeSTT) {
+    if (useRealtimeSTT && !useGoogleSTT && !useBrowserSTT) {
       console.log('Stopping realtime STT recording...');
       realtimeScribe.commit(); // Commit any remaining audio
       
@@ -467,22 +483,30 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
                            mimeType.includes('mp4') ? 'mp4' : 
                            mimeType.includes('ogg') ? 'ogg' : 'webm';
           
-          // Send to STT
+          // Send to appropriate STT endpoint
           const formData = new FormData();
           formData.append('audio', audioBlob, `recording.${extension}`);
           
-          console.log('Sending to STT...');
-          const response = await fetch(
-            `${SUPABASE_URL}/functions/v1/elevenlabs-stt`,
-            {
-              method: 'POST',
-              headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
-              },
-              body: formData,
-            }
-          );
+          // Use Google STT or ElevenLabs based on flag
+          const sttEndpoint = useGoogleSTT 
+            ? `${SUPABASE_URL}/functions/v1/google-stt`
+            : `${SUPABASE_URL}/functions/v1/elevenlabs-stt`;
+          
+          console.log(`Sending to ${useGoogleSTT ? 'Google' : 'ElevenLabs'} STT...`);
+          
+          // Add language code for Google STT
+          if (useGoogleSTT) {
+            formData.append('language', languageCode);
+          }
+          
+          const response = await fetch(sttEndpoint, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+            },
+            body: formData,
+          });
           
           if (!response.ok) {
             const errorData = await response.json();
@@ -506,7 +530,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
       // Stop recording - this triggers ondataavailable with all data
       mediaRecorder.stop();
     });
-  }, [useBrowserSTT, useRealtimeSTT, realtimeScribe]);
+  }, [useGoogleSTT, useBrowserSTT, useRealtimeSTT, languageCode, realtimeScribe]);
 
   const speak = useCallback(async (text: string): Promise<void> => {
     if (!text) return;

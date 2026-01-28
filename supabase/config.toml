@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.check-ai-secrets]
 verify_jwt = false
+
+[functions.google-stt]
+verify_jwt = false

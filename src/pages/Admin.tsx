@@ -43,6 +43,7 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
   'tts_enabled': <Volume2 className="h-5 w-5" />,
   'show_ai_badge': <Bot className="h-5 w-5" />,
   'browser_stt': <Zap className="h-5 w-5" />,
+  'google_stt': <Globe className="h-5 w-5" />,
 };
 
 const FEATURE_LABELS: Record<string, string> = {
@@ -53,7 +54,8 @@ const FEATURE_LABELS: Record<string, string> = {
   'stt_enabled': 'Tal-till-text (STT)',
   'tts_enabled': 'Text-till-tal (TTS)',
   'show_ai_badge': 'Visa AI-modell badge',
-  'browser_stt': 'Webbläsar-STT (gratis, experimentell)',
+  'browser_stt': 'Webbläsar-STT (gratis, Chrome)',
+  'google_stt': 'Google Cloud STT (alla plattformar)',
 };
 
 const CONNECTION_STATUS: Record<string, { label: string; available: boolean }> = {
