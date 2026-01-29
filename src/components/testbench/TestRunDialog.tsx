@@ -95,36 +95,36 @@ export function TestRunDialog({
           {/* Status */}
           <div className="flex items-center gap-2">
             {phase === 'idle' && (
-              <Badge variant="outline">Redo att köra</Badge>
+              <Badge variant="outline">Ready to run</Badge>
             )}
             {phase === 'running' && (
               <Badge className="bg-blue-500/20 text-blue-500">
                 <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                Kör test...
+                Running test...
               </Badge>
             )}
             {phase === 'completed' && (
               <Badge className="bg-green-500/20 text-green-500">
                 <CheckCircle className="h-3 w-3 mr-1" />
-                Test klart
+                Test complete
               </Badge>
             )}
             {phase === 'evaluating' && (
               <Badge className="bg-purple-500/20 text-purple-500">
                 <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                Utvärderar...
+                Evaluating...
               </Badge>
             )}
             {phase === 'evaluated' && (
               <Badge className="bg-primary/20 text-primary">
                 <BarChart3 className="h-3 w-3 mr-1" />
-                Utvärdering klar
+                Evaluation complete
               </Badge>
             )}
             {phase === 'failed' && (
               <Badge variant="destructive">
                 <XCircle className="h-3 w-3 mr-1" />
-                Misslyckades
+                Failed
               </Badge>
             )}
           </div>
@@ -139,7 +139,7 @@ export function TestRunDialog({
           {/* Conversation Log */}
           {runResult?.conversation_log && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium">Konversation</h4>
+              <h4 className="text-sm font-medium">Conversation</h4>
               <ScrollArea className="h-48 border rounded-lg p-3">
                 <div className="space-y-2 text-sm">
                   {runResult.conversation_log.map((msg, i) => (
@@ -154,7 +154,7 @@ export function TestRunDialog({
                       }`}
                     >
                       <span className="font-medium text-xs text-muted-foreground">
-                        {msg.role === 'assistant' ? 'AI' : msg.role === 'user' ? 'Användare' : 'System'}
+                        {msg.role === 'assistant' ? 'AI' : msg.role === 'user' ? 'User' : 'System'}
                         {msg.phase && ` (${msg.phase})`}
                       </span>
                       <p className="mt-1">{msg.content}</p>
@@ -168,27 +168,27 @@ export function TestRunDialog({
           {/* Scores */}
           {scoreResult && (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium">Resultat</h4>
+              <h4 className="text-sm font-medium">Results</h4>
               
               <div className="text-center p-4 bg-muted rounded-lg">
                 <div className="text-4xl font-bold text-primary">
                   {scoreResult.overall_score}
                 </div>
-                <div className="text-sm text-muted-foreground">Totalpoäng</div>
+                <div className="text-sm text-muted-foreground">Overall Score</div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <ScoreBar label="Faktatäckning" value={scoreResult.fact_coverage} />
-                <ScoreBar label="Juridisk precision" value={scoreResult.legal_accuracy} />
-                <ScoreBar label="Tidslinje" value={scoreResult.timeline_accuracy} />
-                <ScoreBar label="Frågeteknik" value={scoreResult.question_quality} />
-                <ScoreBar label="Språkkvalitet" value={scoreResult.language_quality} />
+                <ScoreBar label="Fact Coverage" value={scoreResult.fact_coverage} />
+                <ScoreBar label="Legal Precision" value={scoreResult.legal_accuracy} />
+                <ScoreBar label="Timeline" value={scoreResult.timeline_accuracy} />
+                <ScoreBar label="Question Quality" value={scoreResult.question_quality} />
+                <ScoreBar label="Language Quality" value={scoreResult.language_quality} />
                 <ScoreBar label="Professionalism" value={scoreResult.professionalism} />
               </div>
 
               {scoreResult.evaluator_notes && (
                 <div className="p-3 bg-muted rounded-lg text-sm">
-                  <strong>Anteckningar:</strong>
+                  <strong>Notes:</strong>
                   <p className="mt-1 text-muted-foreground">{scoreResult.evaluator_notes}</p>
                 </div>
               )}
@@ -210,20 +210,20 @@ export function TestRunDialog({
 
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleClose}>
-                Stäng
+                Close
               </Button>
               
               {phase === 'idle' && (
                 <Button onClick={handleRun}>
                   <Play className="h-4 w-4 mr-1" />
-                  Starta test
+                  Start Test
                 </Button>
               )}
               
               {phase === 'completed' && (
                 <Button onClick={handleEvaluate}>
                   <BarChart3 className="h-4 w-4 mr-1" />
-                  Utvärdera
+                  Evaluate
                 </Button>
               )}
             </div>

@@ -23,20 +23,20 @@ interface ResearchDialogProps {
 }
 
 const COUNTRIES = [
-  { code: 'SE', label: 'Sverige' },
-  { code: 'BR', label: 'Brasilien' },
-  { code: 'MX', label: 'Mexiko' },
+  { code: 'SE', label: 'Sweden' },
+  { code: 'BR', label: 'Brazil' },
+  { code: 'MX', label: 'Mexico' },
   { code: 'US', label: 'USA' },
-  { code: 'NL', label: 'Nederländerna' },
-  { code: 'DO', label: 'Dominikanska Rep.' }
+  { code: 'NL', label: 'Netherlands' },
+  { code: 'DO', label: 'Dominican Rep.' }
 ];
 
 const CASE_TYPES = [
-  { code: 'travel_damage', label: 'Reseskador' },
-  { code: 'consumer', label: 'Konsument' },
-  { code: 'housing', label: 'Bostad' },
-  { code: 'employment', label: 'Arbetsrätt' },
-  { code: 'contract', label: 'Avtal' }
+  { code: 'travel_damage', label: 'Travel Damage' },
+  { code: 'consumer', label: 'Consumer' },
+  { code: 'housing', label: 'Housing' },
+  { code: 'employment', label: 'Employment' },
+  { code: 'contract', label: 'Contract' }
 ];
 
 export function ResearchDialog({ isOpen, onClose, onResearch, onComplete }: ResearchDialogProps) {
@@ -61,7 +61,7 @@ export function ResearchDialog({ isOpen, onClose, onResearch, onComplete }: Rese
       // Auto-select all
       setSelectedCases(new Set(cases.map((_, i) => i)));
     } else {
-      setError('Kunde inte hitta några fall. Försök med andra söktermer.');
+      setError('Could not find any cases. Try different search terms.');
     }
     
     setIsSearching(false);
@@ -96,14 +96,14 @@ export function ResearchDialog({ isOpen, onClose, onResearch, onComplete }: Rese
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Research - Hitta verkliga fall</DialogTitle>
+          <DialogTitle>Research - Find Real Cases</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Search Form */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Land</Label>
+              <Label>Country</Label>
               <Select value={countryCode} onValueChange={setCountryCode}>
                 <SelectTrigger>
                   <SelectValue />
@@ -119,7 +119,7 @@ export function ResearchDialog({ isOpen, onClose, onResearch, onComplete }: Rese
             </div>
 
             <div className="space-y-2">
-              <Label>Ärendetyp</Label>
+              <Label>Case Type</Label>
               <Select value={caseType} onValueChange={setCaseType}>
                 <SelectTrigger>
                   <SelectValue />
@@ -134,12 +134,12 @@ export function ResearchDialog({ isOpen, onClose, onResearch, onComplete }: Rese
           </div>
 
           <div className="space-y-2">
-            <Label>Söktermer (valfritt)</Label>
+            <Label>Search Terms (optional)</Label>
             <div className="flex gap-2">
               <Input 
                 value={searchTerms}
                 onChange={(e) => setSearchTerms(e.target.value)}
-                placeholder="T.ex. flygförsening ersättning"
+                placeholder="E.g. flight delay compensation"
               />
               <Button onClick={handleSearch} disabled={isSearching}>
                 {isSearching ? (
@@ -162,9 +162,9 @@ export function ResearchDialog({ isOpen, onClose, onResearch, onComplete }: Rese
           {results.length > 0 && (
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label>Hittade testfall ({results.length})</Label>
+                <Label>Found Test Cases ({results.length})</Label>
                 <span className="text-xs text-muted-foreground">
-                  {selectedCases.size} valda
+                  {selectedCases.size} selected
                 </span>
               </div>
               
@@ -209,12 +209,12 @@ export function ResearchDialog({ isOpen, onClose, onResearch, onComplete }: Rese
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={handleClose}>
-              Avbryt
+              Cancel
             </Button>
             {results.length > 0 && (
               <Button onClick={handleImport} disabled={selectedCases.size === 0}>
                 <Plus className="h-4 w-4 mr-1" />
-                Importera {selectedCases.size} fall
+                Import {selectedCases.size} cases
               </Button>
             )}
           </div>

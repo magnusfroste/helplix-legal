@@ -11,7 +11,7 @@ import {
 import { TestCaseWithLatestRun, COUNTRY_FLAGS, DIFFICULTY_COLORS } from '@/types/testbench';
 import { Play, Eye, Clock, FileDown, FileText, MoreVertical } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { sv } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { generateTestReportMarkdown, downloadAsMarkdown, openAsPDF } from '@/utils/testReportExport';
 
 interface TestCaseListProps {
@@ -39,7 +39,7 @@ export function TestCaseList({ testCases, isLoading, onRun, onViewDetails }: Tes
     return (
       <Card className="p-8 text-center">
         <p className="text-muted-foreground">
-          Inga testfall hittades. Skapa ett nytt eller använd Research för att hitta verkliga fall.
+          No test cases found. Create a new one or use Research to find real cases.
         </p>
       </Card>
     );
@@ -104,8 +104,8 @@ function TestCaseCard({ testCase, onRun, onViewDetails }: TestCaseCardProps) {
               {testCase.case_type}
             </Badge>
             <Badge className={`text-xs ${difficultyClass}`}>
-              {testCase.difficulty === 'easy' ? 'Enkel' : 
-               testCase.difficulty === 'medium' ? 'Medel' : 'Svår'}
+              {testCase.difficulty === 'easy' ? 'Easy' : 
+               testCase.difficulty === 'medium' ? 'Medium' : 'Hard'}
             </Badge>
             
             {latestScore !== undefined && (
@@ -119,7 +119,7 @@ function TestCaseCard({ testCase, onRun, onViewDetails }: TestCaseCardProps) {
                 <Clock className="h-3 w-3" />
                 {formatDistanceToNow(new Date(lastRunTime), { 
                   addSuffix: true, 
-                  locale: sv 
+                  locale: enUS 
                 })}
               </span>
             )}
@@ -132,17 +132,17 @@ function TestCaseCard({ testCase, onRun, onViewDetails }: TestCaseCardProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
                   <FileDown className="h-4 w-4 mr-1" />
-                  Exportera
+                  Export
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={handleExportMarkdown}>
                   <FileText className="h-4 w-4 mr-2" />
-                  Ladda ner Markdown
+                  Download Markdown
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleExportPDF}>
                   <FileDown className="h-4 w-4 mr-2" />
-                  Öppna som PDF
+                  Open as PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -153,14 +153,14 @@ function TestCaseCard({ testCase, onRun, onViewDetails }: TestCaseCardProps) {
             onClick={() => onViewDetails(testCase)}
           >
             <Eye className="h-4 w-4 mr-1" />
-            Detaljer
+            Details
           </Button>
           <Button 
             size="sm"
             onClick={() => onRun(testCase)}
           >
             <Play className="h-4 w-4 mr-1" />
-            Kör
+            Run
           </Button>
         </div>
       </div>

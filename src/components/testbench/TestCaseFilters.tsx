@@ -12,30 +12,30 @@ interface TestCaseFiltersProps {
 }
 
 const COUNTRIES = [
-  { code: '', label: 'Alla länder' },
-  { code: 'SE', label: '🇸🇪 Sverige' },
-  { code: 'BR', label: '🇧🇷 Brasilien' },
-  { code: 'MX', label: '🇲🇽 Mexiko' },
+  { code: '', label: 'All countries' },
+  { code: 'SE', label: '🇸🇪 Sweden' },
+  { code: 'BR', label: '🇧🇷 Brazil' },
+  { code: 'MX', label: '🇲🇽 Mexico' },
   { code: 'US', label: '🇺🇸 USA' },
-  { code: 'NL', label: '🇳🇱 Nederländerna' },
-  { code: 'DO', label: '🇩🇴 Dominikanska Rep.' }
+  { code: 'NL', label: '🇳🇱 Netherlands' },
+  { code: 'DO', label: '🇩🇴 Dominican Rep.' }
 ];
 
 const CASE_TYPES = [
-  { code: '', label: 'Alla typer' },
-  { code: 'travel_damage', label: 'Reseskador' },
-  { code: 'consumer', label: 'Konsument' },
-  { code: 'housing', label: 'Bostad' },
-  { code: 'employment', label: 'Arbetsrätt' },
-  { code: 'contract', label: 'Avtal' },
-  { code: 'general', label: 'Allmänt' }
+  { code: '', label: 'All types' },
+  { code: 'travel_damage', label: 'Travel Damage' },
+  { code: 'consumer', label: 'Consumer' },
+  { code: 'housing', label: 'Housing' },
+  { code: 'employment', label: 'Employment' },
+  { code: 'contract', label: 'Contract' },
+  { code: 'general', label: 'General' }
 ];
 
 const DIFFICULTIES = [
-  { code: '', label: 'Alla nivåer' },
-  { code: 'easy', label: 'Enkel' },
-  { code: 'medium', label: 'Medel' },
-  { code: 'hard', label: 'Svår' }
+  { code: '', label: 'All levels' },
+  { code: 'easy', label: 'Easy' },
+  { code: 'medium', label: 'Medium' },
+  { code: 'hard', label: 'Hard' }
 ];
 
 export function TestCaseFilters({ filters, onFiltersChange }: TestCaseFiltersProps) {
@@ -50,7 +50,7 @@ export function TestCaseFilters({ filters, onFiltersChange }: TestCaseFiltersPro
         onValueChange={(v) => updateFilter('countryCode', v)}
       >
         <SelectTrigger className="w-[160px]">
-          <SelectValue placeholder="Land" />
+          <SelectValue placeholder="Country" />
         </SelectTrigger>
         <SelectContent>
           {COUNTRIES.map((c) => (
@@ -66,7 +66,7 @@ export function TestCaseFilters({ filters, onFiltersChange }: TestCaseFiltersPro
         onValueChange={(v) => updateFilter('caseType', v)}
       >
         <SelectTrigger className="w-[160px]">
-          <SelectValue placeholder="Typ" />
+          <SelectValue placeholder="Type" />
         </SelectTrigger>
         <SelectContent>
           {CASE_TYPES.map((c) => (
@@ -82,7 +82,7 @@ export function TestCaseFilters({ filters, onFiltersChange }: TestCaseFiltersPro
         onValueChange={(v) => updateFilter('difficulty', v)}
       >
         <SelectTrigger className="w-[140px]">
-          <SelectValue placeholder="Svårighet" />
+          <SelectValue placeholder="Difficulty" />
         </SelectTrigger>
         <SelectContent>
           {DIFFICULTIES.map((d) => (

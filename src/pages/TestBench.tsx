@@ -16,7 +16,7 @@ export default function TestBench() {
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
-      toast.error('Åtkomst nekad. Endast administratörer.');
+      toast.error('Access denied. Administrators only.');
       navigate('/');
     }
   }, [isAdmin, adminLoading, navigate]);
@@ -36,13 +36,13 @@ export default function TestBench() {
   if (!testbenchEnabled) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background gap-4">
-        <p className="text-muted-foreground">Testbänken är inaktiverad.</p>
-        <p className="text-sm text-muted-foreground">Aktivera "testbench_enabled" i Admin → Feature Flags.</p>
+        <p className="text-muted-foreground">Test Bench is disabled.</p>
+        <p className="text-sm text-muted-foreground">Enable "testbench_enabled" in Admin → Feature Flags.</p>
         <button 
           onClick={() => navigate('/admin')}
           className="text-primary underline"
         >
-          Gå till Admin
+          Go to Admin
         </button>
       </div>
     );
