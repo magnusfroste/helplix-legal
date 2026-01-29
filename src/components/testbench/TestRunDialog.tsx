@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { TestCaseWithLatestRun, TestRun, TestScore, COUNTRY_FLAGS } from '@/types/testbench';
 import { Play, CheckCircle, XCircle, Loader2, BarChart3 } from 'lucide-react';
+import { TestReportExport } from './TestReportExport';
 
 interface TestRunDialogProps {
   isOpen: boolean;
@@ -195,24 +196,37 @@ export function TestRunDialog({
           )}
 
           {/* Actions */}
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={handleClose}>
-              Stäng
-            </Button>
-            
-            {phase === 'idle' && (
-              <Button onClick={handleRun}>
-                <Play className="h-4 w-4 mr-1" />
-                Starta test
+          <div className="flex justify-between items-center pt-4 border-t">
+            {/* Export buttons */}
+            <div>
+              {runResult && (
+                <TestReportExport 
+                  testCase={testCase} 
+                  testRun={runResult} 
+                  score={scoreResult || undefined}
+                />
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleClose}>
+                Stäng
               </Button>
-            )}
-            
-            {phase === 'completed' && (
-              <Button onClick={handleEvaluate}>
-                <BarChart3 className="h-4 w-4 mr-1" />
-                Utvärdera
-              </Button>
-            )}
+              
+              {phase === 'idle' && (
+                <Button onClick={handleRun}>
+                  <Play className="h-4 w-4 mr-1" />
+                  Starta test
+                </Button>
+              )}
+              
+              {phase === 'completed' && (
+                <Button onClick={handleEvaluate}>
+                  <BarChart3 className="h-4 w-4 mr-1" />
+                  Utvärdera
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </DialogContent>

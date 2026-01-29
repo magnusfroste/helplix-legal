@@ -5,3 +5,4 @@ export { TestCaseList } from './TestCaseList';
 export { TestRunDialog } from './TestRunDialog';
 export { TestCaseEditor } from './TestCaseEditor';
 export { ResearchDialog } from './ResearchDialog';
+export { TestReportExport } from './TestReportExport';
