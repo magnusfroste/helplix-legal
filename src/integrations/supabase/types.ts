@@ -330,6 +330,208 @@ export type Database = {
         }
         Relationships: []
       }
+      test_benchmarks: {
+        Row: {
+          ai_config_snapshot: Json
+          avg_fact_coverage: number
+          avg_legal_accuracy: number
+          avg_overall_score: number
+          benchmark_date: string
+          case_type: string
+          country_code: string
+          created_at: string
+          id: string
+          tests_run: number
+        }
+        Insert: {
+          ai_config_snapshot?: Json
+          avg_fact_coverage?: number
+          avg_legal_accuracy?: number
+          avg_overall_score?: number
+          benchmark_date?: string
+          case_type: string
+          country_code: string
+          created_at?: string
+          id?: string
+          tests_run?: number
+        }
+        Update: {
+          ai_config_snapshot?: Json
+          avg_fact_coverage?: number
+          avg_legal_accuracy?: number
+          avg_overall_score?: number
+          benchmark_date?: string
+          case_type?: string
+          country_code?: string
+          created_at?: string
+          id?: string
+          tests_run?: number
+        }
+        Relationships: []
+      }
+      test_cases: {
+        Row: {
+          case_type: string
+          country_code: string
+          created_at: string
+          created_by: string | null
+          difficulty: string
+          expected_facts: Json
+          expected_legal_issues: Json
+          expected_timeline: Json
+          id: string
+          is_active: boolean
+          scenario: Json
+          scoring_rubric: Json
+          simulated_answers: Json
+          source: string
+          source_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          case_type: string
+          country_code: string
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string
+          expected_facts?: Json
+          expected_legal_issues?: Json
+          expected_timeline?: Json
+          id?: string
+          is_active?: boolean
+          scenario?: Json
+          scoring_rubric?: Json
+          simulated_answers?: Json
+          source?: string
+          source_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          case_type?: string
+          country_code?: string
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string
+          expected_facts?: Json
+          expected_legal_issues?: Json
+          expected_timeline?: Json
+          id?: string
+          is_active?: boolean
+          scenario?: Json
+          scoring_rubric?: Json
+          simulated_answers?: Json
+          source?: string
+          source_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      test_runs: {
+        Row: {
+          ai_config_snapshot: Json
+          completed_at: string | null
+          conversation_log: Json
+          created_at: string
+          generated_report: Json
+          id: string
+          run_by: string | null
+          started_at: string
+          status: string
+          test_case_id: string
+        }
+        Insert: {
+          ai_config_snapshot?: Json
+          completed_at?: string | null
+          conversation_log?: Json
+          created_at?: string
+          generated_report?: Json
+          id?: string
+          run_by?: string | null
+          started_at?: string
+          status?: string
+          test_case_id: string
+        }
+        Update: {
+          ai_config_snapshot?: Json
+          completed_at?: string | null
+          conversation_log?: Json
+          created_at?: string
+          generated_report?: Json
+          id?: string
+          run_by?: string | null
+          started_at?: string
+          status?: string
+          test_case_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_runs_test_case_id_fkey"
+            columns: ["test_case_id"]
+            isOneToOne: false
+            referencedRelation: "test_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_scores: {
+        Row: {
+          created_at: string
+          evaluation_details: Json
+          evaluator_notes: string | null
+          fact_coverage: number
+          gap_detection: number
+          id: string
+          language_quality: number
+          legal_accuracy: number
+          overall_score: number
+          professionalism: number
+          question_quality: number
+          test_run_id: string
+          timeline_accuracy: number
+        }
+        Insert: {
+          created_at?: string
+          evaluation_details?: Json
+          evaluator_notes?: string | null
+          fact_coverage?: number
+          gap_detection?: number
+          id?: string
+          language_quality?: number
+          legal_accuracy?: number
+          overall_score?: number
+          professionalism?: number
+          question_quality?: number
+          test_run_id: string
+          timeline_accuracy?: number
+        }
+        Update: {
+          created_at?: string
+          evaluation_details?: Json
+          evaluator_notes?: string | null
+          fact_coverage?: number
+          gap_detection?: number
+          id?: string
+          language_quality?: number
+          legal_accuracy?: number
+          overall_score?: number
+          professionalism?: number
+          question_quality?: number
+          test_run_id?: string
+          timeline_accuracy?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_scores_test_run_id_fkey"
+            columns: ["test_run_id"]
+            isOneToOne: false
+            referencedRelation: "test_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null

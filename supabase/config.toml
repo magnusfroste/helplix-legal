@@ -38,3 +38,12 @@ verify_jwt = false
 
 [functions.google-stt]
 verify_jwt = false
+
+[functions.testbench-run]
+verify_jwt = false
+
+[functions.testbench-evaluate]
+verify_jwt = false
+
+[functions.testbench-research]
+verify_jwt = false
