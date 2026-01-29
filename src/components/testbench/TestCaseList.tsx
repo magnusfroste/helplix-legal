@@ -2,10 +2,17 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { TestCaseWithLatestRun, COUNTRY_FLAGS, DIFFICULTY_COLORS } from '@/types/testbench';
-import { Play, Eye, Clock } from 'lucide-react';
+import { Play, Eye, Clock, FileDown, FileText, MoreVertical } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { sv } from 'date-fns/locale';
+import { generateTestReportMarkdown, downloadAsMarkdown, openAsPDF } from '@/utils/testReportExport';
 
 interface TestCaseListProps {
   testCases: TestCaseWithLatestRun[];
@@ -63,11 +70,24 @@ function TestCaseCard({ testCase, onRun, onViewDetails }: TestCaseCardProps) {
   const difficultyClass = DIFFICULTY_COLORS[testCase.difficulty] || '';
   const latestScore = testCase.latest_run?.score?.overall_score;
   const lastRunTime = testCase.latest_run?.completed_at;
+  const hasHistoricalRun = !!testCase.latest_run;
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-500';
     if (score >= 60) return 'text-yellow-500';
     return 'text-red-500';
+  };
+
+  const handleExportMarkdown = () => {
+    if (!testCase.latest_run) return;
+    const markdown = generateTestReportMarkdown(testCase, testCase.latest_run, testCase.latest_run.score);
+    downloadAsMarkdown(markdown, testCase);
+  };
+
+  const handleExportPDF = () => {
+    if (!testCase.latest_run) return;
+    const markdown = generateTestReportMarkdown(testCase, testCase.latest_run, testCase.latest_run.score);
+    openAsPDF(markdown, testCase);
   };
 
   return (
@@ -107,6 +127,26 @@ function TestCaseCard({ testCase, onRun, onViewDetails }: TestCaseCardProps) {
         </div>
 
         <div className="flex gap-2">
+          {hasHistoricalRun && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <FileDown className="h-4 w-4 mr-1" />
+                  Exportera
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportMarkdown}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Ladda ner Markdown
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPDF}>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Öppna som PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <Button 
             variant="outline" 
             size="sm"
