@@ -305,6 +305,8 @@ function buildEvaluationPrompt(testCase: TestCase, testRun: TestRun, depth: 'qui
     .map(([type, content]) => `### ${type.toUpperCase()} REPORT:\n${content}`)
     .join('\n\n---\n\n');
 
+  const hasReports = reportsText.trim().length > 0;
+
   const expectedFacts = testCase.expected_facts
     .map(f => `- ${f.fact} (weight: ${f.weight})`)
     .join('\n');
@@ -317,57 +319,86 @@ function buildEvaluationPrompt(testCase: TestCase, testRun: TestRun, depth: 'qui
     .map(t => `- ${t.event} (${t.date})`)
     .join('\n');
 
-  const systemPrompt = `You are an expert legal AI evaluator. Your task is to assess the quality of an AI legal assistant's performance during a simulated legal interview and report generation.
+  const systemPrompt = `You are an expert legal AI evaluator. Your task is to assess the quality of an AI legal assistant's performance.
 
-You will evaluate the AI based on multiple criteria:
+## CRITICAL: SEPARATE EVALUATION OF INTERVIEW vs REPORT
 
-1. **FACT COVERAGE (0-100)**: How well did the AI gather the expected facts through questioning?
-2. **LEGAL ACCURACY (0-100)**: Did the reports correctly identify legal issues and applicable laws?
-3. **TIMELINE ACCURACY (0-100)**: How accurately was the chronology captured in the timeline report?
-4. **LANGUAGE QUALITY (0-100)**: Grammar, clarity, professional tone in the AI's responses and reports.
-5. **PROFESSIONALISM (0-100)**: Appropriate demeanor, empathy, and interview technique.
-6. **QUESTION QUALITY (0-100)**: Were the AI's questions relevant, well-formed, and progressive?
-7. **GAP DETECTION (0-100)**: Did the AI identify and try to fill information gaps?
+The AI's job is divided into TWO DISTINCT PHASES with different goals:
+
+### PHASE 1: INTERVIEW (Conversation)
+The AI's role during the interview is to be an EMPATHETIC FACT-GATHERER, NOT a legal advisor.
+- The AI should gather facts through skilled questioning
+- The AI should build rapport and trust
+- The AI should identify information gaps and probe deeper
+- The AI should NOT mention specific laws or give legal opinions during the interview
+- The AI should maintain a supportive, non-judgmental tone
+
+Evaluate the INTERVIEW on:
+1. **FACT COVERAGE (0-100)**: Did the AI's questions successfully elicit all expected facts?
+2. **QUESTION QUALITY (0-100)**: Were questions relevant, well-formed, progressive, and empathetic?
+3. **GAP DETECTION (0-100)**: Did the AI identify missing information and ask follow-up questions?
+4. **PROFESSIONALISM (0-100)**: Empathy, appropriate demeanor, supportive tone during interview.
+5. **LANGUAGE QUALITY (0-100)**: Clarity, grammar, natural conversation flow.
+
+### PHASE 2: REPORT (Generated after interview)
+The AI's role in the report is to provide LEGAL ANALYSIS based on gathered facts.
+- The report should identify applicable laws and regulations
+- The report should provide a clear timeline of events
+- The report should offer legal interpretation with proper disclaimers
+- This is where legal precision matters
+
+Evaluate the REPORT on:
+6. **LEGAL ACCURACY (0-100)**: Did the reports correctly identify legal issues, applicable laws, and relevant case law? ${!hasReports ? '(Score 0 if no reports were generated)' : ''}
+7. **TIMELINE ACCURACY (0-100)**: How accurately was the chronology captured in the timeline report? ${!hasReports ? '(Score 0 if no reports were generated)' : ''}
 
 ${depth === 'thorough' ? `
 Be thorough in your analysis. Review each expected item and determine if it was covered.
 Provide detailed feedback including:
-- Specific facts that were captured vs missed
-- Legal issues correctly identified vs overlooked
-- Timeline events captured vs missed
-- Concrete strengths and weaknesses
+- Specific facts that were captured vs missed (from INTERVIEW)
+- Quality of questioning technique (from INTERVIEW)
+- Legal issues correctly identified vs overlooked (from REPORT)
+- Timeline events captured vs missed (from REPORT)
+- Concrete strengths and weaknesses for each phase
 - Actionable improvement suggestions
 ` : `
 Provide a quick assessment focusing on the most important metrics.
 `}
 
-IMPORTANT: Be objective and fair. Score based on actual performance, not on impossible standards.`;
+IMPORTANT GUIDELINES:
+- Do NOT penalize the interview for lacking legal references - that's the REPORT's job
+- Do NOT penalize the report for being too "clinical" - that's appropriate for legal analysis
+- Score each phase based on its intended purpose
+- Be objective and fair, score based on actual performance`;
 
   const userPrompt = `## TEST CASE: ${testCase.title}
 Country: ${testCase.country_code}
 
-## EXPECTED FACTS TO GATHER:
+## EXPECTED FACTS TO GATHER (evaluate if INTERVIEW elicited these):
 ${expectedFacts}
 
-## EXPECTED LEGAL ISSUES TO IDENTIFY:
+## EXPECTED LEGAL ISSUES TO IDENTIFY (evaluate if REPORT covers these):
 ${expectedLegalIssues}
 
-## EXPECTED TIMELINE EVENTS:
+## EXPECTED TIMELINE EVENTS (evaluate if REPORT captures these):
 ${expectedTimeline}
 
 ---
 
-## ACTUAL CONVERSATION:
+## INTERVIEW CONVERSATION (evaluate for fact-gathering, empathy, question quality):
 ${conversationText}
 
 ---
 
-## GENERATED REPORTS:
-${reportsText}
+## GENERATED REPORTS (evaluate for legal accuracy and timeline precision):
+${hasReports ? reportsText : '**NO REPORTS WERE GENERATED** - Score legal_accuracy and timeline_accuracy as 0'}
 
 ---
 
-Please evaluate this test run and provide scores for each category along with detailed feedback.`;
+Please evaluate this test run. Remember:
+- INTERVIEW metrics: fact_coverage, question_quality, gap_detection, professionalism, language_quality
+- REPORT metrics: legal_accuracy, timeline_accuracy
+
+The AI should NOT be penalized for not mentioning laws during the interview - that would be inappropriate during the empathetic fact-gathering phase.`;
 
   return {
     system: systemPrompt,
