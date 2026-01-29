@@ -253,35 +253,46 @@ serve(async (req) => {
     let generatedReport: Record<string, string> = {};
 
     try {
-      // Generate all report types
-      const reportResponse = await fetch(`${supabaseUrl}/functions/v1/cooper-report`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`
-        },
-        body: JSON.stringify({
-          entries: logEntries,
-          reportType: 'all',
-          country: tc.country_code,
-          enableCaseSearch: false // Don't use external search for testing
-        })
-      });
-
-      if (!reportResponse.ok) {
-        const errorText = await reportResponse.text();
-        console.error('Report generation error:', errorText);
-        throw new Error(`Report failed: ${reportResponse.status}`);
-      }
-
-      const reportData = await reportResponse.json();
-      generatedReport = {
-        timeline: reportData.timeline || '',
-        legal: reportData.legal || '',
-        interpretation: reportData.interpretation || ''
-      };
+      // Generate each report type separately since cooper-report returns a single report
+      const reportTypes = ['timeline', 'legal', 'interpretation'];
       
-      console.log('Reports generated successfully');
+      for (const reportType of reportTypes) {
+        try {
+          const reportResponse = await fetch(`${supabaseUrl}/functions/v1/cooper-report`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`
+            },
+            body: JSON.stringify({
+              entries: logEntries,
+              reportType,
+              country: tc.country_code,
+              enableCaseSearch: false
+            })
+          });
+
+          if (!reportResponse.ok) {
+            const errorText = await reportResponse.text();
+            console.error(`Report generation error for ${reportType}:`, errorText);
+            generatedReport[reportType] = '';
+            continue;
+          }
+
+          const reportData = await reportResponse.json();
+          generatedReport[reportType] = reportData.report || '';
+          console.log(`Generated ${reportType} report, length:`, generatedReport[reportType].length);
+          
+          // Small delay between report generations
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+        } catch (singleReportError) {
+          console.error(`Error generating ${reportType} report:`, singleReportError);
+          generatedReport[reportType] = '';
+        }
+      }
+      
+      console.log('All reports generated successfully');
       
     } catch (reportError) {
       console.error('Error generating reports:', reportError);
