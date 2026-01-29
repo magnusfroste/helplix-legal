@@ -15,19 +15,19 @@ export function TestBenchStats({ stats }: TestBenchStatsProps) {
       color: 'text-primary'
     },
     {
-      label: 'Juridik',
+      label: 'Legal',
       value: `${stats.avgLegalAccuracy}%`,
       icon: Scale,
       color: 'text-blue-500'
     },
     {
-      label: 'Fakta',
+      label: 'Facts',
       value: `${stats.avgFactCoverage}%`,
       icon: FileCheck,
       color: 'text-green-500'
     },
     {
-      label: 'Tester',
+      label: 'Tests',
       value: stats.totalTests.toString(),
       icon: Hash,
       color: 'text-muted-foreground'

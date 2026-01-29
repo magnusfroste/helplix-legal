@@ -82,9 +82,9 @@ export function TestBenchScreen() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Testbänk</h1>
+            <h1 className="text-2xl font-bold">Test Bench</h1>
             <p className="text-muted-foreground text-sm">
-              Systematisk kvalitetskontroll av AI-agenten
+              Systematic quality control of the AI agent
             </p>
           </div>
           <div className="flex gap-2">
@@ -95,7 +95,7 @@ export function TestBenchScreen() {
               disabled={isLoading}
             >
               <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-              Uppdatera
+              Refresh
             </Button>
             <Button 
               variant="outline" 
@@ -110,7 +110,7 @@ export function TestBenchScreen() {
               onClick={handleCreateNew}
             >
               <Plus className="h-4 w-4 mr-1" />
-              Nytt testfall
+              New Test Case
             </Button>
           </div>
         </div>

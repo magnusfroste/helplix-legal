@@ -22,21 +22,21 @@ interface TestCaseEditorProps {
 }
 
 const COUNTRIES = [
-  { code: 'SE', label: 'Sverige' },
-  { code: 'BR', label: 'Brasilien' },
-  { code: 'MX', label: 'Mexiko' },
+  { code: 'SE', label: 'Sweden' },
+  { code: 'BR', label: 'Brazil' },
+  { code: 'MX', label: 'Mexico' },
   { code: 'US', label: 'USA' },
-  { code: 'NL', label: 'Nederländerna' },
-  { code: 'DO', label: 'Dominikanska Rep.' }
+  { code: 'NL', label: 'Netherlands' },
+  { code: 'DO', label: 'Dominican Rep.' }
 ];
 
 const CASE_TYPES = [
-  { code: 'travel_damage', label: 'Reseskador' },
-  { code: 'consumer', label: 'Konsument' },
-  { code: 'housing', label: 'Bostad' },
-  { code: 'employment', label: 'Arbetsrätt' },
-  { code: 'contract', label: 'Avtal' },
-  { code: 'general', label: 'Allmänt' }
+  { code: 'travel_damage', label: 'Travel Damage' },
+  { code: 'consumer', label: 'Consumer' },
+  { code: 'housing', label: 'Housing' },
+  { code: 'employment', label: 'Employment' },
+  { code: 'contract', label: 'Contract' },
+  { code: 'general', label: 'General' }
 ];
 
 export function TestCaseEditor({ isOpen, onClose, testCase, onSave }: TestCaseEditorProps) {
@@ -147,7 +147,7 @@ export function TestCaseEditor({ isOpen, onClose, testCase, onSave }: TestCaseEd
       <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
-            {testCase ? 'Redigera testfall' : 'Skapa nytt testfall'}
+            {testCase ? 'Edit Test Case' : 'Create New Test Case'}
           </DialogTitle>
         </DialogHeader>
 
@@ -155,17 +155,17 @@ export function TestCaseEditor({ isOpen, onClose, testCase, onSave }: TestCaseEd
           <div className="space-y-4">
             {/* Basic Info */}
             <div className="space-y-2">
-              <Label>Titel</Label>
+              <Label>Title</Label>
               <Input 
                 value={formData.title || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="T.ex. Försenat bagage vid flygresa"
+                placeholder="E.g. Delayed baggage on flight"
               />
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-2">
-                <Label>Land</Label>
+                <Label>Country</Label>
                 <Select 
                   value={formData.country_code} 
                   onValueChange={(v) => setFormData(prev => ({ ...prev, country_code: v }))}
@@ -182,7 +182,7 @@ export function TestCaseEditor({ isOpen, onClose, testCase, onSave }: TestCaseEd
               </div>
 
               <div className="space-y-2">
-                <Label>Typ</Label>
+                <Label>Type</Label>
                 <Select 
                   value={formData.case_type} 
                   onValueChange={(v) => setFormData(prev => ({ ...prev, case_type: v }))}
@@ -199,7 +199,7 @@ export function TestCaseEditor({ isOpen, onClose, testCase, onSave }: TestCaseEd
               </div>
 
               <div className="space-y-2">
-                <Label>Svårighet</Label>
+                <Label>Difficulty</Label>
                 <Select 
                   value={formData.difficulty} 
                   onValueChange={(v: 'easy' | 'medium' | 'hard') => setFormData(prev => ({ ...prev, difficulty: v }))}
@@ -208,9 +208,9 @@ export function TestCaseEditor({ isOpen, onClose, testCase, onSave }: TestCaseEd
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="easy">Enkel</SelectItem>
-                    <SelectItem value="medium">Medel</SelectItem>
-                    <SelectItem value="hard">Svår</SelectItem>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -218,14 +218,14 @@ export function TestCaseEditor({ isOpen, onClose, testCase, onSave }: TestCaseEd
 
             {/* Scenario */}
             <div className="space-y-2">
-              <Label>Scenario-beskrivning</Label>
+              <Label>Scenario Description</Label>
               <Textarea 
                 value={formData.scenario?.description || ''}
                 onChange={(e) => setFormData(prev => ({ 
                   ...prev, 
                   scenario: { ...prev.scenario!, description: e.target.value }
                 }))}
-                placeholder="Beskriv scenariot som ska testas..."
+                placeholder="Describe the scenario to be tested..."
                 rows={3}
               />
             </div>
@@ -233,10 +233,10 @@ export function TestCaseEditor({ isOpen, onClose, testCase, onSave }: TestCaseEd
             {/* Simulated Answers */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label>Simulerade användarsvar</Label>
+                <Label>Simulated User Answers</Label>
                 <Button size="sm" variant="outline" onClick={addSimulatedAnswer}>
                   <Plus className="h-3 w-3 mr-1" />
-                  Lägg till
+                  Add
                 </Button>
               </div>
               <div className="space-y-2">
@@ -245,7 +245,7 @@ export function TestCaseEditor({ isOpen, onClose, testCase, onSave }: TestCaseEd
                     <Input 
                       value={answer}
                       onChange={(e) => updateSimulatedAnswer(i, e.target.value)}
-                      placeholder={`Svar ${i + 1}`}
+                      placeholder={`Answer ${i + 1}`}
                     />
                     <Button 
                       size="icon" 
@@ -262,10 +262,10 @@ export function TestCaseEditor({ isOpen, onClose, testCase, onSave }: TestCaseEd
             {/* Expected Facts */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label>Förväntade fakta</Label>
+                <Label>Expected Facts</Label>
                 <Button size="sm" variant="outline" onClick={addExpectedFact}>
                   <Plus className="h-3 w-3 mr-1" />
-                  Lägg till
+                  Add
                 </Button>
               </div>
               <div className="space-y-2">
@@ -274,7 +274,7 @@ export function TestCaseEditor({ isOpen, onClose, testCase, onSave }: TestCaseEd
                     <Input 
                       value={fact.fact}
                       onChange={(e) => updateExpectedFact(i, 'fact', e.target.value)}
-                      placeholder="Faktum som bör identifieras"
+                      placeholder="Fact that should be identified"
                       className="flex-1"
                     />
                     <Input 
@@ -301,11 +301,11 @@ export function TestCaseEditor({ isOpen, onClose, testCase, onSave }: TestCaseEd
 
         <div className="flex justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
-            Avbryt
+            Cancel
           </Button>
           <Button onClick={handleSave} disabled={isSaving || !formData.title}>
             <Save className="h-4 w-4 mr-1" />
-            {isSaving ? 'Sparar...' : 'Spara'}
+            {isSaving ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </DialogContent>

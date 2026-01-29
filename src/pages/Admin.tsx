@@ -48,16 +48,16 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
 };
 
 const FEATURE_LABELS: Record<string, string> = {
-  'perplexity_case_search': 'Perplexity Rättsfallssökning',
-  'realtime_transcription': 'Real-time Transkription (ElevenLabs)',
+  'perplexity_case_search': 'Perplexity Case Search',
+  'realtime_transcription': 'Real-time Transcription (ElevenLabs)',
   'streaming_tts': 'Streaming TTS',
-  'voice_cloning': 'Avancerad Röstkloning',
-  'stt_enabled': 'Tal-till-text (STT)',
-  'tts_enabled': 'Text-till-tal (TTS)',
-  'show_ai_badge': 'Visa AI-modell badge',
-  'browser_stt': 'Webbläsar-STT (gratis, Chrome)',
-  'google_stt': 'Google Cloud STT (alla plattformar)',
-  'stt_fallback': 'Auto-fallback mellan STT-leverantörer',
+  'voice_cloning': 'Advanced Voice Cloning',
+  'stt_enabled': 'Speech-to-Text (STT)',
+  'tts_enabled': 'Text-to-Speech (TTS)',
+  'show_ai_badge': 'Show AI Model Badge',
+  'browser_stt': 'Browser STT (free, Chrome)',
+  'google_stt': 'Google Cloud STT (all platforms)',
+  'stt_fallback': 'Auto-fallback between STT providers',
 };
 
 const CONNECTION_STATUS: Record<string, { label: string; available: boolean }> = {
@@ -179,7 +179,7 @@ export default function Admin() {
   // Redirect if not admin
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
-      toast.error('Åtkomst nekad. Endast administratörer.');
+      toast.error('Access denied. Administrators only.');
       navigate('/');
     }
   }, [isAdmin, adminLoading, navigate]);
@@ -207,7 +207,7 @@ export default function Admin() {
       setUserRoles((rolesData as UserRole[]) || []);
     } catch (err) {
       console.error('Error fetching users:', err);
-      toast.error('Kunde inte hämta användare');
+      toast.error('Could not fetch users');
     } finally {
       setLoadingUsers(false);
     }
@@ -222,7 +222,7 @@ export default function Admin() {
     
     // Prevent removing own admin role
     if (targetUserId === currentUserId && currentRole === 'admin') {
-      toast.error('Du kan inte ta bort din egen admin-roll');
+      toast.error('You cannot remove your own admin role');
       return;
     }
 
@@ -245,17 +245,17 @@ export default function Admin() {
       if (data?.success) {
         toast.success(
           action === 'add' 
-            ? 'Användare uppgraderad till admin' 
-            : 'Admin-roll borttagen'
+            ? 'User upgraded to admin' 
+            : 'Admin role removed'
         );
         // Refresh user roles
         await fetchUsers();
       } else {
-        throw new Error(data?.error || 'Okänt fel');
+        throw new Error(data?.error || 'Unknown error');
       }
     } catch (err) {
       console.error('Error toggling role:', err);
-      toast.error(err instanceof Error ? err.message : 'Kunde inte ändra roll');
+      toast.error(err instanceof Error ? err.message : 'Could not change role');
     } finally {
       setTogglingRole(null);
     }
@@ -264,9 +264,9 @@ export default function Admin() {
   const handleToggleFlag = async (flag: FeatureFlag) => {
     const success = await updateFlag(flag.feature_key, !flag.enabled);
     if (success) {
-      toast.success(`${FEATURE_LABELS[flag.feature_key] || flag.feature_key} ${!flag.enabled ? 'aktiverad' : 'inaktiverad'}`);
+      toast.success(`${FEATURE_LABELS[flag.feature_key] || flag.feature_key} ${!flag.enabled ? 'enabled' : 'disabled'}`);
     } else {
-      toast.error('Kunde inte uppdatera inställning');
+      toast.error('Could not update setting');
     }
   };
 
@@ -282,14 +282,14 @@ export default function Admin() {
     const success = await updatePrompt(countryCode, newPrompt);
     
     if (success) {
-      toast.success(`Systemprompt för ${COUNTRIES.find(c => c.code === countryCode)?.name || countryCode} sparad`);
+      toast.success(`System prompt for ${COUNTRIES.find(c => c.code === countryCode)?.name || countryCode} saved`);
       setEditingPrompts(prev => {
         const copy = { ...prev };
         delete copy[countryCode];
         return copy;
       });
     } else {
-      toast.error('Kunde inte spara systemprompt');
+      toast.error('Could not save system prompt');
     }
     setSavingPrompt(null);
   };
@@ -310,22 +310,22 @@ export default function Admin() {
     const success = await updateIntensity(countryCode, newIntensity);
     
     if (success) {
-      toast.success(`Frågeintensitet för ${COUNTRIES.find(c => c.code === countryCode)?.name || countryCode} sparad`);
+      toast.success(`Question intensity for ${COUNTRIES.find(c => c.code === countryCode)?.name || countryCode} saved`);
       setEditingIntensity(prev => {
         const copy = { ...prev };
         delete copy[countryCode];
         return copy;
       });
     } else {
-      toast.error('Kunde inte spara frågeintensitet');
+      toast.error('Could not save question intensity');
     }
     setSavingIntensity(null);
   };
 
   const getIntensityLabel = (value: number) => {
-    if (value < 30) return 'Låg (öppna frågor)';
-    if (value < 70) return 'Medium (balanserade frågor)';
-    return 'Hög (detaljerade frågor)';
+    if (value < 30) return 'Low (open questions)';
+    if (value < 70) return 'Medium (balanced questions)';
+    return 'High (detailed questions)';
   };
 
   // Phase instruction handlers
@@ -345,14 +345,14 @@ export default function Admin() {
     const success = await updateInstruction(countryCode, phase, newInstruction);
     
     if (success) {
-      toast.success(`Fas "${PHASES.find(p => p.key === phase)?.labelSv}" sparad`);
+      toast.success(`Phase "${PHASES.find(p => p.key === phase)?.label || phase}" saved`);
       setEditingPhases(prev => {
         const copy = { ...prev };
         delete copy[key];
         return copy;
       });
     } else {
-      toast.error('Kunde inte spara fasinstruktion');
+      toast.error('Could not save phase instruction');
     }
     setSavingPhase(null);
   };
@@ -370,17 +370,17 @@ export default function Admin() {
 
   const getConnectionStatus = (requiresConnection: string | null) => {
     if (!requiresConnection) {
-      return { status: 'not_required', label: 'Ingen anslutning krävs' };
+      return { status: 'not_required', label: 'No connection required' };
     }
     
     const connection = CONNECTION_STATUS[requiresConnection];
     if (!connection) {
-      return { status: 'unknown', label: 'Okänd anslutning' };
+      return { status: 'unknown', label: 'Unknown connection' };
     }
     
     return connection.available 
-      ? { status: 'connected', label: `${connection.label} ansluten` }
-      : { status: 'not_configured', label: `${connection.label} ej konfigurerad` };
+      ? { status: 'connected', label: `${connection.label} connected` }
+      : { status: 'not_configured', label: `${connection.label} not configured` };
   };
 
   const getUserRole = (userId: string): 'admin' | 'user' => {
@@ -393,7 +393,7 @@ export default function Admin() {
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Verifierar behörighet...</p>
+          <p className="text-muted-foreground">Verifying permissions...</p>
         </div>
       </div>
     );
@@ -406,12 +406,12 @@ export default function Admin() {
           <CardHeader>
             <CardTitle className="text-destructive flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
-              Fel
+              Error
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">{adminError}</p>
-            <Button onClick={() => navigate('/')}>Tillbaka</Button>
+            <Button onClick={() => navigate('/')}>Back</Button>
           </CardContent>
         </Card>
       </div>
@@ -438,7 +438,7 @@ export default function Admin() {
           </div>
           <Button variant="outline" size="sm" onClick={() => navigate('/testbench')}>
             <FlaskConical className="h-4 w-4 mr-1" />
-            Testbänk
+            Test Bench
           </Button>
         </div>
       </header>
@@ -451,10 +451,10 @@ export default function Admin() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bot className="h-5 w-5" />
-                AI-konfiguration
+                AI Configuration
               </CardTitle>
               <CardDescription>
-                Konfigurera AI-endpoint för chat och rapportgenerering
+                Configure AI endpoint for chat and report generation
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -466,7 +466,7 @@ export default function Admin() {
                 <>
                   {/* AI Provider Presets */}
                   <div className="space-y-2">
-                    <Label>Välj AI-provider (preset)</Label>
+                    <Label>Select AI Provider (preset)</Label>
                     <div className="grid grid-cols-2 gap-2">
                       <Button
                         variant={!aiActive ? 'default' : 'outline'}
@@ -529,9 +529,9 @@ export default function Admin() {
                         )}
                       </div>
                       <div>
-                        <Label className="text-base font-medium">Använd egen AI-endpoint</Label>
+                        <Label className="text-base font-medium">Use custom AI endpoint</Label>
                         <p className="text-sm text-muted-foreground">
-                          {aiActive ? 'Egen endpoint aktiv' : 'Använder Lovable AI (gemini-2.5-flash)'}
+                          {aiActive ? 'Custom endpoint active' : 'Using Lovable AI (gemini-2.5-flash)'}
                         </p>
                       </div>
                     </div>
@@ -555,7 +555,7 @@ export default function Admin() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="ai-model">Modellnamn</Label>
+                      <Label htmlFor="ai-model">Model Name</Label>
                       <Input
                         id="ai-model"
                         type="text"
@@ -578,9 +578,9 @@ export default function Admin() {
                               is_active: aiActive,
                             });
                             if (success) {
-                              toast.success('AI-konfiguration sparad');
+                              toast.success('AI configuration saved');
                             } else {
-                              toast.error('Kunde inte spara AI-konfiguration');
+                              toast.error('Could not save AI configuration');
                             }
                           }}
                           disabled={aiConfigSaving}
@@ -590,7 +590,7 @@ export default function Admin() {
                           ) : (
                             <Save className="h-4 w-4 mr-2" />
                           )}
-                          Spara ändringar
+                          Save Changes
                         </Button>
                       </div>
                     )}
@@ -602,7 +602,7 @@ export default function Admin() {
                       variant="outline"
                       onClick={async () => {
                         if (!aiEndpoint || !aiModel) {
-                          toast.error('Fyll i endpoint och modellnamn innan du testar anslutningen');
+                          toast.error('Fill in endpoint and model name before testing connection');
                           return;
                         }
                         
@@ -620,19 +620,19 @@ export default function Admin() {
                           if (error) throw error;
                           
                           if (data?.success) {
-                            setConnectionTestResult({ success: true, message: data.message || 'Anslutningen fungerar!' });
-                            toast.success('AI-anslutning lyckades!');
+                            setConnectionTestResult({ success: true, message: data.message || 'Connection successful!' });
+                            toast.success('AI connection successful!');
                           } else {
                             setConnectionTestResult({ 
                               success: false, 
-                              message: data?.error || 'Okänt fel',
+                              message: data?.error || 'Unknown error',
                               missingSecret: data?.missingSecret
                             });
-                            toast.error(data?.error || 'Kunde inte ansluta');
+                            toast.error(data?.error || 'Could not connect');
                           }
                         } catch (err) {
                           console.error('Connection test error:', err);
-                          const message = err instanceof Error ? err.message : 'Kunde inte testa anslutningen';
+                          const message = err instanceof Error ? err.message : 'Could not test connection';
                           setConnectionTestResult({ success: false, message });
                           toast.error(message);
                         } finally {
@@ -646,7 +646,7 @@ export default function Admin() {
                       ) : (
                         <Zap className="h-4 w-4 mr-2" />
                       )}
-                      Testa anslutning
+                      Test Connection
                     </Button>
                     
                     {connectionTestResult && (
@@ -666,7 +666,7 @@ export default function Admin() {
                   {/* API Keys Status */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">API-nyckel status</Label>
+                      <Label className="text-sm font-medium">API Key Status</Label>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -676,7 +676,7 @@ export default function Admin() {
                         {loadingSecrets ? (
                           <Loader2 className="h-3 w-3 animate-spin" />
                         ) : (
-                          <span className="text-xs">Uppdatera</span>
+                          <span className="text-xs">Refresh</span>
                         )}
                       </Button>
                     </div>
@@ -704,7 +704,7 @@ export default function Admin() {
                               variant={secret.configured ? "default" : "secondary"}
                               className={secret.configured ? "bg-green-600" : "bg-red-500/10 text-red-500"}
                             >
-                              {secret.configured ? 'Konfigurerad' : 'Saknas'}
+                              {secret.configured ? 'Configured' : 'Missing'}
                             </Badge>
                           </div>
                         ))}
@@ -715,17 +715,17 @@ export default function Admin() {
                     <Collapsible>
                       <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                         <ChevronDown className="h-4 w-4" />
-                        <span>Hur konfigurerar jag Secrets?</span>
+                        <span>How do I configure Secrets?</span>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="pt-3">
                         <div className="space-y-3 text-xs">
                           <p className="text-muted-foreground">
-                            Lägg till följande secrets i Supabase Dashboard → Project Settings → Edge Functions → Secrets:
+                            Add the following secrets in Supabase Dashboard → Project Settings → Edge Functions → Secrets:
                           </p>
                           <div className="bg-muted rounded-md p-3 font-mono space-y-1">
                             <div className="flex justify-between">
                               <span className="text-green-600">LOVABLE_API_KEY</span>
-                              <span className="text-muted-foreground"># Auto-konfigurerad</span>
+                              <span className="text-muted-foreground"># Auto-configured</span>
                             </div>
                             <div className="flex justify-between">
                               <span>OPENAI_API_KEY</span>
@@ -737,12 +737,12 @@ export default function Admin() {
                             </div>
                             <div className="flex justify-between">
                               <span>LOCAL_LLM_API_KEY</span>
-                              <span className="text-muted-foreground"># Valfritt för lokal LLM</span>
+                              <span className="text-muted-foreground"># Optional for local LLM</span>
                             </div>
                           </div>
                           <p className="text-muted-foreground">
-                            <strong>Local LLM:</strong> Om din lokala LLM (t.ex. LMStudio, Ollama) kräver API-nyckel, 
-                            lägg till den som LOCAL_LLM_API_KEY. Annars kan du lämna den tom.
+                            <strong>Local LLM:</strong> If your local LLM (e.g. LMStudio, Ollama) requires an API key, 
+                            add it as LOCAL_LLM_API_KEY. Otherwise you can leave it empty.
                           </p>
                         </div>
                       </CollapsibleContent>
@@ -760,7 +760,7 @@ export default function Admin() {
                 Feature Flags
               </CardTitle>
               <CardDescription>
-                Aktivera eller inaktivera funktioner i applikationen
+                Enable or disable features in the application
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -770,7 +770,7 @@ export default function Admin() {
                 </div>
               ) : flags.length === 0 ? (
                 <p className="text-muted-foreground text-center py-4">
-                  Inga feature flags hittades
+                  No feature flags found
                 </p>
               ) : (
                 flags.map((flag) => {
@@ -829,10 +829,10 @@ export default function Admin() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Systempromptar per Jurisdiktion
+                System Prompts by Jurisdiction
               </CardTitle>
               <CardDescription>
-                Anpassa AI-assistentens beteende för varje land
+                Customize the AI assistant's behavior for each country
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -842,7 +842,7 @@ export default function Admin() {
                 </div>
               ) : prompts.length === 0 ? (
                 <p className="text-muted-foreground text-center py-4">
-                  Inga systempromptar hittades
+                  No system prompts found
                 </p>
               ) : (
               prompts.map((prompt) => {
@@ -878,7 +878,7 @@ export default function Admin() {
                             <div className="flex items-center gap-2">
                               {(hasPromptChanges || hasIntensityChanges) && (
                                 <Badge variant="outline" className="text-amber-600 border-amber-600">
-                                  Osparad
+                                  Unsaved
                                 </Badge>
                               )}
                               {isOpen ? (
@@ -895,7 +895,7 @@ export default function Admin() {
                             <div className="space-y-3">
                               <div className="flex items-center gap-2">
                                 <Gauge className="h-4 w-4 text-muted-foreground" />
-                                <Label className="font-medium">Frågeintensitet</Label>
+                                <Label className="font-medium">Question Intensity</Label>
                               </div>
                               <p className="text-sm text-muted-foreground">
                                 {getIntensityLabel(currentIntensityValue)}
@@ -908,8 +908,8 @@ export default function Admin() {
                                 className="w-full"
                               />
                               <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>Färre frågor</span>
-                                <span>Fler frågor</span>
+                                <span>Fewer questions</span>
+                                <span>More questions</span>
                               </div>
                               {hasIntensityChanges && (
                                 <div className="flex justify-end">
@@ -922,10 +922,10 @@ export default function Admin() {
                                     {isSavingIntensityNow ? (
                                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                     ) : (
-                                      <Save className="h-4 w-4 mr-2" />
-                                    )}
-                                    Spara intensitet
-                                  </Button>
+                                        <Save className="h-4 w-4 mr-2" />
+                                      )}
+                                      Save Intensity
+                                    </Button>
                                 </div>
                               )}
                             </div>
@@ -934,13 +934,13 @@ export default function Admin() {
                             <div className="space-y-3">
                               <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-muted-foreground" />
-                                <Label className="font-medium">Systemprompt</Label>
+                                <Label className="font-medium">System Prompt</Label>
                               </div>
                               <Textarea
                                 value={currentPromptValue}
                                 onChange={(e) => handlePromptEdit(prompt.country_code, e.target.value)}
                                 className="min-h-[150px] text-sm font-mono"
-                                placeholder="Ange systemprompt..."
+                                placeholder="Enter system prompt..."
                               />
                               {hasPromptChanges && (
                                 <div className="flex justify-end">
@@ -952,10 +952,10 @@ export default function Admin() {
                                     {isSavingPromptNow ? (
                                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                     ) : (
-                                      <Save className="h-4 w-4 mr-2" />
-                                    )}
-                                    Spara prompt
-                                  </Button>
+                                        <Save className="h-4 w-4 mr-2" />
+                                      )}
+                                      Save Prompt
+                                    </Button>
                                 </div>
                               )}
                             </div>
@@ -974,10 +974,10 @@ export default function Admin() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ListTree className="h-5 w-5" />
-                Fasinstruktioner per Jurisdiktion
+                Phase Instructions by Jurisdiction
               </CardTitle>
               <CardDescription>
-                Anpassa instruktioner för varje intervjufas (opening, timeline, details, etc.)
+                Customize instructions for each interview phase (opening, timeline, details, etc.)
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1024,15 +1024,15 @@ export default function Admin() {
                                 <CollapsibleTrigger asChild>
                                   <button className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
                                     <div className="flex items-center gap-2">
-                                      <Badge variant="outline" className="font-mono text-xs">
-                                        {phase.key}
-                                      </Badge>
-                                      <span className="text-sm font-medium">{phase.labelSv}</span>
+                                        <Badge variant="outline" className="font-mono text-xs">
+                                          {phase.key}
+                                        </Badge>
+                                        <span className="text-sm font-medium">{phase.label}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                       {hasChanges && (
                                         <Badge variant="outline" className="text-amber-600 border-amber-600 text-xs">
-                                          Osparad
+                                          Unsaved
                                         </Badge>
                                       )}
                                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -1041,11 +1041,11 @@ export default function Admin() {
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
                                   <div className="px-3 pb-3 space-y-3">
-                                    <Textarea
-                                      value={currentValue}
-                                      onChange={(e) => handlePhaseEdit(country.code, phase.key, e.target.value)}
-                                      className="min-h-[120px] text-sm font-mono"
-                                      placeholder={`Instruktioner för ${phase.labelSv}...`}
+                                      <Textarea
+                                        value={currentValue}
+                                        onChange={(e) => handlePhaseEdit(country.code, phase.key, e.target.value)}
+                                        className="min-h-[120px] text-sm font-mono"
+                                        placeholder={`Instructions for ${phase.label}...`}
                                     />
                                     {hasChanges && (
                                       <div className="flex justify-end">
@@ -1059,7 +1059,7 @@ export default function Admin() {
                                           ) : (
                                             <Save className="h-4 w-4 mr-2" />
                                           )}
-                                          Spara
+                                          Save
                                         </Button>
                                       </div>
                                     )}
@@ -1082,10 +1082,10 @@ export default function Admin() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
-                Beteenderegler
+                Behavior Guidelines
               </CardTitle>
               <CardDescription>
-                Globala och jurisdiktions-specifika riktlinjer för AI-assistentens beteende
+                Global and jurisdiction-specific guidelines for AI assistant behavior
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1117,8 +1117,8 @@ export default function Admin() {
                     <div className="flex items-center gap-2 mb-4">
                       <Globe className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="font-medium">Globala Beteenderegler</p>
-                        <p className="text-xs text-muted-foreground">Gäller för alla jurisdiktioner</p>
+                        <p className="font-medium">Global Behavior Guidelines</p>
+                        <p className="text-xs text-muted-foreground">Applies to all jurisdictions</p>
                       </div>
                     </div>
                     
@@ -1140,7 +1140,7 @@ export default function Admin() {
                                 onCheckedChange={async (checked) => {
                                   const success = await updateGuideline(guideline.id, { is_enabled: checked });
                                   if (success) {
-                                    toast.success(checked ? 'Regel aktiverad' : 'Regel inaktiverad');
+                                    toast.success(checked ? 'Guideline enabled' : 'Guideline disabled');
                                   }
                                 }}
                               />
@@ -1148,10 +1148,10 @@ export default function Admin() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-destructive"
-                                onClick={async () => {
+                              onClick={async () => {
                                   const success = await deleteGuideline(guideline.id);
                                   if (success) {
-                                    toast.success('Regel borttagen');
+                                    toast.success('Guideline deleted');
                                   }
                                 }}
                               >
@@ -1173,7 +1173,7 @@ export default function Admin() {
                                   setSavingGuideline(guideline.id);
                                   const success = await updateGuideline(guideline.id, { guideline_text: currentValue });
                                   if (success) {
-                                    toast.success('Regel sparad');
+                                    toast.success('Guideline saved');
                                     setEditingGuidelines(prev => {
                                       const copy = { ...prev };
                                       delete copy[guideline.id];
@@ -1185,7 +1185,7 @@ export default function Admin() {
                                 disabled={isSaving}
                               >
                                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                                Spara
+                                Save
                               </Button>
                             </div>
                           )}
@@ -1195,16 +1195,16 @@ export default function Admin() {
                     
                     {/* Add new global guideline */}
                     <div className="rounded-lg border border-dashed border-border p-3 space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Lägg till ny global regel</p>
+                      <p className="text-sm font-medium text-muted-foreground">Add new global guideline</p>
                       <div className="flex gap-2">
                         <Input
-                          placeholder="Nyckel (t.ex. patience)"
+                          placeholder="Key (e.g. patience)"
                           value={newGuidelineKey}
                           onChange={(e) => setNewGuidelineKey(e.target.value)}
                           className="w-32"
                         />
                         <Input
-                          placeholder="Regeltext..."
+                          placeholder="Guideline text..."
                           value={newGuidelineText}
                           onChange={(e) => setNewGuidelineText(e.target.value)}
                           className="flex-1"
@@ -1223,7 +1223,7 @@ export default function Admin() {
                               sort_order: maxOrder + 1
                             });
                             if (success) {
-                              toast.success('Regel tillagd');
+                              toast.success('Guideline added');
                               setNewGuidelineKey('');
                               setNewGuidelineText('');
                             }
@@ -1242,14 +1242,14 @@ export default function Admin() {
                       <div className="flex items-center gap-2 mb-4">
                         <span className="text-2xl">{country.flag}</span>
                         <div>
-                          <p className="font-medium">{country.name} Regler</p>
-                          <p className="text-xs text-muted-foreground">Överskriver eller kompletterar globala regler</p>
+                          <p className="font-medium">{country.name} Guidelines</p>
+                          <p className="text-xs text-muted-foreground">Overrides or supplements global guidelines</p>
                         </div>
                       </div>
                       
                       {getGuidelinesForCountry(country.code).length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-4">
-                          Inga specifika regler för {country.name}. Globala regler används.
+                          No specific guidelines for {country.name}. Global guidelines are used.
                         </p>
                       ) : (
                         getGuidelinesForCountry(country.code).map(guideline => {
@@ -1270,7 +1270,7 @@ export default function Admin() {
                                     onCheckedChange={async (checked) => {
                                       const success = await updateGuideline(guideline.id, { is_enabled: checked });
                                       if (success) {
-                                        toast.success(checked ? 'Regel aktiverad' : 'Regel inaktiverad');
+                                        toast.success(checked ? 'Guideline enabled' : 'Guideline disabled');
                                       }
                                     }}
                                   />
@@ -1281,7 +1281,7 @@ export default function Admin() {
                                     onClick={async () => {
                                       const success = await deleteGuideline(guideline.id);
                                       if (success) {
-                                        toast.success('Regel borttagen');
+                                        toast.success('Guideline deleted');
                                       }
                                     }}
                                   >
@@ -1303,7 +1303,7 @@ export default function Admin() {
                                       setSavingGuideline(guideline.id);
                                       const success = await updateGuideline(guideline.id, { guideline_text: currentValue });
                                       if (success) {
-                                        toast.success('Regel sparad');
+                                        toast.success('Guideline saved');
                                         setEditingGuidelines(prev => {
                                           const copy = { ...prev };
                                           delete copy[guideline.id];
@@ -1315,7 +1315,7 @@ export default function Admin() {
                                     disabled={isSaving}
                                   >
                                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                                    Spara
+                                    Save
                                   </Button>
                                 </div>
                               )}
@@ -1326,16 +1326,16 @@ export default function Admin() {
                       
                       {/* Add new country-specific guideline */}
                       <div className="rounded-lg border border-dashed border-border p-3 space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">Lägg till regel för {country.name}</p>
+                        <p className="text-sm font-medium text-muted-foreground">Add guideline for {country.name}</p>
                         <div className="flex gap-2">
                           <Input
-                            placeholder="Nyckel"
+                            placeholder="Key"
                             value={selectedGuidelineTab === country.code ? newGuidelineKey : ''}
                             onChange={(e) => setNewGuidelineKey(e.target.value)}
                             className="w-32"
                           />
                           <Input
-                            placeholder="Regeltext..."
+                            placeholder="Guideline text..."
                             value={selectedGuidelineTab === country.code ? newGuidelineText : ''}
                             onChange={(e) => setNewGuidelineText(e.target.value)}
                             className="flex-1"
@@ -1355,7 +1355,7 @@ export default function Admin() {
                                 sort_order: maxOrder + 1
                               });
                               if (success) {
-                                toast.success('Regel tillagd');
+                                toast.success('Guideline added');
                                 setNewGuidelineKey('');
                                 setNewGuidelineText('');
                               }
@@ -1378,10 +1378,10 @@ export default function Admin() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ClipboardList className="h-5 w-5" />
-                Rapport-mallar per Jurisdiktion
+                Report Templates by Jurisdiction
               </CardTitle>
               <CardDescription>
-                Anpassa strukturen för tidslinje, juridisk översikt och tolkning
+                Customize structure for timeline, legal overview and interpretation
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1432,47 +1432,47 @@ export default function Admin() {
                               <CollapsibleTrigger asChild>
                                 <button className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
                                   <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="font-mono text-xs">
-                                      {reportType.key}
-                                    </Badge>
-                                    <span className="text-sm font-medium">{reportType.labelSv}</span>
+                                        <Badge variant="outline" className="font-mono text-xs">
+                                          {reportType.key}
+                                        </Badge>
+                                        <span className="text-sm font-medium">{reportType.label}</span>
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    {hasChanges && (
-                                      <Badge variant="outline" className="text-amber-600 border-amber-600 text-xs">
-                                        Osparad
-                                      </Badge>
+                                      {hasChanges && (
+                                        <Badge variant="outline" className="text-amber-600 border-amber-600 text-xs">
+                                          Unsaved
+                                        </Badge>
                                     )}
                                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                                   </div>
                                 </button>
                               </CollapsibleTrigger>
                               <CollapsibleContent>
-                                <div className="px-3 pb-3 space-y-3">
-                                  <div>
-                                    <Label className="text-xs text-muted-foreground">Sektionsrubrik</Label>
-                                    <Input
-                                      value={currentHeader}
-                                      onChange={(e) => setEditingTemplates(prev => ({
-                                        ...prev,
-                                        [templateKey]: { ...prev[templateKey], header: e.target.value }
-                                      }))}
-                                      className="text-sm"
-                                      placeholder="Rubrik..."
+                                  <div className="px-3 pb-3 space-y-3">
+                                    <div>
+                                      <Label className="text-xs text-muted-foreground">Section Header</Label>
+                                      <Input
+                                        value={currentHeader}
+                                        onChange={(e) => setEditingTemplates(prev => ({
+                                          ...prev,
+                                          [templateKey]: { ...prev[templateKey], header: e.target.value }
+                                        }))}
+                                        className="text-sm"
+                                        placeholder="Header..."
                                     />
                                   </div>
-                                  <div>
-                                    <Label className="text-xs text-muted-foreground">Mall-instruktioner</Label>
-                                    <Textarea
-                                      value={currentText}
-                                      onChange={(e) => setEditingTemplates(prev => ({
-                                        ...prev,
-                                        [templateKey]: { ...prev[templateKey], text: e.target.value }
-                                      }))}
-                                      className="min-h-[150px] text-sm font-mono"
-                                      placeholder="Mall-instruktioner..."
-                                    />
-                                  </div>
+                                    <div>
+                                      <Label className="text-xs text-muted-foreground">Template Instructions</Label>
+                                      <Textarea
+                                        value={currentText}
+                                        onChange={(e) => setEditingTemplates(prev => ({
+                                          ...prev,
+                                          [templateKey]: { ...prev[templateKey], text: e.target.value }
+                                        }))}
+                                        className="min-h-[150px] text-sm font-mono"
+                                        placeholder="Template instructions..."
+                                      />
+                                    </div>
                                   {hasChanges && (
                                     <div className="flex justify-end">
                                       <Button
@@ -1485,21 +1485,21 @@ export default function Admin() {
                                           
                                           const success = await updateTemplate(country.code, reportType.key, updates);
                                           if (success) {
-                                            toast.success(`Mall "${reportType.labelSv}" sparad`);
+                                            toast.success(`Template "${reportType.label}" saved`);
                                             setEditingTemplates(prev => {
                                               const copy = { ...prev };
                                               delete copy[templateKey];
                                               return copy;
                                             });
                                           } else {
-                                            toast.error('Kunde inte spara mall');
+                                            toast.error('Could not save template');
                                           }
                                           setSavingTemplate(null);
                                         }}
                                         disabled={isSaving}
                                       >
                                         {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                                        Spara
+                                        Save
                                       </Button>
                                     </div>
                                   )}
@@ -1521,10 +1521,10 @@ export default function Admin() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Användare
+                Users
               </CardTitle>
               <CardDescription>
-                Översikt över registrerade användare
+                Overview of registered users
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -1534,7 +1534,7 @@ export default function Admin() {
                 </div>
               ) : users.length === 0 ? (
                 <p className="text-muted-foreground text-center py-4">
-                  Inga användare hittades
+                  No users found
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -1565,17 +1565,17 @@ export default function Admin() {
                                 {user.id.slice(0, 8)}...
                               </p>
                               {isCurrentUser && (
-                                <Badge variant="outline" className="text-xs">Du</Badge>
+                                <Badge variant="outline" className="text-xs">You</Badge>
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              Skapad: {new Date(user.created_at).toLocaleDateString('sv-SE')}
+                              Created: {new Date(user.created_at).toLocaleDateString('en-US')}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant={role === 'admin' ? 'default' : 'secondary'}>
-                            {role === 'admin' ? 'Admin' : 'Användare'}
+                            {role === 'admin' ? 'Admin' : 'User'}
                           </Badge>
                           <Button
                             variant="ghost"
@@ -1585,10 +1585,10 @@ export default function Admin() {
                             disabled={isToggling || (isCurrentUser && role === 'admin')}
                             title={
                               isCurrentUser && role === 'admin' 
-                                ? 'Du kan inte ta bort din egen admin-roll'
+                                ? 'You cannot remove your own admin role'
                                 : role === 'admin' 
-                                  ? 'Ta bort admin-roll' 
-                                  : 'Gör till admin'
+                                  ? 'Remove admin role' 
+                                  : 'Make admin'
                             }
                           >
                             {isToggling ? (
