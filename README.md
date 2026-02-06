@@ -90,7 +90,62 @@ After completing your interview, click "Generate Report" to create three compreh
 
 These reports are designed to be shared with your attorney to save time, reduce consultation costs, and ensure all relevant details are documented professionally. The reports compile all information gathered during your interview, including the AI research on applicable laws and precedents, providing your lawyer with a comprehensive foundation for your case.
 
-## 🏗️ Architecture
+## 🤖 Multi-Agent Architecture
+
+Helplix Legal uses a sophisticated multi-agent system where specialized AI agents collaborate to provide comprehensive legal assistance. Each agent has distinct objectives and works in coordination with others.
+
+### Agent Overview
+
+**1. Interview Agent (cooper-chat)**
+- **Objective**: Conduct structured 7-phase interviews to gather comprehensive case information
+- **Responsibilities**:
+  - Ask relevant questions based on interview phase (opening, timeline, details, legal, evidence, impact, closing)
+  - Track information gaps and completeness percentage
+  - Follow jurisdiction-specific behavior guidelines
+  - Maintain language consistency throughout the interview
+  - Adapt question intensity based on user responses
+
+**2. Legal Research Agent (perplexity-legal-search)**
+- **Objective**: Find relevant case law, precedents, and legal documentation
+- **Responsibilities**:
+  - Search jurisdiction-specific court databases and legal systems
+  - Provide citations with case names, courts, dates, and reference numbers
+  - Explain relevance of each case to the user's situation
+  - Identify key legal principles and applicable legislation
+  - Support 6 jurisdictions (Sweden, Brazil, Mexico, Dominican Republic, Netherlands, USA)
+
+**3. Classification Agent (classify-session)**
+- **Objective**: Categorize case type and generate metadata
+- **Responsibilities**:
+  - Analyze conversation history to identify case type
+  - Classify into categories: travel_damage, consumer, insurance, housing, employment, personal_injury, general
+  - Generate brief summary (max 100 characters)
+  - Create short title (max 40 characters)
+  - Update session metadata for better organization
+
+**4. Report Generation Agent (cooper-report)**
+- **Objective**: Generate comprehensive legal documentation
+- **Responsibilities**:
+  - Create three detailed reports: Chronological Timeline, Legal Analysis, and Interpretation Report
+  - Incorporate case law from legal research agent
+  - Use jurisdiction-specific templates and legal systems
+  - Apply proper legal frameworks (e.g., Brazilian law, Swedish law, Dutch law)
+  - Generate professional reports suitable for sharing with attorneys
+
+### Agent Collaboration
+
+The agents work together seamlessly:
+
+1. **Interview Phase**: cooper-chat conducts the structured interview, gathering information while identifying gaps
+2. **Classification**: classify-session categorizes the case type early in the process
+3. **Research**: perplexity-legal-search proactively finds relevant case law and precedents
+4. **Report Generation**: cooper-report synthesizes all information into professional legal documentation
+
+This multi-agent approach ensures:
+- **Comprehensive Coverage**: Each agent specializes in its domain
+- **Information Integration**: Legal research informs both interview questions and report generation
+- **Jurisdiction Accuracy**: All agents respect country-specific legal systems
+- **Efficiency**: Parallel processing enables real-time legal research during interviews
 
 Helplix Legal uses a modern, secure architecture:
 
