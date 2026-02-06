@@ -84,9 +84,11 @@ During your interview, our AI agents:
 
 After completing your interview, click "Generate Report" to create three comprehensive reports:
 
-- **Chronological Timeline** - Event-by-event documentation
-- **Legal Analysis** - Applicable laws and regulations
-- **Interpretation Report** - Summary and recommendations
+- **Chronological Timeline** - Event-by-event documentation of your entire case
+- **Legal Analysis** - Applicable laws, regulations, and relevant court cases
+- **Interpretation Report** - Summary, recommendations, and identified information gaps
+
+These reports are designed to be shared with your attorney to save time, reduce consultation costs, and ensure all relevant details are documented professionally. The reports compile all information gathered during your interview, including the AI research on applicable laws and precedents, providing your lawyer with a comprehensive foundation for your case.
 
 ## 🏗️ Architecture
 
