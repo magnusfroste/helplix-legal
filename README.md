@@ -146,6 +146,12 @@ Our AI agents demonstrate exceptional performance:
 - **Legal Research**: Real-time access to current laws and precedents
 - **Multi-Language**: Native support for 6 languages across 6 countries
 
+### Test Results
+
+See our comprehensive test report demonstrating the system's effectiveness in real-world scenarios. The report shows exceptional performance across multiple test cases, including overbooking and denied boarding situations. The test results validate our 97% model accuracy and demonstrate the AI's ability to handle complex legal interviews with precision and thoroughness.
+
+For detailed test results and benchmark scores, see the test report in the repository.
+
 ## 🔧 Configuration
 
 ### Environment Variables
