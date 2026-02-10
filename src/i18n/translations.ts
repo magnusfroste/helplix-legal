@@ -2151,7 +2151,7 @@ export const translations: Record<CountryCode, Translations> = {
       privacy: {
         title: "AI en privacy",
         description:
-          "Helplix gebruikt AI-modellen van gevestigde leveranciers (Google Gemini). Uw gegevens worden NIET gebruikt om de AI te trainen.\n\nAls u zich ongemakkelijk voelt, kunt u uw zaak in algemene termen beschrijven zonder namen of identificeerbare details te noemen.",
+          "Helplix gebruikt privé en veilige AI-modellen. Uw gegevens worden NIET gebruikt om de AI te trainen.\n\nAls u zich ongemakkelijk voelt, kunt u uw zaak in algemene termen beschrijven zonder namen of identificeerbare details te noemen.",
       },
       next: "Volgende",
       back: "Terug",
