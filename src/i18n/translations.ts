@@ -1811,7 +1811,7 @@ export const translations: Record<CountryCode, Translations> = {
       privacy: {
         title: "AI and privacy",
         description:
-          "Helplix uses AI models from established providers (Google Gemini). Your data is NOT used to train the AI.\n\nIf you feel uncomfortable, you can describe your case in general terms without including names or identifiable details.",
+          "Helplix uses private and secure AI models. Your data is NOT used to train the AI.\n\nIf you feel uncomfortable, you can describe your case in general terms without including names or identifiable details.",
       },
       next: "Next",
       back: "Back",
