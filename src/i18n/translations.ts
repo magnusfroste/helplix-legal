@@ -442,7 +442,7 @@ export const translations: Record<CountryCode, Translations> = {
       privacy: {
         title: "IA e privacidade",
         description:
-          "Helplix usa modelos de IA de fornecedores estabelecidos (Google Gemini). Seus dados NÃO são usados para treinar a IA.\n\nSe você se sentir desconfortável, pode descrever seu caso em termos gerais sem incluir nomes ou detalhes identificáveis.",
+          "Helplix usa modelos de IA privados e seguros. Seus dados NÃO são usados para treinar a IA.\n\nSe você se sentir desconfortável, pode descrever seu caso em termos gerais sem incluir nomes ou detalhes identificáveis.",
       },
       next: "Próximo",
       back: "Voltar",
@@ -784,7 +784,7 @@ export const translations: Record<CountryCode, Translations> = {
       privacy: {
         title: "IA y privacidad",
         description:
-          "Helplix utiliza modelos de IA de proveedores establecidos (Google Gemini). Sus datos NO se utilizan para entrenar la IA.\n\nSi se siente incómodo, puede describir su caso en términos generales sin incluir nombres o detalles identificables.",
+          "Helplix utiliza modelos de IA privados y seguros. Sus datos NO se utilizan para entrenar la IA.\n\nSi se siente incómodo, puede describir su caso en términos generales sin incluir nombres o detalles identificables.",
       },
       next: "Siguiente",
       back: "Atrás",
@@ -1127,7 +1127,7 @@ export const translations: Record<CountryCode, Translations> = {
       privacy: {
         title: "IA y privacidad",
         description:
-          "Helplix utiliza modelos de IA de proveedores establecidos (Google Gemini). Sus datos NO se utilizan para entrenar la IA.\n\nSi se siente incómodo, puede describir su caso en términos generales sin incluir nombres o detalles identificables.",
+          "Helplix utiliza modelos de IA privados y seguros. Sus datos NO se utilizan para entrenar la IA.\n\nSi se siente incómodo, puede describir su caso en términos generales sin incluir nombres o detalles identificables.",
       },
       next: "Siguiente",
       back: "Atrás",
@@ -1470,7 +1470,7 @@ export const translations: Record<CountryCode, Translations> = {
       privacy: {
         title: "AI och integritet",
         description:
-          "Helplix använder AI-modeller från etablerade leverantörer (Google Gemini). Din data används INTE för att träna AI:n.\n\nOm du känner dig obekväm kan du beskriva ditt fall i generella termer utan att inkludera namn eller identifierbara detaljer.",
+          "Helplix använder privata och säkra AI-modeller. Din data används INTE för att träna AI:n.\n\nOm du känner dig obekväm kan du beskriva ditt fall i generella termer utan att inkludera namn eller identifierbara detaljer.",
       },
       next: "Nästa",
       back: "Tillbaka",
@@ -1811,7 +1811,7 @@ export const translations: Record<CountryCode, Translations> = {
       privacy: {
         title: "AI and privacy",
         description:
-          "Helplix uses AI models from established providers (Google Gemini). Your data is NOT used to train the AI.\n\nIf you feel uncomfortable, you can describe your case in general terms without including names or identifiable details.",
+          "Helplix uses private and secure AI models. Your data is NOT used to train the AI.\n\nIf you feel uncomfortable, you can describe your case in general terms without including names or identifiable details.",
       },
       next: "Next",
       back: "Back",
@@ -2151,7 +2151,7 @@ export const translations: Record<CountryCode, Translations> = {
       privacy: {
         title: "AI en privacy",
         description:
-          "Helplix gebruikt AI-modellen van gevestigde leveranciers (Google Gemini). Uw gegevens worden NIET gebruikt om de AI te trainen.\n\nAls u zich ongemakkelijk voelt, kunt u uw zaak in algemene termen beschrijven zonder namen of identificeerbare details te noemen.",
+          "Helplix gebruikt privé en veilige AI-modellen. Uw gegevens worden NIET gebruikt om de AI te trainen.\n\nAls u zich ongemakkelijk voelt, kunt u uw zaak in algemene termen beschrijven zonder namen of identificeerbare details te noemen.",
       },
       next: "Volgende",
       back: "Terug",
