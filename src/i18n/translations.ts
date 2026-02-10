@@ -1470,7 +1470,7 @@ export const translations: Record<CountryCode, Translations> = {
       privacy: {
         title: "AI och integritet",
         description:
-          "Helplix använder AI-modeller från etablerade leverantörer (Google Gemini). Din data används INTE för att träna AI:n.\n\nOm du känner dig obekväm kan du beskriva ditt fall i generella termer utan att inkludera namn eller identifierbara detaljer.",
+          "Helplix använder privata och säkra AI-modeller. Din data används INTE för att träna AI:n.\n\nOm du känner dig obekväm kan du beskriva ditt fall i generella termer utan att inkludera namn eller identifierbara detaljer.",
       },
       next: "Nästa",
       back: "Tillbaka",
