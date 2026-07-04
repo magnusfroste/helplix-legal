@@ -13,27 +13,36 @@ serve(async (req) => {
   }
 
   try {
-    const { userId } = await req.json();
-
-    if (!userId) {
-      console.error('No userId provided');
-      return new Response(
-        JSON.stringify({ isAdmin: false, error: 'No userId provided' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
-    }
-
-    console.log('Verifying admin status for user:', userId);
-
     // Create Supabase client with service role for admin operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Derive the user from the verified JWT rather than a client-supplied id,
+    // so callers can only ever check their own admin status.
+    const authHeader = req.headers.get('Authorization');
+    const token = authHeader?.replace(/^Bearer\s+/i, '');
+    if (!token) {
+      return new Response(
+        JSON.stringify({ isAdmin: false, error: 'Missing authorization token' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ isAdmin: false, error: 'Invalid or expired token' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    console.log('Verifying admin status for user:', user.id);
 
     // Check if user has admin role using the has_role function
     const { data, error } = await supabase.rpc('has_role', {
-      _user_id: userId,
+      _user_id: user.id,
       _role: 'admin'
     });
 

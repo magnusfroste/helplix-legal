@@ -7,7 +7,6 @@ const corsHeaders = {
 };
 
 interface ManageRoleRequest {
-  adminUserId: string;
   targetUserId: string;
   action: 'add' | 'remove';
   role: 'admin' | 'user';
@@ -19,9 +18,34 @@ serve(async (req) => {
   }
 
   try {
-    const { adminUserId, targetUserId, action, role } = await req.json() as ManageRoleRequest;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    if (!adminUserId || !targetUserId || !action || !role) {
+    // Derive the requesting user from the verified JWT, NOT from the request body.
+    // Trusting a client-supplied id would let anyone escalate their own privileges.
+    const authHeader = req.headers.get('Authorization');
+    const token = authHeader?.replace(/^Bearer\s+/i, '');
+    if (!token) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Missing authorization token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data: { user: requestingUser }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !requestingUser) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const adminUserId = requestingUser.id;
+
+    const { targetUserId, action, role } = await req.json() as ManageRoleRequest;
+
+    if (!targetUserId || !action || !role) {
       return new Response(
         JSON.stringify({ success: false, error: 'Missing required fields' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -29,10 +53,6 @@ serve(async (req) => {
     }
 
     console.log('Manage role request:', { adminUserId, targetUserId, action, role });
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Verify the requesting user is an admin
     const { data: isAdmin, error: adminCheckError } = await supabase.rpc('has_role', {
