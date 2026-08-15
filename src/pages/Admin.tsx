@@ -44,6 +44,7 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
   'show_ai_badge': <Bot className="h-5 w-5" />,
   'browser_stt': <Zap className="h-5 w-5" />,
   'google_stt': <Globe className="h-5 w-5" />,
+  'openai_stt': <Mic className="h-5 w-5" />,
   'stt_fallback': <ShieldCheck className="h-5 w-5" />,
 };
 
@@ -57,12 +58,14 @@ const FEATURE_LABELS: Record<string, string> = {
   'show_ai_badge': 'Show AI Model Badge',
   'browser_stt': 'Browser STT (free, Chrome)',
   'google_stt': 'Google Cloud STT (all platforms)',
+  'openai_stt': 'OpenAI STT (Whisper/GPT-4o, lower cost)',
   'stt_fallback': 'Auto-fallback between STT providers',
 };
 
 const CONNECTION_STATUS: Record<string, { label: string; available: boolean }> = {
   'perplexity': { label: 'Perplexity API', available: true }, // Connected
   'elevenlabs': { label: 'ElevenLabs API', available: true }, // Connected
+  'OPENAI_API_KEY': { label: 'OpenAI API', available: true }, // Requires OPENAI_API_KEY secret
 };
 
 export default function Admin() {
