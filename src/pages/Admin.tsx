@@ -233,7 +233,6 @@ export default function Admin() {
       
       const { data, error } = await supabase.functions.invoke('manage-role', {
         body: {
-          adminUserId: currentUserId,
           targetUserId,
           action,
           role: 'admin'

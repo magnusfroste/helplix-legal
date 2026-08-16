@@ -27,11 +27,9 @@ export function useAdminAuth(): UseAdminAuthReturn {
         return;
       }
 
-      const userId = session.user.id;
-      
-      const { data, error: fnError } = await supabase.functions.invoke('verify-admin', {
-        body: { userId }
-      });
+      // The edge function derives the user from the JWT that invoke() forwards,
+      // so no user id needs to be sent in the body.
+      const { data, error: fnError } = await supabase.functions.invoke('verify-admin');
 
       if (fnError) {
         console.error('Error calling verify-admin:', fnError);
