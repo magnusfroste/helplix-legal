@@ -13,7 +13,7 @@ import type { ConversationPhase } from '@/types/phases';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useAIConfig } from '@/hooks/useAIConfig';
 
-export type STTProvider = 'google' | 'elevenlabs' | 'browser' | 'realtime' | null;
+export type STTProvider = 'google' | 'openai' | 'elevenlabs' | 'browser' | 'realtime' | null;
 
 interface DictaphoneScreenProps {
   status: ConversationStatus;
@@ -91,6 +91,7 @@ export const DictaphoneScreen = memo(function DictaphoneScreen({
   const getSTTProviderLabel = (provider: STTProvider): string => {
     switch (provider) {
       case 'google': return 'Google';
+      case 'openai': return 'OpenAI';
       case 'elevenlabs': return 'ElevenLabs';
       case 'browser': return 'Browser';
       case 'realtime': return 'Realtime';

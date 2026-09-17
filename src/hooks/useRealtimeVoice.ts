@@ -54,17 +54,19 @@ export interface UseRealtimeVoiceOptions {
   useStreamingTTS?: boolean;
   useBrowserSTT?: boolean;
   useGoogleSTT?: boolean;
+  useOpenAISTT?: boolean;
   useSTTFallback?: boolean;
   languageCode?: string;
   onRealtimeTranscript?: (text: string) => void;
 }
 
 export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
-  const { 
-    useRealtimeSTT = false, 
-    useStreamingTTS = false, 
+  const {
+    useRealtimeSTT = false,
+    useStreamingTTS = false,
     useBrowserSTT = false,
     useGoogleSTT = false,
+    useOpenAISTT = false,
     useSTTFallback = false,
     languageCode = 'sv-SE',
     onRealtimeTranscript 
@@ -76,7 +78,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
   const [audioLevel, setAudioLevel] = useState(0);
   const [isPreloaded, setIsPreloaded] = useState(false);
   const [realtimeTranscript, setRealtimeTranscript] = useState('');
-  const [activeSTTProvider, setActiveSTTProvider] = useState<'google' | 'elevenlabs' | 'browser' | 'realtime' | null>(null);
+  const [activeSTTProvider, setActiveSTTProvider] = useState<'google' | 'openai' | 'elevenlabs' | 'browser' | 'realtime' | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -182,7 +184,14 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
       setActiveSTTProvider('google');
       // Fall through to batch recording mode below
     }
-    
+
+    // If using OpenAI STT, also use batch recording mode (sends to OpenAI endpoint)
+    else if (useOpenAISTT) {
+      console.log('Starting OpenAI STT recording (batch mode)...');
+      setActiveSTTProvider('openai');
+      // Fall through to batch recording mode below
+    }
+
     // If using browser STT (Web Speech API)
     else if (useBrowserSTT) {
       console.log('Starting browser STT recording (Web Speech API)...');
@@ -252,7 +261,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
     }
     
     // Batch mode (ElevenLabs) - original implementation
-    if (!useGoogleSTT) {
+    if (!useGoogleSTT && !useOpenAISTT) {
       setActiveSTTProvider('elevenlabs');
     }
     try {
@@ -405,7 +414,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
       console.error('Error starting recording:', error);
       throw error;
     }
-  }, [useGoogleSTT, useBrowserSTT, useRealtimeSTT, languageCode, realtimeScribe, onRealtimeTranscript]);
+  }, [useGoogleSTT, useOpenAISTT, useBrowserSTT, useRealtimeSTT, languageCode, realtimeScribe, onRealtimeTranscript]);
 
   const stopRecording = useCallback(async (): Promise<string> => {
     // If using browser STT (Web Speech API)
@@ -529,28 +538,37 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
           };
           
           // Build fallback chain based on enabled providers
-          const providers: Array<{ endpoint: string; name: string; key: 'google' | 'elevenlabs'; addLanguage: boolean }> = [];
-          
+          const providers: Array<{ endpoint: string; name: string; key: 'google' | 'openai' | 'elevenlabs'; addLanguage: boolean }> = [];
+
           if (useGoogleSTT) {
-            providers.push({ 
-              endpoint: `${SUPABASE_URL}/functions/v1/google-stt`, 
+            providers.push({
+              endpoint: `${SUPABASE_URL}/functions/v1/google-stt`,
               name: 'Google',
               key: 'google',
-              addLanguage: true 
+              addLanguage: true
             });
           }
-          
+
+          if (useOpenAISTT) {
+            providers.push({
+              endpoint: `${SUPABASE_URL}/functions/v1/openai-stt`,
+              name: 'OpenAI',
+              key: 'openai',
+              addLanguage: true
+            });
+          }
+
           // Always include ElevenLabs as fallback option
-          providers.push({ 
-            endpoint: `${SUPABASE_URL}/functions/v1/elevenlabs-stt`, 
+          providers.push({
+            endpoint: `${SUPABASE_URL}/functions/v1/elevenlabs-stt`,
             name: 'ElevenLabs',
             key: 'elevenlabs',
-            addLanguage: false 
+            addLanguage: false
           });
-          
+
           let transcriptionResult = '';
           let lastError: Error | null = null;
-          let successfulProvider: 'google' | 'elevenlabs' | null = null;
+          let successfulProvider: 'google' | 'openai' | 'elevenlabs' | null = null;
           
           for (const provider of providers) {
             try {
@@ -593,7 +611,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
       // Stop recording - this triggers ondataavailable with all data
       mediaRecorder.stop();
     });
-  }, [useGoogleSTT, useBrowserSTT, useRealtimeSTT, useSTTFallback, languageCode, realtimeScribe]);
+  }, [useGoogleSTT, useOpenAISTT, useBrowserSTT, useRealtimeSTT, useSTTFallback, languageCode, realtimeScribe]);
 
   const speak = useCallback(async (text: string): Promise<void> => {
     if (!text) return;

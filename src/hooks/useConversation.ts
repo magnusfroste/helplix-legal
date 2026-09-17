@@ -21,6 +21,7 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   const useStreamingTTS = getFlag('streaming_tts');
   const useBrowserSTT = getFlag('browser_stt');
   const useGoogleSTT = getFlag('google_stt');
+  const useOpenAISTT = getFlag('openai_stt');
   const useSTTFallback = getFlag('stt_fallback');
   
   // Analysis depth state - user's choice for this session
@@ -65,12 +66,13 @@ export function useConversation({ settings, userId }: UseConversationOptions) {
   // Phase and quality tracking
   const phaseTracking = usePhaseTracking();
 
-  // Voice service - STT priority: Google > Browser > Realtime (ElevenLabs)
+  // Voice service - STT priority: Google > OpenAI > Browser > Realtime (ElevenLabs)
   const voice = useRealtimeVoice({
-    useRealtimeSTT: !useGoogleSTT && !useBrowserSTT && useRealtimeSTT,
+    useRealtimeSTT: !useGoogleSTT && !useOpenAISTT && !useBrowserSTT && useRealtimeSTT,
     useStreamingTTS: useStreamingTTS,
-    useBrowserSTT: !useGoogleSTT && useBrowserSTT,
+    useBrowserSTT: !useGoogleSTT && !useOpenAISTT && useBrowserSTT,
     useGoogleSTT: useGoogleSTT,
+    useOpenAISTT: !useGoogleSTT && useOpenAISTT,
     useSTTFallback: useSTTFallback,
     languageCode: settings.country ? getLanguageCodeForCountry(settings.country) : 'sv-SE',
     onRealtimeTranscript: (text) => setRealtimeTranscriptText(text),
