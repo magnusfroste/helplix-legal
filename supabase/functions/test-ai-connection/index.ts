@@ -1,20 +1,32 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-type AIProvider = 'lovable' | 'openai' | 'google' | 'local';
+type AIProvider = 'lovable' | 'openai' | 'google' | 'local' | 'custom';
 
-// Determine which provider is being used based on endpoint URL
+// Determine the provider from the endpoint's exact host. Server API keys are
+// only ever sent to these official hosts; any other https host gets no key.
+const PROVIDER_HOSTS: Record<string, AIProvider> = {
+  'ai.gateway.lovable.dev': 'lovable',
+  'api.openai.com': 'openai',
+  'generativelanguage.googleapis.com': 'google',
+};
+
 function detectProvider(endpointUrl: string): AIProvider {
-  if (endpointUrl.includes('ai.gateway.lovable.dev')) return 'lovable';
-  if (endpointUrl.includes('openai.com')) return 'openai';
-  if (endpointUrl.includes('generativelanguage.googleapis')) return 'google';
-  if (endpointUrl.includes('localhost') || endpointUrl.includes('127.0.0.1')) return 'local';
-  return 'openai'; // Default to OpenAI-compatible for custom endpoints
+  let host = '';
+  try {
+    host = new URL(endpointUrl).hostname.toLowerCase();
+  } catch {
+    return 'custom';
+  }
+  if (PROVIDER_HOSTS[host]) return PROVIDER_HOSTS[host];
+  if (host === 'localhost' || host === '127.0.0.1') return 'local';
+  return 'custom';
 }
 
 // Get API key from secrets based on provider
@@ -29,7 +41,7 @@ function getApiKeyForProvider(provider: AIProvider): string {
     case 'local':
       return Deno.env.get("LOCAL_LLM_API_KEY") || ""; // Optional - some local LLMs don't need a key
     default:
-      return Deno.env.get("OPENAI_API_KEY") || "";
+      return ""; // Custom endpoints never receive a server key
   }
 }
 
@@ -62,6 +74,20 @@ serve(async (req) => {
   }
 
   try {
+    // Admins only: this function calls external endpoints with server API keys
+    const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
+    const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data: userData } = token ? await admin.auth.getUser(token) : { data: { user: null } };
+    const { data: isAdmin } = userData.user
+      ? await admin.rpc('has_role', { _user_id: userData.user.id, _role: 'admin' })
+      : { data: false };
+    if (!isAdmin) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Endast administratörer' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { endpoint_url, model_name } = await req.json();
 
     if (!endpoint_url || !model_name) {
@@ -83,7 +109,7 @@ serve(async (req) => {
     console.log(`Testing AI connection to ${providerName} (${endpoint_url}) with model ${model_name}`);
 
     // For non-local providers, require an API key. For local, it's optional but supported.
-    if (provider !== 'local' && !api_key) {
+    if (provider !== 'local' && provider !== 'custom' && !api_key) {
       return new Response(
         JSON.stringify({ 
           success: false, 
