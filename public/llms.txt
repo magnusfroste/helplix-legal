@@ -1,0 +1,12 @@
+# Helplix
+
+> Helplix is a mobile-first, voice-driven assistant that helps people document a legal situation. An AI interviewer asks structured questions, researches relevant laws, regulations and court cases for the chosen country, and produces a timeline, a legal analysis and an interpretation summary that the user can share with a lawyer.
+
+Helplix is not legal advice and does not replace a lawyer.
+
+## Pages
+- [Helplix app](https://app.helplix.com/): start a voice interview and generate reports
+- [Install](https://app.helplix.com/install): install Helplix as an app on your phone
+
+## Supported jurisdictions
+Sweden, Brazil, Mexico, Dominican Republic, Netherlands and USA.

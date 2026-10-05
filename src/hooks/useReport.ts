@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { LogEntry, CountryCode } from '@/types/helplix';
+import type { TablesUpdate } from '@/integrations/supabase/types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -102,7 +103,7 @@ export function useReport({
     try {
       if (report?.id) {
         // Update existing report
-        const updateData: Record<string, unknown> = {
+        const updateData: TablesUpdate<'reports'> = {
           timeline_report: timeline,
           legal_report: legal,
           entries_count: currentEntriesCount,
