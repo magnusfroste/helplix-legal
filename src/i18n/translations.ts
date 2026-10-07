@@ -33,6 +33,7 @@ export interface Translations {
     emailAlreadyRegistered: string;
     accountCreated: string;
     youAreLoggedIn: string;
+    checkYourEmail: string;
     errorOccurred: string;
     selectCountryError: string;
   };
@@ -402,6 +403,7 @@ export const translations: Record<CountryCode, Translations> = {
       emailAlreadyRegistered: "Este e-mail já está cadastrado",
       accountCreated: "Conta criada",
       youAreLoggedIn: "Você está conectado!",
+      checkYourEmail: "Enviamos um link de confirmação para o seu e-mail. Clique nele para ativar sua conta.",
       errorOccurred: "Ocorreu um erro",
       selectCountryError: "Selecione um país",
     },
@@ -744,6 +746,7 @@ export const translations: Record<CountryCode, Translations> = {
       emailAlreadyRegistered: "Este correo ya está registrado",
       accountCreated: "Cuenta creada",
       youAreLoggedIn: "¡Has iniciado sesión!",
+      checkYourEmail: "Te hemos enviado un enlace de confirmación por correo. Haz clic en él para activar tu cuenta.",
       errorOccurred: "Ocurrió un error",
       selectCountryError: "Selecciona un país",
     },
@@ -1087,6 +1090,7 @@ export const translations: Record<CountryCode, Translations> = {
       emailAlreadyRegistered: "Este correo ya está registrado",
       accountCreated: "Cuenta creada",
       youAreLoggedIn: "¡Has iniciado sesión!",
+      checkYourEmail: "Te hemos enviado un enlace de confirmación por correo. Haz clic en él para activar tu cuenta.",
       errorOccurred: "Ocurrió un error",
       selectCountryError: "Selecciona un país",
     },
@@ -1430,6 +1434,7 @@ export const translations: Record<CountryCode, Translations> = {
       emailAlreadyRegistered: "Denna e-post är redan registrerad",
       accountCreated: "Konto skapat",
       youAreLoggedIn: "Du är nu inloggad!",
+      checkYourEmail: "Vi har skickat en bekräftelselänk till din e-post. Klicka på den för att aktivera kontot.",
       errorOccurred: "Ett fel uppstod",
       selectCountryError: "Välj ett land",
     },
@@ -1771,6 +1776,7 @@ export const translations: Record<CountryCode, Translations> = {
       emailAlreadyRegistered: "This email is already registered",
       accountCreated: "Account created",
       youAreLoggedIn: "You are now logged in!",
+      checkYourEmail: "We sent a confirmation link to your email. Click it to activate your account.",
       errorOccurred: "An error occurred",
       selectCountryError: "Select a country",
     },
@@ -2111,6 +2117,7 @@ export const translations: Record<CountryCode, Translations> = {
       emailAlreadyRegistered: "Dit e-mailadres is al geregistreerd",
       accountCreated: "Account aangemaakt",
       youAreLoggedIn: "U bent nu ingelogd!",
+      checkYourEmail: "We hebben een bevestigingslink naar uw e-mail gestuurd. Klik erop om uw account te activeren.",
       errorOccurred: "Er is een fout opgetreden",
       selectCountryError: "Selecteer een land",
     },

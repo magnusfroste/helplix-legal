@@ -113,7 +113,7 @@ export default function Auth() {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data: signUpData, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
@@ -133,7 +133,8 @@ export default function Auth() {
       } else {
         toast({
           title: t.accountCreated,
-          description: t.youAreLoggedIn,
+          // Without a session the email has to be confirmed first
+          description: signUpData.session ? t.youAreLoggedIn : t.checkYourEmail,
         });
       }
     } catch (err) {
