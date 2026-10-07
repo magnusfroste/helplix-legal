@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { LogEntry, CountryCode } from '@/types/helplix';
 import type { TablesUpdate } from '@/integrations/supabase/types';
+import { getAccessToken } from '@/lib/accessToken';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -267,7 +268,7 @@ export function useReport({
           headers: {
             'Content-Type': 'application/json',
             'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Authorization': `Bearer ${await getAccessToken()}`,
           },
           body: JSON.stringify({
             entries: entries.map(e => ({

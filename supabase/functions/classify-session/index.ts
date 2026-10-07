@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCaller, unauthorized } from "../_shared/caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,6 +36,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+  // Signed-in users (or other edge functions with the service key) only
+  const caller = await getCaller(req);
+  if (!caller) return unauthorized(corsHeaders);
 
   try {
     const { sessionId, conversationHistory, language } = await req.json() as ClassifyRequest;
@@ -149,7 +153,8 @@ ${language ? `Respond with title and summary in ${language}.` : ''}`;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { error: updateError } = await supabase
+    // Users may only classify their own sessions
+    let updateQuery = supabase
       .from('sessions')
       .update({
         case_type: classification.case_type,
@@ -157,6 +162,8 @@ ${language ? `Respond with title and summary in ${language}.` : ''}`;
         title: classification.title,
       })
       .eq('id', sessionId);
+    if (caller.kind === 'user') updateQuery = updateQuery.eq('user_id', caller.userId);
+    const { error: updateError } = await updateQuery;
 
     if (updateError) {
       console.error("Failed to update session:", updateError);

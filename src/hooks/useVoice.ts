@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { getAccessToken } from '@/lib/accessToken';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -92,7 +93,7 @@ export function useVoice() {
               method: 'POST',
               headers: {
                 'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Authorization': `Bearer ${await getAccessToken()}`,
               },
               body: formData,
             }
@@ -146,7 +147,7 @@ export function useVoice() {
           headers: {
             'Content-Type': 'application/json',
             'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Authorization': `Bearer ${await getAccessToken()}`,
           },
           body: JSON.stringify({ text }),
         }

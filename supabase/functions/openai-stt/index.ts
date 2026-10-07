@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getCaller, unauthorized } from "../_shared/caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,6 +16,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  // Signed-in users (or other edge functions with the service key) only
+  const caller = await getCaller(req);
+  if (!caller) return unauthorized(corsHeaders);
 
   try {
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");

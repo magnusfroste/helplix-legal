@@ -3,6 +3,7 @@ import type { CooperSettings } from '@/types/helplix';
 import { COUNTRIES } from '@/types/helplix';
 import type { ConversationPhase } from '@/types/phases';
 import type { InformationGaps } from '@/types/information-tracking';
+import { getAccessToken } from '@/lib/accessToken';
 
 // Get language from country code
 const getLanguageFromCountry = (countryCode: string | null): string | null => {
@@ -55,7 +56,7 @@ export function useCooperChat({ settings, systemPrompt, questionIntensity, curre
           headers: {
             'Content-Type': 'application/json',
             'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Authorization': `Bearer ${await getAccessToken()}`,
           },
           body: JSON.stringify({
             messages: messagesRef.current,

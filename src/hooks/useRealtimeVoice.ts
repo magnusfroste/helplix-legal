@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useRealtimeScribe } from './useRealtimeScribe';
+import { getAccessToken } from '@/lib/accessToken';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -522,7 +523,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
               method: 'POST',
               headers: {
                 'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Authorization': `Bearer ${await getAccessToken()}`,
               },
               body: fd,
             });
@@ -642,7 +643,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
           headers: {
             'Content-Type': 'application/json',
             'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Authorization': `Bearer ${await getAccessToken()}`,
           },
           body: JSON.stringify({ text }),
         }
